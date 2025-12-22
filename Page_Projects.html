@@ -1,0 +1,401 @@
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+<style>
+  :root {
+    --primary-color: #0f172a;       
+    --accent-color: #2563eb;        
+    --bg-light: #f8fafc;            
+    --text-main: #334155;
+    --text-muted: #64748b;
+    --border-color: #e2e8f0;
+  }
+
+  .page-header-title { font-weight: 800; color: var(--primary-color); letter-spacing: -0.5px; }
+  .search-box { border-radius: 50px; background: #fff; padding-left: 15px; border: 1px solid var(--border-color); }
+  
+  .project-card {
+    background: #fff; border: 1px solid var(--border-color); border-radius: 12px;
+    transition: all 0.3s; position: relative; overflow: hidden; height: 100%; display: flex; flex-direction: column;
+  }
+  .project-card:hover { transform: translateY(-5px); box-shadow: 0 12px 24px -10px rgba(0,0,0,0.1); border-color: #cbd5e1; }
+
+  .card-top-accent { height: 4px; width: 100%; background: var(--border-color); position: absolute; top: 0; left: 0; }
+  .card-top-accent.active { background: #10b981; }
+  .card-top-accent.pending { background: #64748b; }
+  .card-top-accent.hold { background: #f59e0b; }
+  .card-top-accent.completed { background: #334155; }
+
+  .project-header { padding: 20px 20px 10px; display: flex; justify-content: space-between; align-items: start; }
+  .project-title { font-size: 1.1rem; font-weight: 700; color: var(--primary-color); margin-bottom: 2px; cursor: pointer; }
+  .project-title:hover { color: var(--accent-color); text-decoration: underline; }
+  .project-body { padding: 10px 20px; flex-grow: 1; }
+  
+  /* Metrics Grid */
+  .metrics-container { display: flex; flex-direction: column; gap: 6px; margin-top: 15px; background: #f8fafc; padding: 10px; border-radius: 8px; border: 1px solid #f1f5f9; }
+  .metric-row { display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; border-bottom: 1px dashed #e2e8f0; padding-bottom: 4px; }
+  .metric-row:last-child { border-bottom: none; padding-bottom: 0; }
+  .metric-label { color: var(--text-muted); font-weight: 600; display: flex; align-items: center; gap: 8px; }
+  .metric-val { font-weight: 700; color: var(--text-main); }
+
+  /* ✅ Remark Section (Interactive) */
+  .remark-section {
+    background-color: #fffbeb; border: 1px solid #fef3c7; border-radius: 6px; 
+    padding: 8px 12px; margin-top: 10px; font-size: 0.75rem; color: #92400e; line-height: 1.4;
+    cursor: pointer; transition: 0.2s; position: relative;
+  }
+  .remark-section:hover { background-color: #fef9c3; border-color: #fde68a; }
+  .remark-edit-icon { position: absolute; top: 5px; right: 5px; opacity: 0; transition: 0.2s; color: #b45309; }
+  .remark-section:hover .remark-edit-icon { opacity: 1; }
+  .remark-meta { display: block; font-size: 0.65rem; color: #b45309; margin-top: 4px; opacity: 0.7; }
+
+  .project-footer { padding: 12px 20px; border-top: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; background: #fff; }
+  .status-pill { font-size: 0.75rem; padding: 4px 12px; border-radius: 20px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; }
+  .status-active { background: #ecfdf5; color: #047857; } .status-pending { background: #f1f5f9; color: #475569; } .status-hold { background: #fffbeb; color: #b45309; } .status-completed { background: #e2e8f0; color: #1e293b; }
+  .status-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+  
+  .btn-view { font-size: 0.8rem; font-weight: 600; color: var(--accent-color); padding: 5px 12px; border-radius: 6px; background: #eff6ff; border:none; transition: 0.2s; }
+  .btn-view:hover { background: #dbeafe; color: #1e40af; }
+  .mini-progress { width: 60px; height: 6px; background: #e2e8f0; border-radius: 3px; overflow: hidden; display: inline-block; vertical-align: middle; margin-right: 6px; }
+  .mini-bar { height: 100%; border-radius: 3px; }
+</style>
+
+<div class="row align-items-center mb-5 g-3">
+  <div class="col-md-5">
+    <h3 class="mb-1 page-header-title"><i class="fas fa-layer-group me-2 text-primary opacity-75"></i>ทำเนียบโปรเจค</h3>
+    <small class="text-muted">Dashboard ติดตามสถานะงานและเป้าหมาย</small>
+  </div>
+  <div class="col-md-7">
+    <div class="d-flex gap-3 justify-content-md-end flex-wrap align-items-center">
+      <input type="text" class="form-control search-box" id="search-input" placeholder="ค้นหาโปรเจค..." style="width: 250px;" onkeyup="renderProjects()">
+      <select class="form-select shadow-sm border-0 bg-white fw-bold text-secondary" id="status-filter" style="width: 150px; border-radius: 8px;" onchange="renderProjects()">
+        <option value="All">สถานะทั้งหมด</option>
+        <option value="Active">Active</option>
+        <option value="Pending">Pending</option>
+        <option value="Hold">Hold</option>
+        <option value="Completed">Completed</option>
+      </select>
+      <button id="btn-add-project" class="btn btn-primary shadow px-4 d-none" style="border-radius: 50px;" data-bs-toggle="modal" data-bs-target="#addProjectModal" onclick="prepareProjectModal()">
+        <i class="fas fa-plus me-2"></i> สร้างโปรเจค
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4" id="project-container"></div>
+
+<div class="modal fade" id="addProjectModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg">
+      <div class="modal-header bg-white border-bottom-0 pb-0">
+        <h5 class="modal-title fw-bold text-primary">สร้างโปรเจคใหม่</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body pt-4">
+        <form id="create-project-form">
+          <div class="row g-3">
+            <div class="col-md-6"><label class="form-label small fw-bold text-muted">ชื่อลูกค้า *</label><input type="text" class="form-control bg-light border-0" name="customerName" required></div>
+            <div class="col-md-6"><label class="form-label small fw-bold text-muted">สินค้า *</label><input type="text" class="form-control bg-light border-0" name="product" required></div>
+            <div class="col-md-6"><label class="form-label small fw-bold text-muted">AE ผู้ดูแล *</label><select class="form-select bg-light border-0" name="aeOwner" id="project-ae-select" required></select></div>
+            <div class="col-md-6"><label class="form-label small fw-bold text-muted">ระยะเวลา</label><input type="text" class="form-control bg-light border-0" name="period" placeholder="เช่น 1 ม.ค. - 31 ธ.ค."></div>
+            
+            <div class="col-md-12">
+              <label class="form-label text-primary fw-bold small"><i class="fas fa-coins me-1"></i>งบยิงแอด (Ad Spend)</label>
+              <input type="text" class="form-control bg-light border-0" name="budget" placeholder="ระบุงบยิงแอด (ถ้ามี)">
+            </div>
+
+            <div class="col-md-12">
+               <label class="form-label text-warning fw-bold small"><i class="fas fa-sticky-note me-1"></i>หมายเหตุ (Remark)</label>
+               <textarea class="form-control bg-light border-0" name="remark" rows="2" placeholder="เช่น เดือน 1 ส่งครบแล้ว..."></textarea>
+            </div>
+
+            <div class="col-md-12 border-top pt-3 mt-2">
+                <h6 class="fw-bold text-dark mb-2">กำหนดเป้าหมาย (ใส่ 0 หากไม่มี)</h6>
+                <div class="row g-2">
+                    <div class="col-4"><div class="input-group input-group-sm"><span class="input-group-text bg-white border"><i class="fas fa-pen-nib text-primary"></i></span><input type="number" class="form-control" name="targetContent" placeholder="Content"></div></div>
+                    <div class="col-4"><div class="input-group input-group-sm"><span class="input-group-text bg-white border"><i class="fas fa-palette text-purple" style="color:#6f42c1;"></i></span><input type="number" class="form-control" name="targetGraphic" placeholder="Graphic"></div></div>
+                    <div class="col-4"><div class="input-group input-group-sm"><span class="input-group-text bg-white border"><i class="fas fa-video text-danger"></i></span><input type="number" class="form-control" name="targetVDO" placeholder="VDO"></div></div>
+                    
+                    <div class="col-4"><div class="input-group input-group-sm"><span class="input-group-text bg-white border"><i class="fas fa-comments text-success"></i></span><input type="number" class="form-control" name="targetAdmin" placeholder="Admin"></div></div>
+                    <div class="col-4"><div class="input-group input-group-sm"><span class="input-group-text bg-white border"><i class="fas fa-ad text-warning"></i></span><input type="number" class="form-control" name="targetAds" placeholder="Ads"></div></div>
+                    <div class="col-4"><div class="input-group input-group-sm"><span class="input-group-text bg-white border"><i class="fas fa-globe text-info"></i></span><input type="text" class="form-control" name="targetWeb" placeholder="Web"></div></div>
+                </div>
+            </div>
+            
+            <div class="col-md-12 mt-3">
+              <label class="form-label small fw-bold text-muted">Google Sheet Link</label>
+              <input type="url" class="form-control bg-light border-0" name="sheetLink">
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer border-top-0 bg-white pb-4 pe-4">
+        <button type="button" class="btn btn-light text-muted fw-bold px-4" data-bs-dismiss="modal">ยกเลิก</button>
+        <button type="button" class="btn btn-primary px-4 shadow-sm" style="border-radius: 50px;" onclick="submitNewProject()">บันทึก</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="updateRemarkModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-warning text-dark border-0">
+        <h6 class="modal-title fw-bold"><i class="fas fa-edit me-2"></i>อัปเดตหมายเหตุ</h6>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="remark-project-id">
+        <label class="form-label small text-muted">ข้อความเดิม</label>
+        <div id="old-remark-text" class="p-2 bg-light border rounded mb-3 text-muted small"></div>
+        <label class="form-label fw-bold">ข้อความใหม่</label>
+        <textarea id="new-remark-text" class="form-control" rows="3" placeholder="ระบุความคืบหน้า หรือปัญหาที่พบ..."></textarea>
+      </div>
+      <div class="modal-footer border-0 pt-0">
+        <button type="button" class="btn btn-light btn-sm" data-bs-dismiss="modal">ปิด</button>
+        <button type="button" class="btn btn-warning btn-sm fw-bold" onclick="saveRemark()">บันทึก</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function renderProjects() {
+    if (!globalData || !globalData.projects) return;
+    
+    const currentUser = globalData.currentUser;
+    const isAdmin = currentUser.role === 'Admin' || currentUser.role === 'Manager';
+    if(isAdmin) document.getElementById('btn-add-project').classList.remove('d-none');
+
+    const searchText = document.getElementById('search-input').value.toLowerCase().trim();
+    const statusFilter = document.getElementById('status-filter').value;
+    const container = document.getElementById('project-container');
+    let html = '';
+
+    let filteredProjects = globalData.projects.filter(p => {
+       if (statusFilter !== 'All' && p[9] !== statusFilter) return false;
+       if (searchText !== '') {
+         const searchString = `${p[1]} ${p[2]} ${p[3]}`.toLowerCase();
+         if (!searchString.includes(searchText)) return false;
+       }
+       return true;
+    });
+
+    filteredProjects.sort((a,b) => {
+      const statusOrder = { 'Active': 1, 'Pending': 2, 'Hold': 3, 'Completed': 4 };
+      return (statusOrder[a[9]] || 5) - (statusOrder[b[9]] || 5);
+    });
+
+    if (filteredProjects.length === 0) {
+      container.innerHTML = `<div class="col-12 text-center mt-5 text-muted py-5"><h5>ไม่พบข้อมูล</h5></div>`;
+      return;
+    }
+
+    filteredProjects.forEach(p => {
+      const contentStats = calculateWorkStats(p[0], ['Content', 'Graphic'], p[6]); 
+      const graphicStats = calculateWorkStats(p[0], ['Graphic'], p[15] || 0); 
+      const vdoStats = calculateWorkStats(p[0], 'VDO', p[7]);
+      const adminStats = calculateWorkStats(p[0], 'Admin', p[11] || 0); 
+      const adsStats = calculateWorkStats(p[0], 'Ads', p[12] || 0);     
+      const webStats = calculateWorkStats(p[0], 'Web', p[13] || 0);     
+
+      const remarkText = p[14] || 'ยังไม่มีหมายเหตุ'; // Column O
+      const overall = calculateOverallProgress(p[0]);
+
+      let statusClass = 'active';
+      if(p[9] === 'Pending') statusClass = 'pending';
+      if(p[9] === 'Hold') statusClass = 'hold';
+      if(p[9] === 'Completed') statusClass = 'completed';
+
+      html += `
+        <div class="col-xl-4 col-lg-6 col-md-6">
+          <div class="project-card h-100">
+            <div class="card-top-accent ${statusClass}"></div>
+            
+            <div class="project-header">
+               <div style="flex: 1; padding-right: 10px;">
+                  <h5 class="project-title text-truncate" title="${p[1]}" onclick="openProjectDetail('${p[0]}')">${p[1]}</h5>
+                  <div class="text-muted small"><i class="fas fa-box me-1"></i> ${p[2]}</div>
+               </div>
+               ${isAdmin ? 
+                 `<select class="form-select form-select-sm border-0 bg-light fw-bold text-secondary" style="width:auto; font-size:0.75rem;" onchange="changeStatus('${p[0]}', this.value)">
+                    <option value="Active" ${p[9]=='Active'?'selected':''}>Active</option>
+                    <option value="Pending" ${p[9]=='Pending'?'selected':''}>Pending</option>
+                    <option value="Hold" ${p[9]=='Hold'?'selected':''}>Hold</option>
+                    <option value="Completed" ${p[9]=='Completed'?'selected':''}>Done</option>
+                  </select>` : `<span class="status-pill status-${statusClass}"><span class="status-dot"></span>${p[9]}</span>`
+               }
+            </div>
+            
+            <div class="project-body">
+               <div class="d-flex justify-content-between mb-3 small text-muted">
+                  <span><i class="fas fa-user-tie me-1"></i> ${p[3]}</span>
+                  <span><i class="far fa-clock me-1"></i> ${p[5]||'-'}</span>
+               </div>
+
+               <div class="mb-3">
+                  <div class="d-flex justify-content-between align-items-end mb-1">
+                     <span class="text-uppercase fw-bold text-muted" style="font-size: 0.65rem;">Overall</span>
+                     <span class="fw-bold text-primary" style="font-size: 0.8rem;">${overall.percent}%</span>
+                  </div>
+                  <div class="progress-minimal"><div class="progress-bar-minimal" style="width: ${overall.percent}%"></div></div>
+               </div>
+
+               <div class="metrics-container">
+                  ${renderMetricRow('Content', 'fa-pen-nib text-primary', contentStats)}
+                  ${renderMetricRow('Graphic', 'fa-palette text-purple', graphicStats)}
+                  ${renderMetricRow('VDO', 'fa-video text-danger', vdoStats)}
+                  ${renderMetricRow('Admin', 'fa-comments text-success', adminStats)}
+                  ${renderMetricRow('Ads', 'fa-ad text-warning', adsStats, true)}
+                  ${renderMetricRow('Web', 'fa-globe text-info', webStats, true)}
+                  
+                  ${(contentStats.target==0 && graphicStats.target==0 && vdoStats.target==0 && adminStats.target==0 && adsStats.target==0 && webStats.target==0) ? 
+                    '<div class="text-center text-muted small py-2">ยังไม่ได้กำหนดเป้าหมาย</div>' : ''}
+               </div>
+
+               <div class="remark-section" onclick="openUpdateRemark('${p[0]}', '${remarkText.replace(/'/g, "\\'")}')">
+                  <i class="fas fa-pen-square remark-edit-icon"></i>
+                  <div>
+                     <i class="fas fa-info-circle me-1"></i> 
+                     <span id="remark-text-${p[0]}">${remarkText}</span>
+                     </div>
+               </div>
+            </div>
+
+            <div class="project-footer">
+               <div class="small fw-bold text-secondary" title="งบยิงแอด">
+                  <i class="fas fa-coins me-1 text-warning"></i> ${p[10] || '-'}
+               </div>
+               <button class="btn-view" onclick="openProjectDetail('${p[0]}')">
+                 Manage <i class="fas fa-arrow-right ms-1"></i>
+               </button>
+            </div>
+          </div>
+        </div>`;
+    });
+    container.innerHTML = html;
+  }
+
+  // --- Logic Helpers ---
+  function calculateWorkStats(projectId, taskTypes, targetQty) {
+    let target = 0;
+    if (targetQty) target = parseInt(targetQty) || 0;
+    
+    // ถ้าเป้าหมายเป็น 0 ให้ return 0 เพื่อซ่อน (Logic คือถ้าไม่ได้ซื้อ ไม่ต้องโชว์)
+    if (target === 0) return { target: 0, done: 0, percent: 0, total: 0 };
+    
+    if(!globalData.tasks) return { target, done: 0, percent: 0, total: 0 };
+    
+    const tasks = globalData.tasks.filter(t => t[1] === projectId && (Array.isArray(taskTypes) ? taskTypes.includes(t[2]) : t[2] === taskTypes));
+    const done = tasks.filter(t => t[5] === 'Done').length;
+    const total = tasks.length;
+    
+    // Calculate Percent (สำหรับ Web/Ads)
+    // สำหรับ Web/Ads เราจะใช้ Progress_Pct ของ Task มาเฉลี่ย
+    let avgProgress = 0;
+    if (total > 0) {
+       let sumPct = 0;
+       tasks.forEach(t => sumPct += (parseInt(t[6]) || 0));
+       avgProgress = Math.round(sumPct / total);
+    }
+
+    return { target, done, total, percent: avgProgress };
+  }
+
+  function renderMetricRow(label, iconClass, stats, isWeb = false) {
+    // ✅ หัวใจสำคัญ: ถ้าเป้าหมาย (target) เป็น 0 ให้ซ่อนบรรทัดนี้ไปเลย
+    if (!stats.target || stats.target === 0) return '';
+
+    let valueHtml = '';
+    if (isWeb) {
+        // Web/Ads แสดง Progress Bar
+        valueHtml = `
+          <div class="d-flex align-items-center">
+             <div class="mini-progress"><div class="mini-bar bg-info" style="width: ${stats.percent}%"></div></div>
+             <span class="small fw-bold text-dark">${stats.percent}%</span>
+          </div>`;
+    } else {
+        // Content/VDO/Graphic แสดง Count
+        const isComplete = stats.done >= stats.target;
+        const colorClass = isComplete ? 'text-success' : 'text-dark';
+        valueHtml = `<span class="${colorClass}">${stats.done}</span> <span class="text-muted fw-normal small">/ ${stats.target}</span>`;
+    }
+
+    return `
+      <div class="metric-row">
+         <span class="metric-label"><i class="fas ${iconClass}" style="width:16px;"></i> ${label}</span>
+         <span class="metric-val">${valueHtml}</span>
+      </div>
+    `;
+  }
+
+  function calculateOverallProgress(pid) {
+    if(!globalData.tasks) return { percent: 0 };
+    const t = globalData.tasks.filter(x => x[1] === pid);
+    const d = t.filter(x => x[5] === 'Done').length;
+    return { percent: t.length ? Math.round((d/t.length)*100) : 0, done:d, total:t.length };
+  }
+
+  // --- Remark Update Logic ---
+  function openUpdateRemark(projectId, oldText) {
+      document.getElementById('remark-project-id').value = projectId;
+      document.getElementById('old-remark-text').innerText = oldText;
+      document.getElementById('new-remark-text').value = '';
+      new bootstrap.Modal(document.getElementById('updateRemarkModal')).show();
+  }
+
+  function saveRemark() {
+      const pid = document.getElementById('remark-project-id').value;
+      const newText = document.getElementById('new-remark-text').value;
+      if(!newText) return alert('กรุณาระบุข้อความ');
+
+      const btn = event.target;
+      btn.innerHTML = 'บันทึก...'; btn.disabled = true;
+
+      // สร้างข้อความพร้อม Timestamp
+      const user = globalData.currentUser.name || 'Admin';
+      const time = new Date().toLocaleString('th-TH', { month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit'});
+      const fullText = `${newText} (แก้ไขโดย ${user} ${time})`;
+
+      google.script.run.withSuccessHandler(() => {
+          // Update Local Data
+          const p = globalData.projects.find(x => x[0] === pid);
+          if(p) p[14] = fullText;
+          
+          // Re-render & Close Modal
+          renderProjects();
+          bootstrap.Modal.getInstance(document.getElementById('updateRemarkModal')).hide();
+          btn.innerHTML = 'บันทึก'; btn.disabled = false;
+      }).updateProjectRemark(pid, fullText); // ⚠️ ต้องไปสร้างฟังก์ชันนี้ใน Code.gs
+  }
+
+  // --- Modal & Submit ---
+  function prepareProjectModal() {
+    const select = document.getElementById('project-ae-select');
+    select.innerHTML = '<option value="">-- เลือก AE --</option>';
+    if(globalData.allUsers) globalData.allUsers.forEach(u => select.innerHTML+=`<option value="${u}">${u}</option>`);
+  }
+
+  function submitNewProject() {
+    const f = document.getElementById('create-project-form');
+    const data = {
+        customerName: f.customerName.value, product: f.product.value, aeOwner: f.aeOwner.value,
+        period: f.period.value, budget: f.budget.value, sheetLink: f.sheetLink.value,
+        targetContent: f.targetContent.value, targetGraphic: f.targetGraphic.value,
+        targetVDO: f.targetVDO.value, targetAdmin: f.targetAdmin.value, 
+        targetAds: f.targetAds.value, targetWeb: f.targetWeb.value,
+        remark: f.remark.value
+    };
+    
+    google.script.run.withSuccessHandler(()=>{
+        bootstrap.Modal.getInstance(document.getElementById('addProjectModal')).hide();
+        renderProjects();
+        alert('Saved!');
+    }).createProject(data); 
+  }
+  
+  function changeStatus(pid, status) {
+      google.script.run.updateProjectStatus(pid, status);
+      const p = globalData.projects.find(x=>x[0]===pid); if(p) p[9]=status;
+      renderProjects();
+  }
+</script>
