@@ -1,99 +1,205 @@
 <style>
-  /* CSS เดิม + เพิ่มเติม */
-  .task-group-header { background-color: #f8f9fa; padding: 10px 15px; border-radius: 8px; font-weight: bold; margin-bottom: 10px; color: #555; border-left: 4px solid #0d6efd; display: flex; justify-content: space-between; align-items: center; }
-  .task-group-header.overdue { border-left-color: #dc3545; color: #dc3545; background-color: #fff5f5; }
-  .task-group-header.today { border-left-color: #198754; color: #198754; background-color: #f0fff4; }
-  .task-group-header.revise { border-left-color: #fd7e14; color: #fd7e14; background-color: #fff8f0; }
-  
-  .task-card { transition: transform 0.2s; border: 1px solid #eee; cursor: pointer; }
-  .task-card:hover { transform: translateY(-2px); box-shadow: 0 .5rem 1rem rgba(0,0,0,.05)!important; border-color: #b6d4fe; }
-  .task-card.revise-card { border: 1px solid #fd7e14; background-color: #fffbf5; }
+  /* --- Formal Design System --- */
+  :root {
+    --f-bg: #f8f9fa;
+    --f-card-bg: #ffffff;
+    --f-border: #e2e8f0;
+    --f-text-head: #2c3e50;
+    --f-text-body: #4b5563;
+    --f-primary: #0f172a; /* Navy Blue */
+    --f-accent: #0d6efd;   /* Action Blue */
+    --f-success: #10b981;
+    --f-warning: #f59e0b;
+    --f-danger: #ef4444;
+  }
 
-  /* Calendar Styles */
-  .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
-  .calendar-day { min-height: 100px; border: 1px solid #eee; border-radius: 6px; padding: 5px; background: #fff; }
-  .task-event { font-size: 0.7rem; background: #e9ecef; border-radius: 4px; padding: 2px 6px; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; border-left: 3px solid transparent; }
-  .task-event.pending { border-left-color: #0d6efd; background-color: #e7f1ff; }
-  .task-event.done { border-left-color: #198754; background-color: #d1e7dd; opacity: 0.6; }
-  .task-event.revise { border-left-color: #fd7e14; background-color: #fff3cd; }
+  body { background-color: var(--f-bg); font-family: 'Sarabun', sans-serif; }
+
+  /* --- Common Components --- */
+  .btn-group-nav .btn { border-color: var(--f-border); color: var(--f-text-body); background: white; }
+  .btn-group-nav .btn.active { background-color: var(--f-primary); color: white; border-color: var(--f-primary); }
+
+  /* --- 1. LIST VIEW STYLES --- */
+  .task-group-header {
+    background: transparent;
+    border-bottom: 2px solid var(--f-border);
+    padding: 10px 5px;
+    margin-bottom: 15px;
+    font-weight: 700;
+    color: var(--f-text-head);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .task-card {
+    background: var(--f-card-bg);
+    border: 1px solid var(--f-border);
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    transition: all 0.2s ease;
+    position: relative; overflow: hidden; height: 100%;
+  }
+  .task-card:hover { transform: translateY(-3px); box-shadow: 0 8px 16px rgba(0,0,0,0.08); border-color: #cbd5e1; }
+  .status-strip { position: absolute; top: 0; bottom: 0; left: 0; width: 5px; background-color: #94a3b8; }
+  .status-strip.doing { background-color: var(--f-accent); }
+  .status-strip.overdue { background-color: var(--f-danger); }
+  .card-body-custom { padding: 16px 16px 16px 24px; }
+  
+  .info-row { display: flex; margin-bottom: 6px; font-size: 0.85rem; color: var(--f-text-body); }
+  .info-label { width: 90px; flex-shrink: 0; color: #64748b; font-weight: 500; }
+  .info-value { flex-grow: 1; font-weight: 600; color: var(--f-text-head); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  /* --- 2. BOARD VIEW STYLES (Kanban) --- */
+  .board-container { display: flex; gap: 20px; overflow-x: auto; padding-bottom: 20px; height: 100%; align-items: flex-start; }
+  .board-col {
+    flex: 1; min-width: 300px; max-width: 450px;
+    background: #f1f5f9;
+    border-radius: 12px;
+    padding: 12px;
+    display: flex; flex-direction: column;
+    max-height: 75vh; 
+  }
+  .board-header { 
+    padding: 8px 12px; margin-bottom: 10px; font-weight: bold; border-radius: 8px; 
+    display: flex; justify-content: space-between; align-items: center; color: white;
+  }
+  .col-todo .board-header { background-color: #64748b; }
+  .col-doing .board-header { background-color: var(--f-accent); }
+  
+  .board-content { overflow-y: auto; flex-grow: 1; padding-right: 4px; display: flex; flex-direction: column; gap: 10px; }
+  /* Scrollbar for board */
+  .board-content::-webkit-scrollbar { width: 6px; }
+  .board-content::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 4px; }
+
+  /* --- 3. CALENDAR VIEW STYLES --- */
+  .calendar-wrapper { background: white; border-radius: 12px; border: 1px solid var(--f-border); padding: 20px; }
+  .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
+  .calendar-day-name { text-align: center; font-weight: 700; color: var(--f-primary); padding-bottom: 10px; text-transform: uppercase; font-size: 0.8rem; }
+  .calendar-day { 
+    min-height: 100px; border: 1px solid var(--f-border); border-radius: 8px; padding: 6px; background: #fff; 
+    transition: 0.2s; position: relative;
+  }
+  .calendar-day:hover { background-color: #f8fafc; border-color: #cbd5e1; }
+  .calendar-day.today { border: 2px solid var(--f-accent); background-color: #eff6ff; }
+  .calendar-day.empty { background-color: #f9fafb; border: none; }
+  
+  .task-event { 
+    font-size: 0.75rem; border-radius: 4px; padding: 3px 8px; margin-bottom: 4px; 
+    cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; 
+    border-left: 3px solid transparent; background: #e2e8f0; color: #334155;
+  }
+  .task-event.doing { background-color: #dbeafe; color: #1e40af; border-left-color: #2563eb; }
+  .task-event.pending { background-color: #f1f5f9; color: #475569; border-left-color: #94a3b8; }
+  .day-number { font-weight: 700; font-size: 0.85rem; color: #64748b; display: block; text-align: right; margin-bottom: 4px; }
 </style>
 
 <div class="row mb-4 align-items-center">
-  <div class="col"><h4 class="mb-0 text-primary"><i class="fas fa-tasks me-2"></i>งานของฉัน</h4></div>
-  <div class="col-auto">
-    <ul class="nav nav-pills bg-white p-1 rounded border shadow-sm">
-      <li class="nav-item"><button class="nav-link active btn-sm" id="tab-list-btn" onclick="switchView('list')">รายการ</button></li>
-      <li class="nav-item"><button class="nav-link btn-sm" id="tab-cal-btn" onclick="switchView('calendar')">ปฏิทิน</button></li>
-    </ul>
+  <div class="col-md-6 mb-2 mb-md-0">
+    <h5 class="mb-0 fw-bold" style="color:var(--f-primary);">
+      <i class="fas fa-tasks me-2"></i>งานของฉัน (My Tasks)
+    </h5>
+    <small class="text-muted">จัดการงานตามขั้นตอนของคุณ</small>
+  </div>
+  <div class="col-md-6 text-md-end">
+    <div class="btn-group btn-group-nav shadow-sm" role="group">
+      <button class="btn btn-sm active" id="btn-view-list" onclick="switchView('list')"><i class="fas fa-list-ul me-1"></i> รายการ</button>
+      <button class="btn btn-sm" id="btn-view-board" onclick="switchView('board')"><i class="fas fa-columns me-1"></i> บอร์ด</button>
+      <button class="btn btn-sm" id="btn-view-calendar" onclick="switchView('calendar')"><i class="far fa-calendar-alt me-1"></i> ปฏิทิน</button>
+    </div>
   </div>
 </div>
 
-<div id="view-mytasks-list"><div id="todo-container" class="row g-3"></div></div>
-<div id="view-mytasks-calendar" style="display:none;">
-  <div class="card shadow-sm border-0"><div class="card-body">
-    <div class="d-flex justify-content-between mb-3 align-items-center">
-      <button class="btn btn-light btn-sm rounded-circle" onclick="changeMonth(-1)"><i class="fas fa-chevron-left"></i></button>
-      <h5 class="mb-0 fw-bold" id="calendar-title">...</h5>
-      <button class="btn btn-light btn-sm rounded-circle" onclick="changeMonth(1)"><i class="fas fa-chevron-right"></i></button>
+<div id="view-list" class="view-section">
+  <div id="todo-container" class="row g-3"></div>
+</div>
+
+<div id="view-board" class="view-section" style="display:none;">
+  <div class="board-container">
+    <div class="board-col col-todo">
+       <div class="board-header">
+          <span><i class="fas fa-inbox me-2"></i>To Do (รอเริ่ม)</span>
+          <span class="badge bg-white text-dark rounded-pill" id="count-todo">0</span>
+       </div>
+       <div class="board-content" id="board-todo-content"></div>
+    </div>
+    <div class="board-col col-doing">
+       <div class="board-header">
+          <span><i class="fas fa-spinner fa-spin me-2"></i>Doing (กำลังทำ)</span>
+          <span class="badge bg-white text-dark rounded-pill" id="count-doing">0</span>
+       </div>
+       <div class="board-content" id="board-doing-content"></div>
+    </div>
+  </div>
+</div>
+
+<div id="view-calendar" class="view-section" style="display:none;">
+  <div class="calendar-wrapper shadow-sm">
+    <div class="d-flex justify-content-between mb-4 align-items-center">
+      <button class="btn btn-light btn-sm rounded-circle border" onclick="changeMonth(-1)"><i class="fas fa-chevron-left"></i></button>
+      <h5 class="mb-0 fw-bold text-primary" id="calendar-title">...</h5>
+      <button class="btn btn-light btn-sm rounded-circle border" onclick="changeMonth(1)"><i class="fas fa-chevron-right"></i></button>
     </div>
     <div class="calendar-grid" id="calendar-grid"></div>
-  </div></div>
+  </div>
+</div>
+
+
+<div class="modal fade" id="submitWorkModal" tabindex="-1" style="z-index: 1060;">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg">
+      <div class="modal-header text-white" style="background-color: var(--f-primary);">
+        <h6 class="modal-title fw-bold"><i class="fas fa-paper-plane me-2"></i>บันทึกนำส่งงาน (Submission)</h6>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-4">
+        <input type="hidden" id="submit-task-id"> <input type="hidden" id="submit-project-id"> 
+        <input type="hidden" id="submit-step-index"> <input type="hidden" id="submit-step-name">
+
+        <div class="alert alert-light border d-flex align-items-center mb-3 p-2">
+           <i class="fas fa-info-circle text-primary me-3 fs-4"></i>
+           <div>
+              <div class="small text-muted text-uppercase fw-bold" style="font-size:0.7rem;">กำลังส่งงานขั้นตอน</div>
+              <strong class="text-dark" id="submit-step-display">-</strong>
+           </div>
+        </div>
+        
+        <div class="mb-3">
+          <label class="form-label small fw-bold text-muted">ข้อความส่งตรวจ <span class="text-danger">*</span></label>
+          <textarea id="submit-msg" class="form-control" rows="3" placeholder="ระบุรายละเอียดงาน..."></textarea>
+        </div>
+        
+        <div class="row g-2 mb-3">
+           <div class="col-12"><label class="form-label small fw-bold text-muted">แนบไฟล์ (File)</label><input type="file" id="submit-file" class="form-control form-control-sm"></div>
+           <div class="col-12"><label class="form-label small fw-bold text-muted">หรือ ลิงก์ (URL)</label><input type="url" id="submit-link" class="form-control form-control-sm" placeholder="https://..."></div>
+        </div>
+      </div>
+      <div class="modal-footer bg-light border-0">
+        <button type="button" class="btn btn-light btn-sm" data-bs-dismiss="modal">ยกเลิก</button>
+        <button type="button" class="btn btn-primary btn-sm px-4 fw-bold" onclick="confirmSubmit()">ยืนยันการส่งงาน</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <div class="modal fade" id="taskDetailModal" tabindex="-1">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header"><h5 class="modal-title" id="modal-task-name">รายละเอียดงาน</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0">
+      <div class="modal-header border-bottom-0 pb-0"><h6 class="modal-title fw-bold text-secondary">Task Detail</h6><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
       <div class="modal-body">
-        <div class="mb-3">
-           <span class="badge bg-primary" id="modal-task-type">Type</span>
-           <span class="badge bg-secondary" id="modal-task-status">Status</span>
+        <h5 class="fw-bold mb-3 text-dark" id="modal-task-name">-</h5>
+        <div class="table-responsive">
+          <table class="table table-sm table-borderless small text-muted">
+             <tr><td width="100">Project:</td><td class="fw-bold text-dark" id="modal-client-name">-</td></tr>
+             <tr><td>Type:</td><td id="modal-task-type">-</td></tr>
+             <tr><td>Due Date:</td><td class="text-danger" id="modal-task-due">-</td></tr>
+             <tr><td>Status:</td><td><span id="modal-task-status-badge" class="badge bg-secondary">-</span></td></tr>
+          </table>
         </div>
-        <p class="mb-2"><i class="fas fa-user-tie text-muted me-2"></i> <strong id="modal-client-name">-</strong></p>
-        <p class="mb-3"><i class="fas fa-calendar-alt text-muted me-2"></i> กำหนดส่ง: <span id="modal-due-date" class="text-danger fw-bold">-</span></p>
-        <hr>
-        <h6 class="fw-bold small text-muted mb-2">เอกสาร / บรีฟงาน</h6>
-        <div id="modal-brief-area" class="d-grid gap-2"></div>
-      </div>
-      <div class="modal-footer justify-content-between">
-        <small class="text-muted" id="modal-progress-text">ความคืบหน้า 0%</small>
-        <div id="modal-action-area"></div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="modal fade" id="submitWorkModal" tabindex="-1" style="z-index: 1060;">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header bg-success text-white">
-        <h5 class="modal-title"><i class="fas fa-paper-plane me-2"></i>ส่งงาน / ส่งตรวจ</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body">
-        <input type="hidden" id="submit-task-id">
-        <input type="hidden" id="submit-project-id"> <input type="hidden" id="submit-task-name">
-        
-        <p class="mb-3">คุณกำลังส่งงาน: <strong id="submit-task-display"></strong></p>
-        
-        <div class="mb-3">
-          <label class="form-label small fw-bold">ข้อความถึงหัวหน้า (Optional)</label>
-          <textarea id="submit-msg" class="form-control" rows="2" placeholder="เช่น งานเสร็จแล้วครับ ฝากตรวจด้วยครับ..."></textarea>
-        </div>
-        
-        <div class="mb-3">
-          <label class="form-label small fw-bold">แนบลิงก์ผลงาน (Google Drive / Canva / etc.)</label>
-          <input type="url" id="submit-link" class="form-control" placeholder="https://...">
-        </div>
-        
-        <div class="mb-3">
-          <label class="form-label small fw-bold">หรือ แนบไฟล์รูปภาพ/PDF</label>
-          <input type="file" id="submit-file" class="form-control" accept="image/*,application/pdf">
+        <div class="bg-light p-3 rounded border">
+           <h6 class="fw-bold small text-muted mb-2"><i class="fas fa-paperclip me-1"></i> Attachments</h6>
+           <div id="modal-brief-area" class="d-flex flex-column gap-2"></div>
         </div>
       </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ยกเลิก</button>
-        <button type="button" class="btn btn-success fw-bold" onclick="confirmSubmit()">ยืนยันส่งงาน</button>
+      <div class="modal-footer border-0 pt-0">
+         <button class="btn btn-outline-primary btn-sm w-100" onclick="goToProjectDetail()">เปิดดูโครงการ (Full Project)</button>
       </div>
     </div>
   </div>
@@ -101,104 +207,163 @@
 
 <script>
   let currentViewDate = new Date();
+  let currentDetailProjectId = null;
+  let activeView = 'list';
 
-  function renderMyTasks() { renderTodoList(); renderCalendar(); }
+  function renderMyTasks() { 
+      // โหลดข้อมูลแล้ว Render ตาม View ที่เลือกอยู่
+      if(activeView === 'list') renderTodoList(); 
+      else if(activeView === 'board') renderBoardView();
+      else if(activeView === 'calendar') renderCalendar();
+  }
 
-  // --- RENDER LIST ---
+  // ================= DATA LOGIC =================
+  function getMyActiveWorkflowTasks() {
+      const myName = globalData.currentUser.name;
+      let tasks = [];
+      globalData.tasks.forEach(t => {
+          if (t[5] === 'Done') return; // ไม่เอางานที่จบ Project แล้ว
+          let steps = [];
+          try { steps = t[12] ? JSON.parse(t[12]) : []; } catch(e) { steps = []; }
+          const myActiveSteps = steps.filter(step => step.assignee === myName && step.status !== 'done');
+          if (myActiveSteps.length > 0) {
+              let currentStep = myActiveSteps[0];
+              let taskData = [...t];
+              taskData.stepName = currentStep.name;
+              taskData.stepDetails = currentStep.details || '';
+              taskData.effectiveDueDate = currentStep.dueDate ? currentStep.dueDate : (t[7] || ''); 
+              taskData.stepIndex = steps.indexOf(currentStep);
+              taskData.stepStatus = currentStep.status; // pending, doing
+              tasks.push(taskData);
+          }
+      });
+      return tasks;
+  }
+
+  // ================= 1. RENDER LIST VIEW =================
   function renderTodoList() {
     const container = document.getElementById('todo-container');
-    const myName = globalData.currentUser.name;
-    // แสดงงานที่ยังไม่เสร็จ (หรือเป็น Revise)
-    let myTasks = globalData.tasks.filter(t => t[4] === myName && t[5] !== 'Done');
+    const myTasks = getMyActiveWorkflowTasks();
     
+    // Sort Date Ascending
     myTasks.sort((a, b) => {
-      if (a[5] === 'Revise' && b[5] !== 'Revise') return -1;
-      if (a[5] !== 'Revise' && b[5] === 'Revise') return 1;
-      const dateA = a[7] ? new Date(a[7]) : new Date('2999-12-31');
-      const dateB = b[7] ? new Date(b[7]) : new Date('2999-12-31');
-      return dateA - dateB;
+       const dA = a.effectiveDueDate ? new Date(a.effectiveDueDate) : new Date('2999-12-31');
+       const dB = b.effectiveDueDate ? new Date(b.effectiveDueDate) : new Date('2999-12-31');
+       return dA - dB;
     });
 
-    if (myTasks.length === 0) { container.innerHTML = `<div class="col-12 text-center py-5 text-muted">🎉 ไม่มีงานค้างในตอนนี้</div>`; return; }
+    if (myTasks.length === 0) { container.innerHTML = `<div class="col-12 text-center py-5 text-muted">ไม่มีงานค้างในขณะนี้</div>`; return; }
 
-    const groups = { revise: [], overdue: [], today: [], upcoming: [], noDate: [] };
+    const groups = { overdue: [], today: [], upcoming: [], noDate: [] };
     const today = new Date(); today.setHours(0,0,0,0);
-    
     myTasks.forEach(t => {
-      if (t[5] === 'Revise') { groups.revise.push(t); return; }
-      if (!t[7]) { groups.noDate.push(t); return; }
-      const d = new Date(t[7]); d.setHours(0,0,0,0);
-      if (d < today) groups.overdue.push(t);
-      else if (d.getTime() === today.getTime()) groups.today.push(t);
-      else groups.upcoming.push(t);
+      if (!t.effectiveDueDate) { groups.noDate.push(t); return; }
+      const d = new Date(t.effectiveDueDate); d.setHours(0,0,0,0);
+      if (d < today) groups.overdue.push(t); else if (d.getTime() === today.getTime()) groups.today.push(t); else groups.upcoming.push(t);
     });
 
     let html = '';
-    html += generateTaskGroup('🔥 งานต้องแก้ไข (Revise)', groups.revise, 'revise');
-    html += generateTaskGroup('⚠️ เกินกำหนด', groups.overdue, 'overdue');
-    html += generateTaskGroup('📅 วันนี้', groups.today, 'today');
-    html += generateTaskGroup('🔜 เร็วๆ นี้', groups.upcoming, 'normal');
-    html += generateTaskGroup('📌 ไม่ระบุวัน', groups.noDate, 'normal');
+    html += generateListGroup('⚠️ Overdue (เกินกำหนด)', groups.overdue, 'overdue');
+    html += generateListGroup('📅 Today (วันนี้)', groups.today, 'normal');
+    html += generateListGroup('🔜 Upcoming (เร็วๆ นี้)', groups.upcoming, 'normal');
+    html += generateListGroup('📌 No Date (ไม่ระบุวัน)', groups.noDate, 'normal');
     container.innerHTML = html;
   }
 
-  function generateTaskGroup(title, tasks, type) {
+  function generateListGroup(title, tasks, type) {
     if (tasks.length === 0) return '';
-    let html = `<div class="col-12"><div class="task-group-header ${type}">${title} (${tasks.length})</div></div>`;
-    
-    tasks.forEach(t => {
-      const project = globalData.projects.find(p => p[0] === t[1]);
-      const clientName = project ? project[1] : 'ไม่ระบุ';
-      
-      // ปุ่ม Link หน้าการ์ด
-      let links = '';
-      // เช็ค Column 8 (Index 8) และ Column 9 (Index 9) สำหรับ Brief
-      if(t[8]) links += `<a href="${t[8]}" target="_blank" class="btn btn-sm btn-outline-primary me-1" onclick="event.stopPropagation()"><i class="fas fa-link"></i></a>`;
-      if(t[9]) links += `<a href="${t[9]}" target="_blank" class="btn btn-sm btn-outline-info me-1" onclick="event.stopPropagation()"><i class="fas fa-file-alt"></i></a>`;
-
-      // ปุ่มส่งงาน (เรียก openSubmitModal)
-      let btn = '';
-      if(t[5] === 'Revise') {
-         btn = `<button class="btn btn-sm btn-warning w-100 fw-bold" onclick="event.stopPropagation(); openSubmitModal('${t[0]}', '${t[1]}', '${t[3]}')">ส่งงานแก้</button>`;
-      } else {
-         btn = `<button class="btn btn-sm btn-success w-100" onclick="event.stopPropagation(); openSubmitModal('${t[0]}', '${t[1]}', '${t[3]}')">ส่งงาน</button>`;
-      }
-
-      let cardClass = type === 'revise' ? 'revise-card' : '';
-
-      html += `
-        <div class="col-md-6 col-lg-4">
-          <div class="card task-card shadow-sm h-100 bg-white ${cardClass}" onclick="openTaskDetail('${t[0]}')">
-            <div class="card-body p-3">
-              <div class="d-flex justify-content-between mb-2"><span class="badge bg-light text-dark border small">${t[2]}</span><small class="text-muted">${t[7] || '-'}</small></div>
-              <h6 class="fw-bold text-truncate mb-1">${t[3]}</h6>
-              <small class="text-muted d-block mb-3">${clientName}</small>
-              <div class="d-flex justify-content-between align-items-center pt-2 border-top">
-                 <div>${links}</div>
-                 <div class="flex-grow-1 ms-2">${btn}</div>
-              </div>
-            </div>
-          </div>
-        </div>`;
-    });
+    let colorClass = type === 'overdue' ? 'text-danger' : 'text-dark';
+    let html = `<div class="col-12"><div class="task-group-header ${colorClass}"><span>${title}</span> <span class="badge bg-light text-secondary border">${tasks.length}</span></div></div>`;
+    tasks.forEach(t => html += createCardHtml(t, type === 'overdue'));
     return html;
   }
 
-  // --- RENDER CALENDAR ---
+  function createCardHtml(t, isOverdue) {
+      const project = globalData.projects.find(p => p[0] === t[1]);
+      const clientName = project ? project[1] : '-';
+      let stripClass = t.stepStatus === 'doing' ? 'doing' : (isOverdue ? 'overdue' : '');
+      
+      let actionBtn = '';
+      if (t.stepStatus === 'doing') actionBtn = `<button class="btn btn-primary btn-sm w-100 fw-bold shadow-sm" onclick="event.stopPropagation(); openSubmitWorkModal('${t[0]}', '${t[1]}', ${t.stepIndex}, '${t.stepName}')"><i class="fas fa-paper-plane me-1"></i> ส่งงาน</button>`;
+      else actionBtn = `<button class="btn btn-outline-primary btn-sm w-100" onclick="event.stopPropagation(); startMyStep('${t[0]}', ${t.stepIndex})"><i class="fas fa-play me-1"></i> เริ่มทำ</button>`;
+
+      return `
+        <div class="col-md-6 col-lg-4">
+          <div class="task-card" onclick="openTaskDetail('${t[0]}')">
+            <div class="status-strip ${stripClass}"></div>
+            <div class="card-body-custom">
+              <div class="d-flex justify-content-between align-items-start mb-2">
+                 <h6 class="fw-bold mb-0 text-truncate pe-2" style="color:var(--f-primary);">${t[3]}</h6>
+                 <span class="badge bg-light text-secondary border">${t[2]}</span>
+              </div>
+              <div class="info-row"><div class="info-label">Project</div><div class="info-value">${clientName}</div></div>
+              <div class="info-row"><div class="info-label">Due Date</div><div class="info-value ${isOverdue?'text-danger':''}">${t.effectiveDueDate || '-'}</div></div>
+              <div class="mt-2 p-2 bg-light rounded border border-light">
+                 <div class="d-flex justify-content-between small fw-bold text-secondary mb-1">
+                    <span>${t.stepName}</span>
+                    ${t.stepStatus === 'doing' ? '<span class="text-primary">Doing</span>' : '<span>Pending</span>'}
+                 </div>
+                 <div class="text-muted small text-truncate"><i class="fas fa-info-circle me-1"></i> ${t.stepDetails || 'ไม่มีรายละเอียด'}</div>
+              </div>
+              <div class="mt-3">${actionBtn}</div>
+            </div>
+          </div>
+        </div>`;
+  }
+
+  // ================= 2. RENDER BOARD VIEW =================
+  function renderBoardView() {
+      const myTasks = getMyActiveWorkflowTasks();
+      const todoTasks = myTasks.filter(t => t.stepStatus === 'pending');
+      const doingTasks = myTasks.filter(t => t.stepStatus === 'doing');
+
+      document.getElementById('count-todo').innerText = todoTasks.length;
+      document.getElementById('count-doing').innerText = doingTasks.length;
+
+      document.getElementById('board-todo-content').innerHTML = todoTasks.length ? todoTasks.map(t => createBoardCardHtml(t)).join('') : '<div class="text-center text-muted mt-5 small">ไม่มีงานรอเริ่ม</div>';
+      document.getElementById('board-doing-content').innerHTML = doingTasks.length ? doingTasks.map(t => createBoardCardHtml(t)).join('') : '<div class="text-center text-muted mt-5 small">ไม่มีงานที่กำลังทำ</div>';
+  }
+
+  function createBoardCardHtml(t) {
+      const project = globalData.projects.find(p => p[0] === t[1]);
+      const clientName = project ? project[1] : '-';
+      
+      let btn = '';
+      if(t.stepStatus === 'doing') btn = `<button class="btn btn-sm btn-primary w-100" onclick="event.stopPropagation(); openSubmitWorkModal('${t[0]}', '${t[1]}', ${t.stepIndex}, '${t.stepName}')">ส่งงาน</button>`;
+      else btn = `<button class="btn btn-sm btn-outline-primary w-100" onclick="event.stopPropagation(); startMyStep('${t[0]}', ${t.stepIndex})">เริ่มทำ</button>`;
+
+      return `
+        <div class="task-card mb-2" onclick="openTaskDetail('${t[0]}')">
+           <div class="p-3">
+              <div class="small text-muted mb-1">${clientName}</div>
+              <h6 class="fw-bold mb-2" style="font-size:0.9rem;">${t[3]}</h6>
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                 <span class="badge bg-light text-dark border small">${t[2]}</span>
+                 <span class="small ${t.effectiveDueDate?'text-danger fw-bold':'text-muted'}">${t.effectiveDueDate||''}</span>
+              </div>
+              <div class="bg-light p-2 rounded small text-secondary mb-2 border">
+                 <i class="fas fa-tag me-1"></i> ${t.stepName}
+              </div>
+              ${btn}
+           </div>
+        </div>`;
+  }
+
+
+  // ================= 3. RENDER CALENDAR VIEW =================
   function renderCalendar() {
     const grid = document.getElementById('calendar-grid');
     const title = document.getElementById('calendar-title');
-    const myName = globalData.currentUser.name;
-    const tasks = globalData.tasks.filter(t => t[4] === myName); 
-
+    const myTasks = getMyActiveWorkflowTasks();
+    
     const year = currentViewDate.getFullYear();
     const month = currentViewDate.getMonth();
-    const monthNames = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
+    const monthNames = ["มกราคม","กุมภาพันธ์","มีนาคม","เมษายน","พฤษภาคม","มิถุนายน","กรกฎาคม","สิงหาคม","กันยายน","ตุลาคม","พฤศจิกายน","ธันวาคม"];
     title.innerText = `${monthNames[month]} ${year + 543}`;
-
+    
     grid.innerHTML = '';
-    ['อา', 'จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส'].forEach(d => grid.innerHTML += `<div class="calendar-day-name">${d}</div>`);
-
+    ['อา','จ','อ','พ','พฤ','ศ','ส'].forEach(d => grid.innerHTML += `<div class="calendar-day-name">${d}</div>`);
+    
     const firstDay = new Date(year, month, 1).getDay();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
     const todayStr = new Date().toISOString().split('T')[0];
@@ -206,140 +371,100 @@
     for (let i = 0; i < firstDay; i++) grid.innerHTML += `<div class="calendar-day empty"></div>`;
 
     for (let day = 1; day <= daysInMonth; day++) {
-      const currentDayStr = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
-      const dayTasks = tasks.filter(t => t[7] === currentDayStr);
-      let isToday = (currentDayStr === todayStr) ? 'today' : '';
-      
-      let taskHtml = '';
-      dayTasks.forEach(t => {
-         let typeClass = 'pending';
-         if (t[5] === 'Done') typeClass = 'done';
-         if (t[5] === 'Revise') typeClass = 'revise';
-         let icon = t[5] === 'Done' ? '✓' : (t[5] === 'Revise' ? '↺' : '•');
-         taskHtml += `<div class="task-event ${typeClass}" onclick="openTaskDetail('${t[0]}'); event.stopPropagation();" title="${t[3]}">${icon} ${t[3]}</div>`;
-      });
-
-      grid.innerHTML += `<div class="calendar-day ${isToday}"><span class="day-number">${day}</span><div style="overflow-y: auto; max-height: 70px;">${taskHtml}</div></div>`;
+       const dStr = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+       const isToday = (dStr === todayStr) ? 'today' : '';
+       
+       const dayTasks = myTasks.filter(t => t.effectiveDueDate === dStr);
+       let taskHtml = '';
+       dayTasks.forEach(t => {
+          let cls = t.stepStatus === 'doing' ? 'doing' : 'pending';
+          taskHtml += `<div class="task-event ${cls}" onclick="openTaskDetail('${t[0]}'); event.stopPropagation();" title="${t[3]}">${t[3]}</div>`;
+       });
+       
+       grid.innerHTML += `<div class="calendar-day ${isToday}"><span class="day-number">${day}</span><div style="overflow-y:auto;max-height:80px;">${taskHtml}</div></div>`;
     }
   }
 
-  // --- DETAIL MODAL ---
-  function openTaskDetail(taskId) {
-    const task = globalData.tasks.find(t => t[0] === taskId);
-    if(!task) return;
-    const project = globalData.projects.find(p => p[0] === task[1]);
-    
-    document.getElementById('modal-task-name').innerText = task[3];
-    document.getElementById('modal-task-type').innerText = task[2];
-    document.getElementById('modal-task-status').innerText = task[5];
-    document.getElementById('modal-client-name').innerText = project ? project[1] : '-';
-    document.getElementById('modal-due-date').innerText = task[7] || '-';
-    
-    let badgeClass = task[5]==='Done'?'bg-success':(task[5]==='Revise'?'bg-warning text-dark':'bg-primary');
-    document.getElementById('modal-task-status').className = `badge ${badgeClass}`;
 
-    // ปุ่ม Action ใน Modal
-    const actionArea = document.getElementById('modal-action-area');
-    if(task[5] === 'Done') {
-       actionArea.innerHTML = '<button class="btn btn-secondary w-100 disabled">ส่งแล้ว</button>';
-    } else {
-       let btnText = task[5]==='Revise' ? 'ส่งงานแก้' : 'ส่งงาน';
-       let btnColor = task[5]==='Revise' ? 'btn-warning' : 'btn-success';
-       actionArea.innerHTML = `<button class="btn ${btnColor} w-100" onclick="openSubmitModal('${task[0]}', '${task[1]}', '${task[3]}')">${btnText}</button>`;
-    }
-
-    // ✅ แสดง Brief Link/File
-    const briefArea = document.getElementById('modal-brief-area');
-    briefArea.innerHTML = '';
-    if (task[8] && task[8].trim() !== '') briefArea.innerHTML += `<a href="${task[8]}" target="_blank" class="btn btn-outline-primary w-100 mb-2 text-start"><i class="fas fa-link me-2"></i> ลิงก์บรีฟ</a>`;
-    if (task[9] && task[9].trim() !== '') briefArea.innerHTML += `<a href="${task[9]}" target="_blank" class="btn btn-outline-info w-100 mb-2 text-start"><i class="fas fa-file-download me-2"></i> ไฟล์แนบ</a>`;
-    if (briefArea.innerHTML === '') briefArea.innerHTML = '<div class="text-muted small text-center bg-light p-2 rounded">ไม่มีเอกสารแนบ</div>';
-
-    new bootstrap.Modal(document.getElementById('taskDetailModal')).show();
-  }
-
-  // ✅ SUBMIT MODAL (เปิดหน้าต่างส่งงาน)
-  function openSubmitModal(taskId, projectId, taskName) {
-    // ปิด Modal Detail ก่อน (ถ้าเปิดอยู่)
-    var detailModal = bootstrap.Modal.getInstance(document.getElementById('taskDetailModal'));
-    if(detailModal) detailModal.hide();
-
-    document.getElementById('submit-task-id').value = taskId;
-    document.getElementById('submit-project-id').value = projectId;
-    document.getElementById('submit-task-name').value = taskName;
-    document.getElementById('submit-task-display').innerText = taskName;
-    
-    // Reset Form
-    document.getElementById('submit-msg').value = '';
-    document.getElementById('submit-link').value = '';
-    document.getElementById('submit-file').value = '';
-
-    new bootstrap.Modal(document.getElementById('submitWorkModal')).show();
-  }
-
-  // ✅ CONFIRM SUBMIT (ส่งข้อมูลไปหลังบ้าน)
-  function confirmSubmit() {
-    const tid = document.getElementById('submit-task-id').value;
-    const pid = document.getElementById('submit-project-id').value;
-    const tName = document.getElementById('submit-task-name').value;
-    const msg = document.getElementById('submit-msg').value;
-    const link = document.getElementById('submit-link').value;
-    const fileInput = document.getElementById('submit-file').files[0];
-
-    const btn = event.target;
-    btn.innerHTML = 'กำลังส่ง...'; btn.disabled = true;
-
-    // สร้างข้อความแจ้งเตือนเข้าแชท
-    let chatMsg = `✅ ส่งงาน: "${tName}"`;
-    if(msg) chatMsg += `\n💬 ${msg}`;
-    if(link) chatMsg += `\n🔗 ผลงาน: ${link}`;
-
-    const handler = () => {
-       const t = globalData.tasks.find(x => x[0] === tid);
-       if(t) { t[5] = 'Done'; t[6] = 100; }
-       renderMyTasks();
-       bootstrap.Modal.getInstance(document.getElementById('submitWorkModal')).hide();
-       alert('ส่งงานเรียบร้อย! แจ้งเตือนไปยังหัวหน้าแล้ว');
-       btn.innerHTML = 'ยืนยันส่งงาน'; btn.disabled = false;
-    };
-
-    const me = globalData.currentUser.name;
-    const fileData = fileInput ? {name:fileInput.name, mimeType:fileInput.type} : null;
-
-    // Helper: ส่งแชท -> อัปเดต Task
-    const processSubmit = (fData) => {
-       google.script.run.withSuccessHandler(() => {
-          // อัปเดตสถานะเป็น Done
-          google.script.run.withSuccessHandler(handler).updateTaskProgress(tid, 'Done', 100);
-       }).postProjectUpdate(pid, chatMsg, me, fData);
-    };
-
-    if (fileInput) {
-       const reader = new FileReader();
-       reader.onload = function(e) { 
-          fileData.data = e.target.result.split(',')[1];
-          processSubmit(fileData);
-       };
-       reader.readAsDataURL(fileInput);
-    } else {
-       processSubmit(null);
-    }
-  }
-
-  // Helpers
-  function changeMonth(step) { currentViewDate.setMonth(currentViewDate.getMonth() + step); renderCalendar(); }
+  // ================= UTILS & ACTIONS =================
   function switchView(view) {
-    if(view === 'list') {
-      document.getElementById('view-mytasks-list').style.display = 'block';
-      document.getElementById('view-mytasks-calendar').style.display = 'none';
-      document.getElementById('tab-list-btn').classList.add('active');
-      document.getElementById('tab-cal-btn').classList.remove('active');
-    } else {
-      document.getElementById('view-mytasks-list').style.display = 'none';
-      document.getElementById('view-mytasks-calendar').style.display = 'block';
-      document.getElementById('tab-list-btn').classList.remove('active');
-      document.getElementById('tab-cal-btn').classList.add('active');
-      renderCalendar();
-    }
+      activeView = view;
+      document.getElementById('view-list').style.display = view==='list'?'block':'none';
+      document.getElementById('view-board').style.display = view==='board'?'block':'none';
+      document.getElementById('view-calendar').style.display = view==='calendar'?'block':'none';
+      
+      document.querySelectorAll('.btn-group-nav .btn').forEach(b => b.classList.remove('active'));
+      document.getElementById(`btn-view-${view}`).classList.add('active');
+      
+      renderMyTasks(); // Re-render for freshness
   }
+  function changeMonth(step) { currentViewDate.setMonth(currentViewDate.getMonth() + step); renderCalendar(); }
+
+  // Actions
+  function startMyStep(taskId, stepIndex) {
+      google.script.run.withSuccessHandler(res => {
+         const t = globalData.tasks.find(x => x[0] === taskId); if(t) t[12] = res.workflowJson;
+         renderMyTasks();
+      }).updateTaskWorkflowStatus(taskId, stepIndex);
+  }
+
+  function openSubmitWorkModal(taskId, projectId, stepIndex, stepName) {
+      document.getElementById('submit-task-id').value = taskId;
+      document.getElementById('submit-project-id').value = projectId;
+      document.getElementById('submit-step-index').value = stepIndex;
+      document.getElementById('submit-step-name').value = stepName;
+      document.getElementById('submit-step-display').innerText = stepName;
+      document.getElementById('submit-msg').value = ''; document.getElementById('submit-link').value = ''; document.getElementById('submit-file').value = '';
+      new bootstrap.Modal(document.getElementById('submitWorkModal')).show();
+  }
+
+  function confirmSubmit() {
+      const tid = document.getElementById('submit-task-id').value;
+      const pid = document.getElementById('submit-project-id').value;
+      const stepIdx = document.getElementById('submit-step-index').value;
+      const stepName = document.getElementById('submit-step-name').value;
+      const msg = document.getElementById('submit-msg').value;
+      const link = document.getElementById('submit-link').value;
+      const fileInput = document.getElementById('submit-file').files[0];
+      
+      if(!msg && !fileInput && !link) return alert('โปรดระบุรายละเอียด');
+      
+      const btn = event.target; btn.innerHTML = 'Sending...'; btn.disabled = true;
+      let logMsg = `✅ ส่งงาน: "${stepName}"`; if(msg) logMsg += `\n💬 ${msg}`; if(link) logMsg += `\n🔗 ${link}`;
+      const me = globalData.currentUser.name;
+      const filePayload = fileInput ? {name:fileInput.name, mimeType:fileInput.type} : null;
+
+      const handler = (res) => {
+           const t = globalData.tasks.find(x => x[0] === tid); if(t) t[12] = res.workflowJson;
+           bootstrap.Modal.getInstance(document.getElementById('submitWorkModal')).hide();
+           renderMyTasks();
+           btn.innerHTML = 'ยืนยันการส่งงาน'; btn.disabled = false;
+      };
+
+      if(fileInput) {
+          const r = new FileReader();
+          r.onload = e => { filePayload.data = e.target.result.split(',')[1]; google.script.run.withSuccessHandler(res => google.script.run.withSuccessHandler(handler).updateTaskWorkflowStatus(tid, stepIdx)).postProjectUpdate(pid, logMsg, me, filePayload); };
+          r.readAsDataURL(fileInput);
+      } else {
+          google.script.run.withSuccessHandler(res => google.script.run.withSuccessHandler(handler).updateTaskWorkflowStatus(tid, stepIdx)).postProjectUpdate(pid, logMsg, me, null);
+      }
+  }
+
+  function openTaskDetail(taskId) {
+      const task = globalData.tasks.find(t => t[0] === taskId); if(!task) return;
+      currentDetailProjectId = task[1];
+      const project = globalData.projects.find(p => p[0] === task[1]);
+      document.getElementById('modal-task-name').innerText = task[3];
+      document.getElementById('modal-task-type').innerText = task[2];
+      document.getElementById('modal-client-name').innerText = project ? project[1] : '-';
+      document.getElementById('modal-task-due').innerText = task[7] || '-';
+      document.getElementById('modal-task-status-badge').innerText = task[5];
+      
+      const briefArea = document.getElementById('modal-brief-area'); briefArea.innerHTML = '';
+      if(task[8]) briefArea.innerHTML += `<a href="${task[8]}" target="_blank" class="btn btn-sm btn-outline-primary w-100 text-start"><i class="fas fa-link me-2"></i> Brief Link</a>`;
+      if(task[9]) briefArea.innerHTML += `<a href="${task[9]}" target="_blank" class="btn btn-sm btn-outline-info w-100 text-start mt-2"><i class="fas fa-file-download me-2"></i> File</a>`;
+      if(!briefArea.innerHTML) briefArea.innerHTML = '<small class="text-muted">No attachments</small>';
+      new bootstrap.Modal(document.getElementById('taskDetailModal')).show();
+  }
+  function goToProjectDetail() { if(currentDetailProjectId) { bootstrap.Modal.getInstance(document.getElementById('taskDetailModal')).hide(); openProjectDetail(currentDetailProjectId); } }
 </script>
