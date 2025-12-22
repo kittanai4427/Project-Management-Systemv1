@@ -1,0 +1,310 @@
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+  .metric-card { transition: transform 0.2s; }
+  .metric-card:hover { transform: translateY(-5px); }
+  .clickable-row { cursor: pointer; transition: background-color 0.1s; }
+  .clickable-row:hover { background-color: #f1f8ff !important; }
+</style>
+
+<div class="container-fluid p-0">
+  
+  <div class="row g-3 mb-4">
+    <div class="col-md-3">
+      <div class="card shadow-sm border-0 border-start border-4 border-primary h-100 metric-card">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center">
+            <div><div class="small fw-bold text-muted text-uppercase">โปรเจค (Active)</div><h2 class="mb-0 fw-bold text-dark" id="kpi-project-active">0</h2></div>
+            <div class="text-primary bg-primary bg-opacity-10 p-3 rounded-circle"><i class="fas fa-layer-group fa-2x"></i></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card shadow-sm border-0 border-start border-4 border-warning h-100 metric-card">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center">
+            <div><div class="small fw-bold text-muted text-uppercase">รอวางบิล</div><h2 class="mb-0 fw-bold text-warning" id="kpi-billing-pending">0</h2></div>
+            <div class="text-warning bg-warning bg-opacity-10 p-3 rounded-circle"><i class="fas fa-file-invoice-dollar fa-2x"></i></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card shadow-sm border-0 border-start border-4 border-info h-100 metric-card">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center">
+            <div><div class="small fw-bold text-muted text-uppercase">งานค้าง (Tasks)</div><h2 class="mb-0 fw-bold text-info" id="kpi-task-pending">0</h2></div>
+            <div class="text-info bg-info bg-opacity-10 p-3 rounded-circle"><i class="fas fa-tasks fa-2x"></i></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card shadow-sm border-0 border-start border-4 border-success h-100 metric-card">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center">
+            <div><div class="small fw-bold text-muted text-uppercase">มูลค่างาน (Active)</div><h4 class="mb-0 fw-bold text-success" id="kpi-total-budget">0</h4></div>
+            <div class="text-success bg-success bg-opacity-10 p-3 rounded-circle"><i class="fas fa-coins fa-2x"></i></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-3 mb-4">
+    <div class="col-md-4">
+      <div class="card shadow-sm border-0 h-100">
+        <div class="card-header bg-white py-3"><h6 class="mb-0 fw-bold"><i class="fas fa-chart-pie me-2"></i>สถานะโปรเจค</h6></div>
+        <div class="card-body"><canvas id="chartProjectStatus" style="max-height: 250px;"></canvas></div>
+      </div>
+    </div>
+    <div class="col-md-8">
+      <div class="card shadow-sm border-0 h-100">
+        <div class="card-header bg-white py-3"><h6 class="mb-0 fw-bold"><i class="fas fa-chart-bar me-2"></i>ประเภทงาน (Overview)</h6></div>
+        <div class="card-body"><canvas id="chartTaskType" style="max-height: 250px;"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card shadow-sm border-0">
+        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+          <h6 class="mb-0 fw-bold text-primary"><i class="fas fa-calendar-day me-2"></i>ตารางงานรายวัน (Daily Schedule)</h6>
+          <span class="badge bg-light text-muted border"><i class="fas fa-info-circle me-1"></i> คลิกที่วันที่เพื่อดูรายชื่อโพรเจกต์</span>
+        </div>
+        <div class="card-body p-0">
+           <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+             <table class="table table-hover mb-0 align-middle">
+               <thead class="table-light sticky-top">
+                 <tr>
+                   <th class="ps-4">วันที่ (Date)</th>
+                   <th class="text-center">งานทั้งหมด</th>
+                   <th class="text-center text-success">เสร็จ (Done)</th>
+                   <th class="text-center text-danger">ค้าง (Pending)</th>
+                   <th style="width: 25%;">Progress</th>
+                   <th class="text-end pe-4">Action</th>
+                 </tr>
+               </thead>
+               <tbody id="daily-schedule-tbody"></tbody>
+             </table>
+           </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-12">
+      <div class="card shadow-sm border-0">
+        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+          <h6 class="mb-0 fw-bold text-dark"><i class="fas fa-users-cog me-2"></i>ประสิทธิภาพทีมงาน</h6>
+          <button class="btn btn-sm btn-outline-secondary" onclick="renderAdminPage()"><i class="fas fa-sync-alt"></i></button>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+              <thead class="bg-light text-secondary">
+                <tr>
+                  <th class="ps-4">พนักงาน</th>
+                  <th class="text-center">ทั้งหมด</th>
+                  <th class="text-center">เสร็จ</th>
+                  <th class="text-center">กำลังทำ</th>
+                  <th class="text-center">แก้ (Revise)</th>
+                  <th style="width: 25%;">Success Rate</th>
+                </tr>
+              </thead>
+              <tbody id="admin-workload-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="modal fade" id="dailyDetailModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title"><i class="fas fa-calendar-alt me-2"></i>งานประจำวันที่ <span id="modal-daily-date" class="fw-bold"></span></h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-0">
+        <div class="table-responsive">
+          <table class="table table-striped mb-0">
+            <thead class="table-light">
+              <tr>
+                <th class="ps-4">ชื่องาน</th>
+                <th>ประเภท</th>
+                <th>ผู้รับผิดชอบ</th>
+                <th>สถานะ</th>
+              </tr>
+            </thead>
+            <tbody id="modal-daily-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">ปิด</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  let chartProjectInstance = null;
+  let chartTaskInstance = null;
+
+  function renderAdminPage() {
+    if (!globalData) return;
+
+    // 1. KPI
+    const activeProjects = globalData.projects.filter(p => p[9] === 'Active');
+    const pendingBilling = globalData.projects.filter(p => p[10] === 'Pending');
+    const pendingTasks = globalData.tasks.filter(t => t[5] !== 'Done');
+    let totalBudget = 0;
+    activeProjects.forEach(p => {
+       let amount = parseFloat((p[4] || "0").toString().replace(/,/g, '').replace(/[^\d.-]/g, ''));
+       if (!isNaN(amount)) totalBudget += amount;
+    });
+
+    document.getElementById('kpi-project-active').innerText = activeProjects.length;
+    document.getElementById('kpi-billing-pending').innerText = pendingBilling.length;
+    document.getElementById('kpi-task-pending').innerText = pendingTasks.length;
+    document.getElementById('kpi-total-budget').innerText = totalBudget.toLocaleString('en-US');
+
+    // 2. Charts
+    const statusCounts = { Active: 0, Hold: 0, Completed: 0 };
+    globalData.projects.forEach(p => { statusCounts[p[9]] = (statusCounts[p[9]]||0) + 1; });
+    const taskTypes = {}; 
+    globalData.tasks.forEach(t => { let type = t[2]||'Other'; taskTypes[type] = (taskTypes[type]||0) + 1; });
+    renderCharts(statusCounts, taskTypes);
+
+    // 3. Daily Table & Workload
+    renderDailyTable();
+    renderWorkloadTable();
+  }
+
+  // ✅ ฟังก์ชันสร้างตารางรายวัน (อัปเกรด)
+  function renderDailyTable() {
+    const tbody = document.getElementById('daily-schedule-tbody');
+    let dailyStats = {};
+
+    globalData.tasks.forEach(t => {
+      // t[7] = Due Date
+      let dateKey = (t[7] && t[7].trim() !== "") ? t[7] : "ไม่ระบุวัน";
+      if (!dailyStats[dateKey]) dailyStats[dateKey] = { total: 0, done: 0, pending: 0 };
+      
+      dailyStats[dateKey].total++;
+      if (t[5] === 'Done') dailyStats[dateKey].done++;
+      else dailyStats[dateKey].pending++;
+    });
+
+    // เรียงวันที่ (เอา "ไม่ระบุวัน" ไว้ท้ายสุด)
+    let sortedDates = Object.keys(dailyStats).sort((a, b) => {
+      if(a === "ไม่ระบุวัน") return 1; if(b === "ไม่ระบุวัน") return -1;
+      return new Date(a) - new Date(b);
+    });
+
+    let html = '';
+    const todayStr = new Date().toISOString().split('T')[0];
+
+    sortedDates.forEach(date => {
+      let stats = dailyStats[date];
+      let pct = Math.round((stats.done / stats.total) * 100) || 0;
+      let barColor = pct === 100 ? 'bg-success' : (pct >= 50 ? 'bg-info' : 'bg-warning');
+      
+      // Highlight วัน
+      let rowClass = (date === todayStr) ? 'table-warning fw-bold' : '';
+      let dateLabel = (date === todayStr) ? `<i class="fas fa-star text-warning me-1"></i> ${date} (วันนี้)` : date;
+      if (date === "ไม่ระบุวัน") dateLabel = `<span class="text-muted fst-italic">${date}</span>`;
+
+      html += `
+        <tr class="${rowClass} clickable-row" onclick="openDailyDetail('${date}')" title="คลิกเพื่อดูรายละเอียด">
+          <td class="ps-4">${dateLabel}</td>
+          <td class="text-center fw-bold">${stats.total}</td>
+          <td class="text-center text-success">${stats.done}</td>
+          <td class="text-center text-danger fw-bold">${stats.pending}</td>
+          <td>
+             <div class="progress" style="height: 8px;">
+               <div class="progress-bar ${barColor}" style="width: ${pct}%"></div>
+             </div>
+          </td>
+          <td class="text-end pe-4"><button class="btn btn-sm btn-outline-primary"><i class="fas fa-search"></i> ดู</button></td>
+        </tr>
+      `;
+    });
+
+    tbody.innerHTML = html || '<tr><td colspan="6" class="text-center py-4 text-muted">ไม่มีข้อมูลงาน</td></tr>';
+  }
+
+  // ✅ ฟังก์ชันเปิด Modal ดูรายละเอียดรายวัน
+  function openDailyDetail(dateKey) {
+    const tbody = document.getElementById('modal-daily-tbody');
+    document.getElementById('modal-daily-date').innerText = dateKey;
+    tbody.innerHTML = '';
+
+    // กรองงานของวันนั้น
+    let tasks = globalData.tasks.filter(t => {
+       let d = (t[7] && t[7].trim() !== "") ? t[7] : "ไม่ระบุวัน";
+       return d === dateKey;
+    });
+
+    if(tasks.length === 0) {
+       tbody.innerHTML = '<tr><td colspan="4" class="text-center">ไม่พบข้อมูล</td></tr>';
+    } else {
+       tasks.forEach(t => {
+          let statusBadge = t[5]==='Done' ? 'bg-success' : (t[5]==='Revise'?'bg-warning text-dark':'bg-secondary');
+          let assignee = t[4] || '-';
+          // หาชื่อโปรเจค (ถ้ามี)
+          let project = globalData.projects.find(p => p[0] === t[1]);
+          let projName = project ? `<br><small class="text-muted">${project[1]}</small>` : '';
+
+          tbody.innerHTML += `
+            <tr>
+              <td class="ps-4 fw-bold">${t[3]} ${projName}</td>
+              <td><span class="badge bg-light text-dark border">${t[2]}</span></td>
+              <td><i class="fas fa-user-circle text-muted me-1"></i>${assignee}</td>
+              <td><span class="badge ${statusBadge}">${t[5]}</span></td>
+            </tr>
+          `;
+       });
+    }
+
+    new bootstrap.Modal(document.getElementById('dailyDetailModal')).show();
+  }
+
+  // ... (ฟังก์ชัน renderWorkloadTable และ renderCharts คงเดิม) ...
+  function renderWorkloadTable() {
+    let workload = {};
+    globalData.tasks.forEach(t => {
+       let assignee = t[4]; if(!assignee || assignee === 'Unassigned') return;
+       if(!workload[assignee]) workload[assignee] = { total: 0, done: 0, active: 0, revise: 0 };
+       workload[assignee].total++;
+       if(t[5] === 'Done') workload[assignee].done++;
+       else if(t[5] === 'Revise') workload[assignee].revise++;
+       else workload[assignee].active++;
+    });
+    let html = '';
+    Object.keys(workload).sort((a,b) => workload[b].total - workload[a].total).forEach(name => {
+       let stats = workload[name];
+       let pct = Math.round((stats.done / stats.total) * 100) || 0;
+       let barColor = pct >= 80 ? 'bg-success' : pct >= 50 ? 'bg-info' : 'bg-warning';
+       html += `<tr><td class="ps-4 fw-bold">${name}</td><td class="text-center">${stats.total}</td><td class="text-center text-success">${stats.done}</td><td class="text-center text-primary">${stats.active}</td><td class="text-center text-danger">${stats.revise||'-'}</td><td class="pe-3"><div class="progress" style="height:10px;"><div class="progress-bar ${barColor}" style="width:${pct}%"></div></div></td></tr>`;
+    });
+    document.getElementById('admin-workload-tbody').innerHTML = html||'<tr><td colspan="6" class="text-center py-4">ไม่มีข้อมูล</td></tr>';
+  }
+
+  function renderCharts(statusData, typeData) {
+    const ctx1 = document.getElementById('chartProjectStatus').getContext('2d');
+    if (chartProjectInstance) chartProjectInstance.destroy();
+    chartProjectInstance = new Chart(ctx1, { type: 'doughnut', data: { labels: ['Active', 'Hold', 'Completed'], datasets: [{ data: [statusData.Active, statusData.Hold, statusData.Completed], backgroundColor: ['#0d6efd', '#ffc107', '#6c757d'], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } } });
+
+    const ctx2 = document.getElementById('chartTaskType').getContext('2d');
+    if (chartTaskInstance) chartTaskInstance.destroy();
+    chartTaskInstance = new Chart(ctx2, { type: 'bar', data: { labels: Object.keys(typeData), datasets: [{ label: 'จำนวนงาน', data: Object.values(typeData), backgroundColor: '#0dcaf0', borderRadius: 4 }] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } } });
+  }
+</script>
