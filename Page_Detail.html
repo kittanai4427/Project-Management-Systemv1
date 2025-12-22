@@ -169,15 +169,25 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body pt-2">
-        <input type="hidden" id="workflow-task-id">
-        <input type="hidden" id="workflow-step-index">
-        <div class="mb-3">
-          <label class="form-label small fw-bold text-muted">เลือกผู้รับผิดชอบ</label>
-          <select class="form-select border-primary bg-light" id="workflow-assignee-select" style="font-size:0.9rem;">
-            <option value="Unassigned">-- ไม่ระบุ --</option>
-          </select>
-        </div>
-      </div>
+  <input type="hidden" id="workflow-task-id">
+  <input type="hidden" id="workflow-step-index">
+  
+  <div class="mb-3">
+    <label class="form-label small fw-bold text-muted">ผู้รับผิดชอบ</label>
+    <select class="form-select border-primary bg-light" id="workflow-assignee-select" style="font-size:0.9rem;">
+      <option value="Unassigned">-- ไม่ระบุ --</option>
+    </select>
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label small fw-bold text-muted">วันที่ต้องการ (Optional)</label>
+    <input type="date" class="form-control form-control-sm" id="workflow-step-date">
+  </div>
+  <div class="mb-3">
+    <label class="form-label small fw-bold text-muted">รายละเอียด (เช่น สถานที่ถ่าย/นัดหมาย)</label>
+    <textarea class="form-control form-control-sm" id="workflow-step-details" rows="2" placeholder="ระบุรายละเอียดเพิ่มเติม..."></textarea>
+  </div>
+  </div>
       <div class="modal-footer border-0 pt-0">
         <button type="button" class="btn btn-primary w-100 rounded-pill shadow-sm" onclick="saveStepAssignee()">บันทึก</button>
       </div>
@@ -285,34 +295,50 @@
           const assigneeName = step.assignee === 'Unassigned' ? 'ระบุผู้รับผิดชอบ' : step.assignee;
           const assigneeClass = step.assignee === 'Unassigned' ? 'text-muted fst-italic step-unassigned' : 'text-primary fw-bold';
 
+          // ✅ ส่วนที่เพิ่ม: เตรียม HTML สำหรับ Date และ Details
+          let extraInfo = '';
+          if(step.dueDate) extraInfo += `<div class="text-danger small mt-1" style="font-size:0.7rem"><i class="far fa-calendar-alt me-1"></i> ${step.dueDate}</div>`;
+          if(step.details) extraInfo += `<div class="text-muted small mt-1 text-wrap" style="font-size:0.7rem; line-height:1.2;"><i class="fas fa-info-circle me-1"></i> ${step.details}</div>`;
+
           html += `<div class="workflow-step px-2 rounded ${rowClass}">
                      <div class="step-status-icon ${iconClass}" onclick="toggleStepStatus('${taskId}', ${index})">${iconContent}</div>
                      <div class="step-info">
                         <div class="step-name">${step.name}</div>
-                        <div class="step-assignee ${assigneeClass}" onclick="openAssignStepModal('${taskId}', ${index})"><i class="fas fa-user-circle me-1"></i> ${assigneeName}</div>
-                     </div>
+                        <div class="step-assignee ${assigneeClass}" onclick="openAssignStepModal('${taskId}', ${index})">
+                            <i class="fas fa-user-circle me-1"></i> ${assigneeName}
+                        </div>
+                        ${extraInfo} </div>
                    </div>`;
       });
       container.innerHTML = html;
   }
 
   // ✅ Function to Open Assign Modal & Populate Data
+  // แก้ไขฟังก์ชันเปิด Modal (ประมาณบรรทัด 240)
   function openAssignStepModal(taskId, stepIndex) {
       document.getElementById('workflow-task-id').value = taskId;
       document.getElementById('workflow-step-index').value = stepIndex;
+      
+      // ✅ เพิ่ม: ดึงข้อมูลเดิมมาใส่ใน Input (ถ้ามี)
+      const t = globalData.tasks.find(x => x[0] === taskId);
+      let steps = []; try { steps = JSON.parse(t[12] || '[]'); } catch(e){}
+      // ถ้าไม่มี JSON (ยังไม่เคยแก้) ให้ลองใช้ Template แบบคร่าวๆ หรือปล่อยว่างไว้
+      const stepData = steps[stepIndex] || {};
+
+      document.getElementById('workflow-step-date').value = stepData.dueDate || '';
+      document.getElementById('workflow-step-details').value = stepData.details || '';
+      
       const select = document.getElementById('workflow-assignee-select');
       select.innerHTML = '<option value="Unassigned">-- ไม่ระบุ --</option>';
 
       if (globalData.allUsers) {
-          // Group by Role
+          // ... (โค้ดส่วนสร้าง options เดิม คงไว้เหมือนเดิม) ...
           const grouped = {};
           globalData.allUsers.forEach(u => {
               const role = u.role || 'Other';
               if (!grouped[role]) grouped[role] = [];
               grouped[role].push(u.name || u);
           });
-
-          // Create Optgroups
           for (const [role, names] of Object.entries(grouped)) {
               const group = document.createElement('optgroup');
               group.label = role;
@@ -324,25 +350,51 @@
               select.appendChild(group);
           }
       }
+      
+      // เลือก Assignee เดิม
+      if(stepData.assignee) select.value = stepData.assignee;
+
       new bootstrap.Modal(document.getElementById('assignStepModal')).show();
   }
 
+  // แก้ไขฟังก์ชันบันทึก (ประมาณบรรทัด 264)
   function saveStepAssignee() {
       const taskId = document.getElementById('workflow-task-id').value;
       const stepIndex = document.getElementById('workflow-step-index').value;
       const newName = document.getElementById('workflow-assignee-select').value;
+      
+      // ✅ รับค่าใหม่
+      const newDate = document.getElementById('workflow-step-date').value;
+      const newDetails = document.getElementById('workflow-step-details').value;
+
       const btn = event.target;
       btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> บันทึก...'; btn.disabled = true;
 
+      // ✅ ส่งค่า newDate, newDetails ไปที่ Server ด้วย
       google.script.run.withSuccessHandler((res) => {
           renderWorkflow(taskId, res.taskType, res.workflowJson);
+          
+          // อัปเดต globalData เพื่อให้ไม่ต้องรีเฟรชหน้า
+          const t = globalData.tasks.find(x => x[0] === taskId);
+          if (t) t[12] = res.workflowJson; 
+
           bootstrap.Modal.getInstance(document.getElementById('assignStepModal')).hide();
           btn.innerHTML = 'บันทึก'; btn.disabled = false;
-      }).updateTaskWorkflowAssignee(taskId, stepIndex, newName);
+      }).updateTaskWorkflowAssignee(taskId, stepIndex, newName, newDate, newDetails);
   }
 
-  function toggleStepStatus(taskId, stepIndex) { google.script.run.withSuccessHandler((res) => { renderWorkflow(taskId, res.taskType, res.workflowJson); }).updateTaskWorkflowStatus(taskId, stepIndex); }
 
+function toggleStepStatus(taskId, stepIndex) { 
+      google.script.run.withSuccessHandler((res) => { 
+          renderWorkflow(taskId, res.taskType, res.workflowJson); 
+          
+          // ✅ เพิ่มส่วนนี้: อัปเดต globalData
+          const t = globalData.tasks.find(x => x[0] === taskId);
+          if (t) { 
+             t[12] = res.workflowJson; 
+          }
+      }).updateTaskWorkflowStatus(taskId, stepIndex); 
+  }
   function openTaskView(taskId) {
     const t = globalData.tasks.find(x => x[0] === taskId); if(!t) return;
     document.getElementById('view-task-id').innerText = t[0]; document.getElementById('view-task-name-full').innerText = t[3]; document.getElementById('view-task-type').innerText = t[2]; document.getElementById('view-task-assignee').innerText = t[4]; document.getElementById('view-task-due').innerText = t[7] || 'Not Set';
