@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="th">
+  <head>
+    <base target="_top">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <?!= include('Global_CSS_JS'); ?> 
+
+    <style>
+      :root {
+        --primary-color: #0d6efd; 
+        --primary-hover: #0b5ed7;
+        --bg-color: #f4f6f9;
+        --text-main: #333333;
+      }
+
+      body {
+        font-family: 'Sarabun', sans-serif;
+        background-color: var(--bg-color);
+        color: var(--text-main);
+      }
+
+      /* Navbar Styling */
+      .navbar-custom {
+        background-color: #ffffff;
+        border-bottom: 1px solid #e0e0e0;
+        padding: 0.8rem 1rem;
+      }
+
+      .navbar-brand {
+        font-weight: 700;
+        color: #2c3e50 !important;
+        font-size: 1.2rem;
+        display: flex;
+        align-items: center;
+      }
+
+      /* ✅ ปรับแต่งปุ่มเมนู (Nav Link) */
+      .nav-link {
+        color: #6c757d !important;
+        font-weight: 500;
+        margin-right: 5px;
+        padding: 8px 20px !important; /* เพิ่มพื้นที่ภายในปุ่ม */
+        border-radius: 50px;          /* ทำเป็นทรงแคปซูล (Pill) */
+        transition: all 0.3s ease;
+      }
+
+      /* ✅ เมื่อเอาเมาส์ชี้ (Hover) หรือ เลือกอยู่ (Active) */
+      .nav-link:hover, .nav-link.active {
+        color: #ffffff !important;           /* ตัวหนังสือสีขาว */
+        background-color: var(--primary-color); /* พื้นหลังสีฟ้า */
+        box-shadow: 0 4px 6px rgba(13, 110, 253, 0.2); /* เงาฟุ้งๆ สวยงาม */
+        transform: translateY(-1px); /* ลอยขึ้นเล็กน้อย */
+      }
+
+      /* User Profile Badge */
+      .user-badge {
+        background-color: #f8f9fa;
+        padding: 5px 15px;
+        border-radius: 50px;
+        border: 1px solid #e9ecef;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 0.9rem;
+      }
+      
+      .main-container { min-height: 85vh; }
+    </style>
+  </head>
+  <body>
+    
+    <nav class="navbar navbar-expand-lg navbar-custom sticky-top shadow-sm">
+      <div class="container-fluid px-4">
+        
+        <a class="navbar-brand" href="#">
+          <img src="https://media.internth.com/company/13445/d8fa38c5a25801bb6af91b8c28238cd4.png" 
+               alt="Logo" height="40" class="d-inline-block align-text-center me-2">
+          <span class="d-none d-sm-inline" style="font-size: 1.1rem;">Project Management</span>
+        </a>
+
+        <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+          <span class="navbar-toggler-icon" style="background-image: url('data:image/svg+xml;charset=utf8,%3Csvg viewBox=\'0 0 30 30\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cpath stroke=\'rgba(0, 0, 0, 0.5)\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-miterlimit=\'10\' d=\'M4 7h22M4 15h22M4 23h22\'/%3E%3C/svg%3E');"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav ms-4 me-auto">
+            <li class="nav-item">
+              <a class="nav-link active" style="cursor: pointer;" onclick="showPage('page-dashboard', this)">
+                <i class="fas fa-chart-pie me-1"></i> ภาพรวม
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" style="cursor: pointer;" onclick="showPage('page-mytasks', this)">
+                <i class="fas fa-list-check me-1"></i> งานของฉัน
+              </a>
+            </li>
+            <li class="nav-item" id="menu-admin" style="display:none;">
+              <a class="nav-link" style="cursor: pointer;" onclick="showPage('page-admin', this)">
+                <i class="fas fa-user-shield me-1"></i> ผู้บริหาร
+              </a>
+            </li>
+          </ul>
+
+          <div class="user-badge text-secondary">
+            <div class="bg-primary text-white rounded-circle d-flex justify-content-center align-items-center" style="width: 30px; height: 30px;">
+              <i class="fas fa-user small"></i>
+            </div>
+            <div>
+              <span class="d-block lh-1 fw-bold text-dark" id="user-display">Loading...</span>
+              <small class="text-muted" style="font-size: 0.7rem;" id="role-display">User</small>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </nav>
+
+    <div class="container-fluid px-4 mt-4 pb-5 main-container" id="main-content">
+      <div id="page-dashboard" class="page-section"><?!= include('Page_Projects'); ?></div>
+      <div id="page-mytasks" class="page-section" style="display:none;"><?!= include('Page_MyTasks'); ?></div>
+      <div id="page-admin" class="page-section" style="display:none;"><?!= include('Page_Admin'); ?></div>
+      <div id="page-detail" class="page-section" style="display:none;"><?!= include('Page_Detail'); ?></div>
+    </div>
+
+    <footer class="text-center py-3 text-muted small mt-auto border-top bg-white">
+      © 2024 Project Management System. All rights reserved.
+    </footer>
+
+    <script>
+       let globalData = {};
+
+       window.onload = function() {
+         google.script.run.withSuccessHandler(initApp).getSystemData();
+       };
+
+       function initApp(data) {
+         globalData = data;
+         document.getElementById('user-display').innerText = data.currentUser.name;
+         document.getElementById('role-display').innerText = data.currentUser.role || 'Team Member';
+
+         if (data.currentUser.role === 'Admin' || data.currentUser.role === 'Manager' || data.currentUser.role === 'Management') {
+           document.getElementById('menu-admin').style.display = 'block';
+           if(typeof renderAdminPage === 'function') renderAdminPage();
+         }
+         
+         if(typeof renderProjects === 'function') renderProjects();
+         if(typeof renderMyTasks === 'function') renderMyTasks();
+       }
+
+       function showPage(pageId, element) {
+         document.querySelectorAll('.page-section').forEach(el => el.style.display = 'none');
+         document.getElementById(pageId).style.display = 'block';
+         
+         // Logic สลับปุ่ม Active
+         if (element) {
+            document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
+            element.classList.add('active');
+         } else {
+            // กรณีไม่มี element (เช่น กด Back) ให้หาปุ่มแล้ว Active เอง
+            document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
+            if(pageId === 'page-dashboard') document.querySelector('a[onclick*="page-dashboard"]').classList.add('active');
+            if(pageId === 'page-mytasks') document.querySelector('a[onclick*="page-mytasks"]').classList.add('active');
+            if(pageId === 'page-admin') document.querySelector('a[onclick*="page-admin"]').classList.add('active');
+         }
+         
+         if(pageId === 'page-mytasks' && typeof renderMyTasks === 'function') renderMyTasks();
+         if(pageId === 'page-dashboard' && typeof renderProjects === 'function') renderProjects();
+         if(pageId === 'page-admin' && typeof renderAdminPage === 'function') renderAdminPage();
+       }
+       
+       function getStatusColor(status) {
+         if(status === 'Done' || status === 'Completed') return 'success';
+         if(status === 'In Progress' || status === 'Active') return 'primary';
+         if(status === 'Review' || status === 'Hold') return 'warning';
+         if(status === 'Revise') return 'danger';
+         return 'secondary';
+       }
+    </script>
+  </body>
+</html>
