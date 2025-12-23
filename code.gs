@@ -471,6 +471,8 @@ function updateTaskWorkflowAssignee(taskId, stepIndex, newName, newDate, newDeta
 
 function forceAuth() { DriveApp.getRootFolder(); }
 
+// ในไฟล์ code.gs ค้นหาฟังก์ชัน saveContentTaskDB
+
 function saveContentTaskDB(data, fileData) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const ws = ss.getSheetByName("DB_Tasks");
@@ -479,49 +481,44 @@ function saveContentTaskDB(data, fileData) {
   let fileUrl = "";
   let fileName = "";
 
-  // 1. จัดการไฟล์แนบ (ถ้ามี)
+  // ========================================================
+  // 🔴 แก้ไขตรงนี้: เรียกใช้ฟังก์ชัน uploadFileToDrive แทนการใส่ ID เอง
+  // ========================================================
   if (fileData) {
-    const folder = DriveApp.getFolderById("YOUR_FOLDER_ID_HERE"); // ใส่ ID โฟลเดอร์รูป
-    const blob = Utilities.newBlob(Utilities.base64Decode(fileData.data), fileData.mimeType, fileData.name);
-    const file = folder.createFile(blob);
-    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-    fileUrl = file.getUrl();
-    fileName = fileData.name;
+    // เรียกใช้ฟังก์ชันที่มีอยู่แล้ว (บรรทัด 63) ระบบจะหาโฟลเดอร์ "Project_Uploads" ให้เอง
+    var fileInfo = uploadFileToDrive(fileData); 
+    fileUrl = fileInfo.url;
+    fileName = fileInfo.name;
   }
+  // ========================================================
 
-  // 2. บันทึกลง Sheet
+  // 2. บันทึกลง Sheet (ส่วนด้านล่างเหมือนเดิม)
   if (taskId) {
-    // --- กรณีแก้ไข (Edit) ---
-    // ค้นหาแถวจาก Task ID แล้วอัปเดตคอลัมน์ Pillar(13), Media(14), Remark(15) ฯลฯ
-    // (ต้องเขียน Loop ค้นหา ID หรือใช้ textFinder)
-    // ...
+     // ... (ส่วนโค้ดแก้ไข Task - ถ้ามี) ...
   } else {
-    // --- กรณีสร้างใหม่ (New) ---
-    taskId = "T-" + Math.floor(Math.random() * 1000000).toString(16); // Gen ID ง่ายๆ
-    // เรียง Data ให้ตรงกับคอลัมน์ใน Sheet
+    taskId = "T-" + Math.floor(Math.random() * 1000000).toString(16);
+    
     const newRow = [
       taskId,
       data.projectId,
-      data.taskType, // Content
-      data.taskName, // Ideas
+      data.taskType,
+      data.taskName,
       data.assignee,
-      data.status,   // To Do
-      0,             // Progress
+      data.status,
+      0,
       data.dueDate,
-      "",            // Link
-      fileUrl,       // File URL
-      fileName,      // File Name
-      "",            // Workflow
-      "",            // Unnamed
-      data.pillar,   // Col 14 (Index 13)
-      data.mediaType,// Col 15 (Index 14)
-      data.remark    // Col 16 (Index 15)
+      "",
+      fileUrl,       // ✅ ใช้ตัวแปรที่ได้จากฟังก์ชัน helper
+      fileName,      // ✅ ใช้ตัวแปรที่ได้จากฟังก์ชัน helper
+      "",
+      "",
+      data.pillar,
+      data.mediaType,
+      data.remark
     ];
     ws.appendRow(newRow);
   }
   
-  // Return ข้อมูลกลับไปให้หน้าเว็บแสดงผลทันที
-  // ต้อง Return เป็น Array ที่โครงสร้างเหมือน globalData.tasks
   return [
       taskId, data.projectId, data.taskType, data.taskName, 
       data.assignee, data.status, 0, data.dueDate, "", 
