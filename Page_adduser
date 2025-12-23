@@ -1,0 +1,94 @@
+<div class="container-fluid py-3">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h5 class="fw-bold text-dark mb-1">
+                <i class="fas fa-users-cog me-2 text-primary"></i>จัดการผู้ใช้งาน (User Management)
+            </h5>
+            <small class="text-muted">เพิ่ม ลบ หรือแก้ไขสิทธิ์การใช้งานของพนักงาน</small>
+        </div>
+        <button class="btn btn-primary rounded-pill shadow-sm fw-bold px-4" onclick="openUserModal()">
+            <i class="fas fa-user-plus me-2"></i> เพิ่มพนักงานใหม่
+        </button>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="ps-4 py-3 text-secondary" width="5%">#</th>
+                        <th class="py-3 text-secondary" width="30%">User Profile</th>
+                        <th class="py-3 text-secondary" width="10%">Role</th>
+                        <th class="py-3 text-secondary" width="15%">Team</th>
+                        <th class="py-3 text-secondary" width="15%">Status</th>
+                        <th class="py-3 text-secondary text-end pe-4" width="25%">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="user-table-body">
+                    <tr><td colspan="6" class="text-center py-5 text-muted">กำลังโหลดข้อมูล...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="userModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header border-0 pb-0">
+                <h6 class="modal-title fw-bold" id="userModalTitle">เพิ่มพนักงานใหม่</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body pt-3">
+                <form id="userForm">
+                    <input type="hidden" id="original-email">
+                    <div class="mb-3">
+                        <label class="small fw-bold text-muted">ชื่อ-นามสกุล</label>
+                        <input type="text" class="form-control" id="u-name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="small fw-bold text-muted">อีเมล (Email)</label>
+                        <input type="email" class="form-control" id="u-email" required>
+                    </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-6">
+                            <label class="small fw-bold text-muted">ตำแหน่ง</label>
+                            <select class="form-select" id="u-role">
+                                <option value="User">User</option>
+                                <option value="Manager">Manager</option>
+                                <option value="Admin">Admin</option>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label class="small fw-bold text-muted">ทีม</label>
+                            <select class="form-select" id="u-team">
+                                <option value="General">General</option>
+                                <option value="Content">Content</option>
+                                <option value="Graphic">Graphic</option>
+                                <option value="VDO">VDO</option>
+                                <option value="Ads">Ads</option>
+                                <option value="Web">Web</option>
+                                <option value="Management">Management</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="small fw-bold text-muted">สถานะ</label>
+                        <select class="form-select" id="u-status">
+                            <option value="Active">Active</option>
+                            <option value="Inactive">Inactive</option>
+                        </select>
+                    </div>
+                    <div class="mb-2">
+                        <label class="small fw-bold text-muted">รูปโปรไฟล์ (URL)</label>
+                        <input type="text" class="form-control form-control-sm" id="u-photo">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-light rounded-pill" data-bs-dismiss="modal">ยกเลิก</button>
+                <button type="button" class="btn btn-primary rounded-pill px-4" onclick="submitUser()">บันทึก</button>
+            </div>
+        </div>
+    </div>
+</div>
