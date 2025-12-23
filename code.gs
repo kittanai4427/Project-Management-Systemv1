@@ -194,23 +194,63 @@ function updateProjectStatus(projectId, newStatus) {
   return updateCell("DB_Projects", projectId, 10, null, newStatus, null);
 }
 
-function updateTaskRevision(taskId, newDueDate, newLink, fileData) {
+// แก้ไข: รับ parameter stepIndex เพิ่ม
+function updateTaskRevision(taskId, newDueDate, newLink, fileData, stepIndex) {
   var ss = SpreadsheetApp.openById(SHEET_ID);
   var sheet = ss.getSheetByName("DB_Tasks");
   var data = sheet.getDataRange().getValues();
+  
   var fileInfo = fileData ? uploadFileToDrive(fileData) : { name: "", url: "" };
 
   for (var i = 1; i < data.length; i++) {
     if (data[i][0] == taskId) {
-      sheet.getRange(i + 1, 6).setValue("Revise"); // Status
-      if (newDueDate) sheet.getRange(i + 1, 8).setValue(newDueDate); // DueDate
-      if (newLink) sheet.getRange(i + 1, 9).setValue(newLink); // Link
+      
+      // 1. อัปเดตข้อมูลทั่วไป
+      sheet.getRange(i + 1, 6).setValue("Revise"); // Status หลัก = Revise
+      if (newDueDate) sheet.getRange(i + 1, 8).setValue(newDueDate);
+      if (newLink) sheet.getRange(i + 1, 9).setValue(newLink);
       if (fileInfo.url) {
         sheet.getRange(i + 1, 10).setValue(fileInfo.url);
         sheet.getRange(i + 1, 11).setValue(fileInfo.name);
       }
+
+      // 2. ✅ เพิ่มส่วนนี้: จัดการ Workflow และเปลี่ยน Assignee ตามขั้นตอนที่เลือก
+      var jsonStr = data[i][12]; // Col M (Workflow JSON)
+      var steps = [];
+      try { steps = jsonStr ? JSON.parse(jsonStr) : []; } catch(e) {}
+      
+      var newAssignee = null;
+      var updatedWorkflow = null;
+
+      // ตรวจสอบว่ามีขั้นตอนที่เลือกส่งมาหรือไม่
+      if (steps.length > 0 && stepIndex != null && stepIndex != -1 && steps[stepIndex]) {
+          // เปลี่ยนสถานะขั้นตอนนี้กลับเป็น 'doing' เพื่อให้ขึ้นสีฟ้า/เหลือง
+          steps[stepIndex].status = 'doing';
+          
+          // ดึงชื่อคนรับผิดชอบในขั้นตอนนี้
+          var targetUser = steps[stepIndex].assignee;
+          
+          // ถ้ามีคนรับผิดชอบ ให้เปลี่ยน Assignee หลักของงาน (Col E / Index 4) เป็นคนนั้น
+          if (targetUser && targetUser !== 'Unassigned') {
+              sheet.getRange(i + 1, 5).setValue(targetUser);
+              newAssignee = targetUser;
+          }
+
+          // บันทึก Workflow JSON ใหม่ลงฐานข้อมูล (Col M / Index 12)
+          updatedWorkflow = JSON.stringify(steps);
+          sheet.getRange(i + 1, 13).setValue(updatedWorkflow);
+      }
+
       clearCache();
-      return { status: "Success", fileUrl: fileInfo.url, fileName: fileInfo.name };
+      
+      // ส่งค่ากลับไปหน้าเว็บ
+      return { 
+          status: "Success", 
+          fileUrl: fileInfo.url, 
+          fileName: fileInfo.name,
+          updatedWorkflow: updatedWorkflow, // ส่ง JSON ใหม่กลับไป
+          newAssignee: newAssignee // ส่งชื่อคนรับผิดชอบใหม่กลับไป
+      };
     }
   }
   return { status: "Task Not Found" };
@@ -430,3 +470,62 @@ function updateTaskWorkflowAssignee(taskId, stepIndex, newName, newDate, newDeta
 }
 
 function forceAuth() { DriveApp.getRootFolder(); }
+
+function saveContentTaskDB(data, fileData) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ws = ss.getSheetByName("DB_Tasks");
+  
+  let taskId = data.taskId;
+  let fileUrl = "";
+  let fileName = "";
+
+  // 1. จัดการไฟล์แนบ (ถ้ามี)
+  if (fileData) {
+    const folder = DriveApp.getFolderById("YOUR_FOLDER_ID_HERE"); // ใส่ ID โฟลเดอร์รูป
+    const blob = Utilities.newBlob(Utilities.base64Decode(fileData.data), fileData.mimeType, fileData.name);
+    const file = folder.createFile(blob);
+    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    fileUrl = file.getUrl();
+    fileName = fileData.name;
+  }
+
+  // 2. บันทึกลง Sheet
+  if (taskId) {
+    // --- กรณีแก้ไข (Edit) ---
+    // ค้นหาแถวจาก Task ID แล้วอัปเดตคอลัมน์ Pillar(13), Media(14), Remark(15) ฯลฯ
+    // (ต้องเขียน Loop ค้นหา ID หรือใช้ textFinder)
+    // ...
+  } else {
+    // --- กรณีสร้างใหม่ (New) ---
+    taskId = "T-" + Math.floor(Math.random() * 1000000).toString(16); // Gen ID ง่ายๆ
+    // เรียง Data ให้ตรงกับคอลัมน์ใน Sheet
+    const newRow = [
+      taskId,
+      data.projectId,
+      data.taskType, // Content
+      data.taskName, // Ideas
+      data.assignee,
+      data.status,   // To Do
+      0,             // Progress
+      data.dueDate,
+      "",            // Link
+      fileUrl,       // File URL
+      fileName,      // File Name
+      "",            // Workflow
+      "",            // Unnamed
+      data.pillar,   // Col 14 (Index 13)
+      data.mediaType,// Col 15 (Index 14)
+      data.remark    // Col 16 (Index 15)
+    ];
+    ws.appendRow(newRow);
+  }
+  
+  // Return ข้อมูลกลับไปให้หน้าเว็บแสดงผลทันที
+  // ต้อง Return เป็น Array ที่โครงสร้างเหมือน globalData.tasks
+  return [
+      taskId, data.projectId, data.taskType, data.taskName, 
+      data.assignee, data.status, 0, data.dueDate, "", 
+      fileUrl, fileName, "", "", 
+      data.pillar, data.mediaType, data.remark
+  ];
+}
