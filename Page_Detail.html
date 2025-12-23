@@ -2,69 +2,595 @@
 <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
 
 <style>
-  :root { --ci-blue: #0d6efd; --ci-navy: #2c3e50; --ci-bg: #f8f9fa; --ci-border: #dee2e6; --ci-text: #333333; --chat-bg-me: #0d6efd; --chat-bg-other: #ffffff; }
-  body { font-family: 'Sarabun', sans-serif; background-color: var(--ci-bg); color: var(--ci-text); height: 100vh; overflow: hidden; margin: 0; }
+  :root {
+    --ci-blue: #0d6efd;
+    --ci-navy: #2c3e50;
+    --ci-bg: #f8f9fa;
+    --ci-border: #dee2e6;
+    --ci-text: #333333;
+    --chat-bg-me: #0d6efd;
+    --chat-bg-other: #ffffff;
+  }
+
+  body {
+    font-family: 'Sarabun', sans-serif;
+    background-color: var(--ci-bg);
+    color: var(--ci-text);
+    height: 100vh;
+    overflow: hidden;
+    margin: 0;
+  }
 
   /* Layout */
-  .card-formal { background: #fff; border: 1px solid var(--ci-border); border-radius: 8px; height: 84vh; display: flex; flex-direction: column; margin: 2.5vh auto; max-width: 98vw; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); overflow: hidden; }
-  .detail-header { flex-shrink: 0; height: 55px; border-bottom: 1px solid var(--ci-border); background: #fff; display: flex; align-items: center; padding: 0 15px; justify-content: space-between; }
-  .panel-container { flex-grow: 1; overflow: hidden; display: flex; height: 100%; }
-  .left-panel { border-right: 1px solid var(--ci-border); display: flex; flex-direction: column; height: 100%; overflow: hidden; width: 65%; }
-  .right-panel { display: flex; flex-direction: column; height: 100%; background-color: #f8fafc; width: 35%; min-width: 320px; min-height: 0; }
+  .card-formal {
+    background: #fff;
+    border: 1px solid var(--ci-border);
+    border-radius: 8px;
+    height: 84vh;
+    display: flex;
+    flex-direction: column;
+    margin: 2.5vh auto;
+    max-width: 98vw;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+  }
+
+  .detail-header {
+    flex-shrink: 0;
+    height: 55px;
+    border-bottom: 1px solid var(--ci-border);
+    background: #fff;
+    display: flex;
+    align-items: center;
+    padding: 0 15px;
+    justify-content: space-between;
+  }
+
+  .panel-container {
+    flex-grow: 1;
+    overflow: hidden;
+    display: flex;
+    height: 100%;
+  }
+
+  .left-panel {
+    border-right: 1px solid var(--ci-border);
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+    width: 65%;
+  }
+
+  .right-panel {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background-color: #f8fafc;
+    width: 35%;
+    min-width: 320px;
+    min-height: 0;
+  }
 
   /* Metrics & Info */
-  .metrics-bar { padding: 10px 15px; border-bottom: 1px solid var(--ci-border); background: #fff; flex-shrink: 0; display: flex; flex-direction: column; gap: 8px; }
-  .info-grid-basic { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; padding-bottom: 5px; border-bottom: 1px solid #f0f0f0; }
-  .info-item { text-align: center; border-right: 1px solid #eee; } .info-item:last-child { border-right: none; }
-  .info-label { font-size: 0.6rem; color: #888; text-transform: uppercase; display: block; margin-bottom: 2px; }
-  .info-value { font-size: 0.85rem; font-weight: bold; color: var(--ci-navy); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .target-container { display: flex; flex-wrap: wrap; gap: 6px; }
-  .target-tag { font-size: 0.7rem; padding: 2px 8px; border-radius: 4px; background: #f8f9fa; color: #555; font-weight: 600; display: flex; align-items: center; gap: 4px; border: 1px solid #e9ecef; }
-  .remark-section { background-color: #fffbeb; border: 1px solid #fef3c7; border-radius: 6px; padding: 6px 10px; margin-top: 5px; font-size: 0.75rem; color: #92400e; line-height: 1.4; cursor: pointer; transition: 0.2s; position: relative; display: none; }
-  .remark-section:hover { background-color: #fef9c3; border-color: #fde68a; } .remark-edit-icon { position: absolute; top: 5px; right: 5px; opacity: 0; transition: 0.2s; color: #b45309; } .remark-section:hover .remark-edit-icon { opacity: 1; }
+  .metrics-bar {
+    padding: 10px 15px;
+    border-bottom: 1px solid var(--ci-border);
+    background: #fff;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
 
-  /* ✅ WORKFLOW STYLES (ปรับให้สวยงาม) */
-  .workflow-container { background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 15px; margin-bottom: 15px; }
-  .workflow-step { display: flex; align-items: center; padding: 8px 0; border-bottom: 1px solid #eee; transition: 0.2s; } .workflow-step:last-child { border-bottom: none; }
-  .step-status-icon { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 12px; font-size: 0.7rem; cursor: pointer; transition: 0.2s; flex-shrink: 0; }
-  .step-pending { background: #fff; color: #cbd5e1; border: 2px solid #cbd5e1; }
-  .step-doing { background: #fff; color: #0d6efd; border: 2px solid #0d6efd; animation: pulse 2s infinite; }
-  .step-done { background: #198754; color: #fff; border: 2px solid #198754; }
-  .step-info { flex: 1; min-width: 0; }
-  .step-name { font-size: 0.85rem; font-weight: bold; color: var(--ci-navy); }
-  .step-assignee { font-size: 0.75rem; color: #64748b; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; padding: 2px 6px; border-radius: 4px; transition: 0.2s; }
-  .step-assignee:hover { background-color: #e0e7ff; color: var(--ci-blue); }
-  .step-unassigned { color: #94a3b8; font-style: italic; }
-  @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(13,110,253,0.4); } 70% { box-shadow: 0 0 0 6px rgba(13,110,253,0); } 100% { box-shadow: 0 0 0 0 rgba(13,110,253,0); } }
+  .info-grid-basic {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid #f0f0f0;
+  }
+
+  .info-item {
+    text-align: center;
+    border-right: 1px solid #eee;
+  }
+
+  .info-item:last-child {
+    border-right: none;
+  }
+
+  .info-label {
+    font-size: 0.6rem;
+    color: #888;
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 2px;
+  }
+
+  .info-value {
+    font-size: 0.85rem;
+    font-weight: bold;
+    color: var(--ci-navy);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .target-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .target-tag {
+    font-size: 0.7rem;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: #f8f9fa;
+    color: #555;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    border: 1px solid #e9ecef;
+  }
+
+  .remark-section {
+    background-color: #fffbeb;
+    border: 1px solid #fef3c7;
+    border-radius: 6px;
+    padding: 6px 10px;
+    margin-top: 5px;
+    font-size: 0.75rem;
+    color: #92400e;
+    line-height: 1.4;
+    cursor: pointer;
+    transition: 0.2s;
+    position: relative;
+    display: none;
+  }
+
+  .remark-section:hover {
+    background-color: #fef9c3;
+    border-color: #fde68a;
+  }
+
+  .remark-edit-icon {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    opacity: 0;
+    transition: 0.2s;
+    color: #b45309;
+  }
+
+  .remark-section:hover .remark-edit-icon {
+    opacity: 1;
+  }
+
+  /* Workflow Styles */
+  .workflow-container {
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 10px 15px;
+    margin-bottom: 15px;
+  }
+
+  .workflow-step {
+    display: flex;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #eee;
+    transition: 0.2s;
+  }
+
+  .workflow-step:last-child {
+    border-bottom: none;
+  }
+
+  .step-status-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 12px;
+    font-size: 0.7rem;
+    cursor: pointer;
+    transition: 0.2s;
+    flex-shrink: 0;
+  }
+
+  .step-pending {
+    background: #fff;
+    color: #cbd5e1;
+    border: 2px solid #cbd5e1;
+  }
+
+  .step-doing {
+    background: #fff;
+    color: #0d6efd;
+    border: 2px solid #0d6efd;
+    animation: pulse 2s infinite;
+  }
+
+  .step-done {
+    background: #198754;
+    color: #fff;
+    border: 2px solid #198754;
+  }
+
+  .step-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .step-name {
+    font-size: 0.85rem;
+    font-weight: bold;
+    color: var(--ci-navy);
+  }
+
+  .step-assignee {
+    font-size: 0.75rem;
+    color: #64748b;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    transition: 0.2s;
+  }
+
+  .step-assignee:hover {
+    background-color: #e0e7ff;
+    color: var(--ci-blue);
+  }
+
+  .step-unassigned {
+    color: #94a3b8;
+    font-style: italic;
+  }
+
+  @keyframes pulse {
+    0% {
+      box-shadow: 0 0 0 0 rgba(13, 110, 253, 0.4);
+    }
+
+    70% {
+      box-shadow: 0 0 0 6px rgba(13, 110, 253, 0);
+    }
+
+    100% {
+      box-shadow: 0 0 0 0 rgba(13, 110, 253, 0);
+    }
+  }
 
   /* Chat & View */
-  .chat-header { padding: 12px 15px; border-bottom: 1px solid var(--ci-border); background: #fff; flex-shrink: 0; font-weight: bold; color: var(--ci-navy); display: flex; align-items: center; gap: 8px; height: 50px; }
-  .chat-box { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 8px; min-height: 0; }
-  .chat-input-area { padding: 10px 15px; background-color: #fff; border-top: 1px solid var(--ci-border); flex-shrink: 0; }
-  .chat-row { display: flex; flex-direction: column; width: 100%; margin-bottom: 0; } .chat-row.me { align-items: flex-end; } .chat-row.other { align-items: flex-start; }
-  .chat-meta { font-size: 0.65rem; color: #888; margin-bottom: 2px; padding: 0 2px; display: flex; gap: 6px; align-items: center; }
-  .chat-bubble { padding: 8px 12px; border-radius: 12px; position: relative; max-width: 85%; font-size: 0.9rem; line-height: 1.4; white-space: pre-line; word-break: break-word; box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05); }
-  .chat-row.me .chat-bubble { background-color: var(--chat-bg-me); color: white; border-bottom-right-radius: 2px; } .chat-row.other .chat-bubble { background-color: var(--chat-bg-other); color: var(--ci-text); border: 1px solid var(--ci-border); border-bottom-left-radius: 2px; }
-  .view-content { flex: 1; overflow-y: auto; padding: 0; background-color: #fff; }
-  .nav-bar { padding: 0 15px; border-bottom: 1px solid var(--ci-border); background: #fff; flex-shrink: 0; height: 45px; display: flex; align-items: center; justify-content: space-between; }
-  .nav-tabs-formal { border-bottom: none; margin-bottom: 0; } .nav-tabs-formal .nav-link { padding: 8px 12px; font-size: 0.85rem; color: #666; border-bottom: 2px solid transparent; } .nav-tabs-formal .nav-link.active { color: var(--ci-blue); border-bottom-color: var(--ci-blue); font-weight: 700; }
-  .kanban-container { overflow-x: auto; white-space: nowrap; padding: 15px; height: 100%; background: #f8f9fa; } .kanban-col { display: inline-block; width: 260px; vertical-align: top; margin-right: 10px; background: #eaeff2; border-radius: 6px; padding: 8px; height: 100%; overflow-y: auto; } .kanban-card { background: white; border: 1px solid var(--ci-border); border-radius: 6px; padding: 10px; margin-bottom: 8px; cursor: pointer; white-space: normal; }
-  .border-status-done { border-left-color: #198754; } .border-status-doing { border-left-color: var(--ci-blue); } .border-status-todo { border-left-color: #6c757d; } .border-status-revise { border-left-color: #ffc107; background-color: #fffbf0; }
-  .clickable-row { cursor: pointer; transition: 0.1s; } .clickable-row:hover { background-color: #f1f8ff !important; }
-  .btn-custom { color: var(--ci-blue); background: #fff; border: 1px solid var(--ci-blue); transition: 0.2s; } .btn-custom:hover { background-color: var(--ci-blue); color: white; }
-  .auto-expand-textarea { resize: none; overflow-y: hidden; min-height: 36px; max-height: 100px; font-size: 0.9rem; }
-  .img-container { margin-top: 4px; border-radius: 6px; overflow: hidden; border: 1px solid #ddd; max-width: 120px; } .chat-img { width: 100%; display: block; }
-  .toast-container { position: fixed; top: 80px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none; } .toast-alert { pointer-events: auto; background: #fff; border-left: 4px solid var(--ci-blue); box-shadow: 0 4px 12px rgba(0,0,0,0.15); border-radius: 4px; width: 300px; overflow: hidden; animation: slideIn 0.3s ease-out forwards; } .toast-header { padding: 8px 12px; background: #f1f5f9; font-weight: bold; font-size: 0.85rem; color: var(--ci-navy); display: flex; justify-content: space-between; align-items: center; } .toast-body { padding: 12px; font-size: 0.9rem; color: #555; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } @keyframes slideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
-  .notification-bell { position: relative; cursor: pointer; color: var(--ci-navy); font-size: 1.2rem; margin-right: 20px; transition: 0.2s; } .notification-bell:hover { color: var(--ci-blue); } .notification-badge { position: absolute; top: -5px; right: -5px; background: #dc3545; color: white; border-radius: 50%; padding: 2px 5px; font-size: 0.6rem; font-weight: bold; border: 2px solid #fff; display: none; }
+  .chat-header {
+    padding: 12px 15px;
+    border-bottom: 1px solid var(--ci-border);
+    background: #fff;
+    flex-shrink: 0;
+    font-weight: bold;
+    color: var(--ci-navy);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 50px;
+  }
 
-  /* ✅ FIX: บังคับให้ Modal เลือกคน ลอยอยู่เหนือทุกอย่าง */
-  #assignStepModal { z-index: 10600 !important; }
-  /* ปรับ CSS ของ Modal เลือกคน */
-  #assignStepModal .modal-content { border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); border: none; }
-  #assignStepModal .modal-header { background: #fff; padding: 15px 20px; }
-  #assignStepModal .form-select { border-radius: 8px; border: 1px solid #dee2e6; padding: 10px; font-size: 0.9rem; background-color: #f8fafc; }
-  #assignStepModal .form-select:focus { border-color: var(--ci-blue); box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1); }
-  #assignStepModal .btn-primary { width: 100%; border-radius: 50px; font-weight: 600; padding: 8px 0; }
+  .chat-box {
+    flex: 1;
+    overflow-y: auto;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-height: 0;
+  }
+
+  .chat-input-area {
+    padding: 10px 15px;
+    background-color: #fff;
+    border-top: 1px solid var(--ci-border);
+    flex-shrink: 0;
+  }
+
+  .chat-row {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    margin-bottom: 0;
+  }
+
+  .chat-row.me {
+    align-items: flex-end;
+  }
+
+  .chat-row.other {
+    align-items: flex-start;
+  }
+
+  .chat-meta {
+    font-size: 0.65rem;
+    color: #888;
+    margin-bottom: 2px;
+    padding: 0 2px;
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+
+  .chat-bubble {
+    padding: 8px 12px;
+    border-radius: 12px;
+    position: relative;
+    max-width: 85%;
+    font-size: 0.9rem;
+    line-height: 1.4;
+    white-space: pre-line;
+    word-break: break-word;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
+  }
+
+  .chat-row.me .chat-bubble {
+    background-color: var(--chat-bg-me);
+    color: white;
+    border-bottom-right-radius: 2px;
+  }
+
+  .chat-row.other .chat-bubble {
+    background-color: var(--chat-bg-other);
+    color: var(--ci-text);
+    border: 1px solid var(--ci-border);
+    border-bottom-left-radius: 2px;
+  }
+
+  .view-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0;
+    background-color: #fff;
+  }
+
+  .nav-bar {
+    padding: 0 15px;
+    border-bottom: 1px solid var(--ci-border);
+    background: #fff;
+    flex-shrink: 0;
+    height: 45px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .nav-tabs-formal {
+    border-bottom: none;
+    margin-bottom: 0;
+  }
+
+  .nav-tabs-formal .nav-link {
+    padding: 8px 12px;
+    font-size: 0.85rem;
+    color: #666;
+    border-bottom: 2px solid transparent;
+  }
+
+  .nav-tabs-formal .nav-link.active {
+    color: var(--ci-blue);
+    border-bottom-color: var(--ci-blue);
+    font-weight: 700;
+  }
+
+  .kanban-container {
+    overflow-x: auto;
+    white-space: nowrap;
+    padding: 15px;
+    height: 100%;
+    background: #f8f9fa;
+  }
+
+  .kanban-col {
+    display: inline-block;
+    width: 260px;
+    vertical-align: top;
+    margin-right: 10px;
+    background: #eaeff2;
+    border-radius: 6px;
+    padding: 8px;
+    height: 100%;
+    overflow-y: auto;
+  }
+
+  .kanban-card {
+    background: white;
+    border: 1px solid var(--ci-border);
+    border-radius: 6px;
+    padding: 10px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    white-space: normal;
+  }
+
+  .border-status-done {
+    border-left-color: #198754;
+  }
+
+  .border-status-doing {
+    border-left-color: var(--ci-blue);
+  }
+
+  .border-status-todo {
+    border-left-color: #6c757d;
+  }
+
+  .border-status-revise {
+    border-left-color: #ffc107;
+    background-color: #fffbf0;
+  }
+
+  .clickable-row {
+    cursor: pointer;
+    transition: 0.1s;
+  }
+
+  .clickable-row:hover {
+    background-color: #f1f8ff !important;
+  }
+
+  .btn-custom {
+    color: var(--ci-blue);
+    background: #fff;
+    border: 1px solid var(--ci-blue);
+    transition: 0.2s;
+  }
+
+  .btn-custom:hover {
+    background-color: var(--ci-blue);
+    color: white;
+  }
+
+  .auto-expand-textarea {
+    resize: none;
+    overflow-y: hidden;
+    min-height: 36px;
+    max-height: 100px;
+    font-size: 0.9rem;
+  }
+
+  .img-container {
+    margin-top: 4px;
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid #ddd;
+    max-width: 120px;
+  }
+
+  .chat-img {
+    width: 100%;
+    display: block;
+  }
+
+  .toast-container {
+    position: fixed;
+    top: 80px;
+    right: 20px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: none;
+  }
+
+  .toast-alert {
+    pointer-events: auto;
+    background: #fff;
+    border-left: 4px solid var(--ci-blue);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border-radius: 4px;
+    width: 300px;
+    overflow: hidden;
+    animation: slideIn 0.3s ease-out forwards;
+  }
+
+  .toast-header {
+    padding: 8px 12px;
+    background: #f1f5f9;
+    font-weight: bold;
+    font-size: 0.85rem;
+    color: var(--ci-navy);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .toast-body {
+    padding: 12px;
+    font-size: 0.9rem;
+    color: #555;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: translateX(20px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  .notification-bell {
+    position: relative;
+    cursor: pointer;
+    color: var(--ci-navy);
+    font-size: 1.2rem;
+    margin-right: 20px;
+    transition: 0.2s;
+  }
+
+  .notification-bell:hover {
+    color: var(--ci-blue);
+  }
+
+  .notification-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: #dc3545;
+    color: white;
+    border-radius: 50%;
+    padding: 2px 5px;
+    font-size: 0.6rem;
+    font-weight: bold;
+    border: 2px solid #fff;
+    display: none;
+  }
+
+  #assignStepModal {
+    z-index: 10600 !important;
+  }
+
+  #assignStepModal .modal-content {
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    border: none;
+  }
+
+  #assignStepModal .modal-header {
+    background: #fff;
+    padding: 15px 20px;
+  }
+
+  #assignStepModal .form-select {
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+    padding: 10px;
+    font-size: 0.9rem;
+    background-color: #f8fafc;
+  }
+
+  #assignStepModal .form-select:focus {
+    border-color: var(--ci-blue);
+    box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
+  }
+
+  #assignStepModal .btn-primary {
+    width: 100%;
+    border-radius: 50px;
+    font-weight: 600;
+    padding: 8px 0;
+  }
 </style>
 
 <div class="toast-container" id="toast-area"></div>
@@ -72,63 +598,113 @@
 <div class="card card-formal border-0">
   <div class="detail-header">
     <div class="d-flex align-items-center gap-2">
-      <button class="btn btn-light btn-sm rounded-circle text-muted" onclick="showPage('page-dashboard')"><i class="fas fa-arrow-left"></i></button>
+      <button class="btn btn-light btn-sm rounded-circle text-muted" onclick="showPage('page-dashboard')"><i
+          class="fas fa-arrow-left"></i></button>
       <div>
         <h6 class="mb-0 fw-bold" style="color: var(--ci-navy);" id="detail-title">Loading...</h6>
         <div class="d-flex align-items-center gap-2">
-          <span class="badge bg-light text-dark border py-0" id="detail-status-badge" style="font-size: 0.65rem;">-</span>
+          <span class="badge bg-light text-dark border py-0" id="detail-status-badge"
+            style="font-size: 0.65rem;">-</span>
           <small class="text-muted" id="detail-subtitle" style="font-size: 0.75rem;">...</small>
         </div>
       </div>
     </div>
     <div class="d-flex align-items-center">
       <div class="notification-bell" onclick="alert('ไม่มีการแจ้งเตือนเพิ่มเติม')">
-         <i class="fas fa-bell"></i> <span class="notification-badge" id="noti-badge">0</span>
+        <i class="fas fa-bell"></i> <span class="notification-badge" id="noti-badge">0</span>
       </div>
-      <a id="detail-sheet-link" href="#" target="_blank" class="btn btn-custom btn-sm rounded-pill px-3" style="font-size:0.8rem;"><i class="fas fa-table me-1"></i> Sheet</a>
+      <a id="detail-sheet-link" href="#" target="_blank" class="btn btn-custom btn-sm rounded-pill px-3"
+        style="font-size:0.8rem;"><i class="fas fa-table me-1"></i> Sheet</a>
     </div>
   </div>
 
   <div class="panel-container">
     <div class="left-panel">
       <div class="metrics-bar">
-         <div class="info-grid-basic">
-            <div class="info-item"><span class="info-label">Ad Spend</span><div class="info-value text-success" id="info-budget">-</div></div>
-            <div class="info-item"><span class="info-label">Period</span><div class="info-value text-dark" id="info-period">-</div></div>
-            <div class="info-item"><span class="info-label">AE Owner</span><div class="info-value text-primary" id="info-ae">-</div></div>
-            <div class="info-item"><span class="info-label">Product</span><div class="info-value text-dark" id="info-product">-</div></div>
-         </div>
-         <div id="target-badges" class="target-container"></div>
-         <div id="remark-box" class="remark-section"><i class="fas fa-pen-square remark-edit-icon"></i><div><i class="fas fa-exclamation-circle me-1"></i> <span id="remark-text-content"></span></div></div>
+        <div class="info-grid-basic">
+          <div class="info-item"><span class="info-label">Ad Spend</span>
+            <div class="info-value text-success" id="info-budget">-</div>
+          </div>
+          <div class="info-item"><span class="info-label">Period</span>
+            <div class="info-value text-dark" id="info-period">-</div>
+          </div>
+          <div class="info-item"><span class="info-label">AE Owner</span>
+            <div class="info-value text-primary" id="info-ae">-</div>
+          </div>
+          <div class="info-item"><span class="info-label">Product</span>
+            <div class="info-value text-dark" id="info-product">-</div>
+          </div>
+        </div>
+        <div id="target-badges" class="target-container"></div>
+        <div id="remark-box" class="remark-section"><i class="fas fa-pen-square remark-edit-icon"></i>
+          <div><i class="fas fa-exclamation-circle me-1"></i> <span id="remark-text-content"></span></div>
+        </div>
       </div>
 
       <div class="nav-bar">
-         <ul class="nav nav-tabs-formal mb-0" id="detail-tabs">
-           <li class="nav-item"><a class="nav-link active" onclick="switchDetailTab('list')"><i class="fas fa-list me-1"></i> List</a></li>
-           <li class="nav-item"><a class="nav-link" onclick="switchDetailTab('kanban')"><i class="fas fa-columns me-1"></i> Board</a></li>
-           <li class="nav-item"><a class="nav-link" onclick="switchDetailTab('calendar')"><i class="far fa-calendar-alt me-1"></i> Calendar</a></li>
-           <li class="nav-item"><a class="nav-link" onclick="switchDetailTab('summary')"><i class="fas fa-chart-pie me-1"></i> Dashboard</a></li>
-         </ul>
-         <button class="btn btn-primary btn-sm px-3 rounded-pill shadow-sm" style="font-size:0.8rem;" onclick="openAddTaskModal()"><i class="fas fa-plus"></i> เพิ่มงาน</button>
+        <ul class="nav nav-tabs-formal mb-0" id="detail-tabs">
+          <li class="nav-item"><a class="nav-link active" onclick="switchDetailTab('list')"><i
+                class="fas fa-list me-1"></i> List</a></li>
+          <li class="nav-item"><a class="nav-link" onclick="switchDetailTab('kanban')"><i
+                class="fas fa-columns me-1"></i> Board</a></li>
+          <li class="nav-item"><a class="nav-link" onclick="switchDetailTab('calendar')"><i
+                class="far fa-calendar-alt me-1"></i> Calendar</a></li>
+          <li class="nav-item"><a class="nav-link" onclick="switchDetailTab('summary')"><i
+                class="fas fa-chart-pie me-1"></i> Dashboard</a></li>
+        </ul>
+        <button class="btn btn-primary btn-sm px-3 rounded-pill shadow-sm" style="font-size:0.8rem;"
+          onclick="openAddTaskModal()"><i class="fas fa-plus"></i> เพิ่มงาน</button>
       </div>
 
       <div class="view-content">
-        <div id="view-list" class="view-section h-100 p-0">
+        <div id="detail-view-list" class="view-section h-100 p-0">
           <div class="table-responsive">
             <table class="table table-hover align-middle mb-0 w-100" style="font-size: 0.85rem;">
-              <thead class="bg-light sticky-top text-secondary"><tr><th class="ps-4 py-2">Task Name</th><th>Type</th><th>Assignee</th><th>Due Date</th><th>Status</th></tr></thead>
-              <tbody id="detail-list-tbody"></tbody>
+              <thead class="bg-light sticky-top text-secondary">
+                <tr>
+                  <th class="ps-4 py-2">Task Name</th>
+                  <th>Type</th>
+                  <th>Assignee</th>
+                  <th>Due Date</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="detail-task-list-body"></tbody>
             </table>
           </div>
         </div>
-        <div id="view-kanban" class="view-section h-100" style="display:none;"><div class="kanban-container" id="kanban-board"></div></div>
-        <div id="view-calendar" class="view-section h-100 p-3" style="display:none;"><div id='calendar' style="height: 100%;"></div></div>
-        <div id="view-summary" class="view-section h-100 p-4" style="display:none;">
-           <div class="row g-4">
-             <div class="col-md-6"><div class="card h-100 border p-3 shadow-sm"><h6 class="fw-bold text-secondary mb-3">Status Overview</h6><canvas id="detailChartStatus" style="max-height:200px;"></canvas></div></div>
-             <div class="col-md-6"><div class="card h-100 border p-3 shadow-sm"><h6 class="fw-bold text-secondary mb-3">Task Types</h6><canvas id="detailChartType" style="max-height:200px;"></canvas></div></div>
-             <div class="col-12"><div class="card border shadow-sm"><div class="bg-light px-3 py-2 fw-bold text-secondary border-bottom">Team Performance</div><table class="table mb-0 table-sm"><tbody id="detail-workload-list"></tbody></table></div></div>
-           </div>
+
+        <div id="detail-view-kanban" class="view-section h-100" style="display:none;">
+          <div class="kanban-container" id="kanban-board"></div>
+        </div>
+
+        <div id="detail-view-calendar" class="view-section h-100 p-3" style="display:none;">
+          <div id='task-calendar' style="height: 100%;"></div>
+        </div>
+
+        <div id="detail-view-summary" class="view-section h-100 p-4" style="display:none;">
+          <div class="row g-4">
+            <div class="col-md-6">
+              <div class="card h-100 border p-3 shadow-sm">
+                <h6 class="fw-bold text-secondary mb-3">Status Overview</h6><canvas id="detailChartStatus"
+                  style="max-height:200px;"></canvas>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="card h-100 border p-3 shadow-sm">
+                <h6 class="fw-bold text-secondary mb-3">Task Types</h6><canvas id="detailChartType"
+                  style="max-height:200px;"></canvas>
+              </div>
+            </div>
+            <div class="col-12">
+              <div class="card border shadow-sm">
+                <div class="bg-light px-3 py-2 fw-bold text-secondary border-bottom">Team Performance</div>
+                <table class="table mb-0 table-sm">
+                  <tbody id="detail-workload-list"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -137,68 +713,200 @@
       <div class="chat-header"><i class="fas fa-comments text-primary me-2"></i> Activity Log</div>
       <div class="chat-box" id="timeline-container"></div>
       <div class="chat-input-area">
-        <div id="upload-preview" class="mb-2 p-2 bg-white border rounded small d-flex justify-content-between align-items-center" style="display:none;">
-           <span><i class="fas fa-paperclip me-2 text-muted"></i><span id="preview-name" class="fw-bold text-dark"></span></span>
-           <i class="fas fa-times text-danger" style="cursor:pointer;" onclick="clearFile()"></i>
+        <div id="upload-preview"
+          class="mb-2 p-2 bg-white border rounded small d-flex justify-content-between align-items-center"
+          style="display:none;">
+          <span><i class="fas fa-paperclip me-2 text-muted"></i><span id="preview-name"
+              class="fw-bold text-dark"></span></span>
+          <i class="fas fa-times text-danger" style="cursor:pointer;" onclick="clearFile()"></i>
         </div>
         <div class="d-flex gap-2 align-items-end">
           <input type="file" id="file-input" style="display:none;" onchange="handleFileSelect(this)">
-          <button class="btn btn-light border rounded-circle text-muted" style="width:34px;height:34px;" onclick="document.getElementById('file-input').click()"><i class="fas fa-paperclip"></i></button>
-          <textarea id="new-update-input" class="form-control rounded-3 border auto-expand-textarea" rows="1" placeholder="พิมพ์ข้อความ..." style="min-height:38px;" oninput="autoResize(this)"></textarea>
-          <button class="btn btn-primary rounded-circle shadow-sm" style="width:34px;height:34px;" onclick="sendUpdate()"><i class="fas fa-paper-plane"></i></button>
+          <button class="btn btn-light border rounded-circle text-muted" style="width:34px;height:34px;"
+            onclick="document.getElementById('file-input').click()"><i class="fas fa-paperclip"></i></button>
+          <textarea id="new-update-input" class="form-control rounded-3 border auto-expand-textarea" rows="1"
+            placeholder="พิมพ์ข้อความ..." style="min-height:38px;" oninput="autoResize(this)"></textarea>
+          <button class="btn btn-primary rounded-circle shadow-sm" style="width:34px;height:34px;"
+            onclick="sendUpdate()"><i class="fas fa-paper-plane"></i></button>
         </div>
       </div>
     </div>
   </div>
 </div>
 
-<div class="modal fade" id="addTaskModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header bg-primary text-white"><h5 class="modal-title">เพิ่มงานใหม่</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body"><form id="create-task-form"><div class="mb-2"><label class="small fw-bold">ชื่องาน *</label><input type="text" class="form-control" name="taskName" required></div><div class="row g-2 mb-2"><div class="col-6"><label class="small fw-bold">ประเภท</label><select class="form-select" name="taskType" id="task-type-select"></select></div><div class="col-6"><label class="small fw-bold">ผู้รับผิดชอบ</label><select class="form-select" name="assignee" id="assignee-select"></select></div></div><div class="mb-2"><label class="small fw-bold">กำหนดส่ง</label><input type="date" class="form-control" name="dueDate"></div><hr><div class="mb-2"><label class="small">ลิงก์บรีฟ</label><input type="url" class="form-control form-control-sm" name="briefLink"></div><div class="mb-2"><label class="small">แนบไฟล์</label><input type="file" class="form-control form-control-sm" id="task-file-input"></div></form></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ยกเลิก</button><button type="button" class="btn btn-primary" onclick="submitNewTask()">บันทึก</button></div></div></div></div>
+<div class="modal fade" id="addTaskModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title">เพิ่มงานใหม่</h5><button type="button" class="btn-close btn-close-white"
+          data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="create-task-form">
+          <div class="mb-2"><label class="small fw-bold">ชื่องาน *</label><input type="text" class="form-control"
+              name="taskName" required></div>
+          <div class="row g-2 mb-2">
+            <div class="col-6"><label class="small fw-bold">ประเภท</label><select class="form-select" name="taskType"
+                id="task-type-select"></select></div>
+            <div class="col-6"><label class="small fw-bold">ผู้รับผิดชอบ</label><select class="form-select"
+                name="assignee" id="assignee-select"></select></div>
+          </div>
+          <div class="mb-2"><label class="small fw-bold">กำหนดส่ง</label><input type="date" class="form-control"
+              name="dueDate"></div>
+          <hr>
+          <div class="mb-2"><label class="small">ลิงก์บรีฟ</label><input type="url" class="form-control form-control-sm"
+              name="briefLink"></div>
+          <div class="mb-2"><label class="small">แนบไฟล์</label><input type="file" class="form-control form-control-sm"
+              id="task-file-input"></div>
+        </form>
+      </div>
+      <div class="modal-footer"><button type="button" class="btn btn-secondary"
+          data-bs-dismiss="modal">ยกเลิก</button><button type="button" class="btn btn-primary"
+          onclick="submitNewTask()">บันทึก</button></div>
+    </div>
+  </div>
+</div>
 
-<div class="modal fade" id="viewTaskModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content border-0 shadow-lg"><div class="modal-header border-bottom-0 pb-0"><span class="badge bg-light text-muted border" id="view-task-id">ID</span><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body pt-2"><h4 class="fw-bold text-dark mb-2" id="view-task-name-full">Task Name</h4><div class="d-flex gap-2 mb-4"><span class="badge" id="view-task-status-badge">Status</span><span class="badge bg-white text-secondary border fw-normal" id="view-task-type">Type</span></div><div class="row g-3 mb-4 p-3 bg-light rounded border"><div class="col-6"><small class="text-muted d-block text-uppercase fw-bold" style="font-size:0.65rem;">Assignee</small><div class="fw-bold text-dark mt-1" id="view-task-assignee">-</div></div><div class="col-6 border-start ps-3"><small class="text-muted d-block text-uppercase fw-bold" style="font-size:0.65rem;">Due Date</small><div class="fw-bold text-dark mt-1" id="view-task-due">-</div></div></div>
-<h6 class="fw-bold small text-muted text-uppercase mb-2">ขั้นตอนการทำงาน (Workflow)</h6>
-<div id="view-task-workflow" class="workflow-container"><div class="text-center small text-muted">Loading...</div></div>
-<h6 class="fw-bold small text-muted text-uppercase mb-2 mt-4">Attachments</h6><div id="view-task-resources" class="d-flex flex-column gap-2 mb-3"></div></div><div class="modal-footer bg-light border-top-0 justify-content-between"><button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Close</button><div id="view-task-actions"></div></div></div></div></div>
+<div class="modal fade" id="viewTaskModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg">
+      <div class="modal-header border-bottom-0 pb-0"><span class="badge bg-light text-muted border"
+          id="view-task-id">ID</span><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body pt-2">
+        <h4 class="fw-bold text-dark mb-2" id="view-task-name-full">Task Name</h4>
+        <div class="d-flex gap-2 mb-4"><span class="badge" id="view-task-status-badge">Status</span><span
+            class="badge bg-white text-secondary border fw-normal" id="view-task-type">Type</span></div>
+        <div class="row g-3 mb-4 p-3 bg-light rounded border">
+          <div class="col-6"><small class="text-muted d-block text-uppercase fw-bold"
+              style="font-size:0.65rem;">Assignee</small>
+            <div class="fw-bold text-dark mt-1" id="view-task-assignee">-</div>
+          </div>
+          <div class="col-6 border-start ps-3"><small class="text-muted d-block text-uppercase fw-bold"
+              style="font-size:0.65rem;">Due Date</small>
+            <div class="fw-bold text-dark mt-1" id="view-task-due">-</div>
+          </div>
+        </div>
+        <h6 class="fw-bold small text-muted text-uppercase mb-2">ขั้นตอนการทำงาน (Workflow)</h6>
+        <div id="view-task-workflow" class="workflow-container">
+          <div class="text-center small text-muted">Loading...</div>
+        </div>
+        <h6 class="fw-bold small text-muted text-uppercase mb-2 mt-4">Attachments</h6>
+        <div id="view-task-resources" class="d-flex flex-column gap-2 mb-3"></div>
+      </div>
+      <div class="modal-footer bg-light border-top-0 justify-content-between"><button type="button"
+          class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+        <div id="view-task-actions"></div>
+      </div>
+    </div>
+  </div>
+</div>
 
 <div class="modal fade" id="assignStepModal" tabindex="-1">
   <div class="modal-dialog modal-sm modal-dialog-centered">
     <div class="modal-content border-0 shadow-lg">
       <div class="modal-header bg-white border-bottom-0 pb-2">
-        <h6 class="modal-title fw-bold text-secondary text-uppercase" style="font-size:0.85rem;">
-          <i class="fas fa-user-tag me-2 text-primary"></i>มอบหมายงาน
-        </h6>
+        <h6 class="modal-title fw-bold text-secondary text-uppercase" style="font-size:0.85rem;"><i
+            class="fas fa-user-tag me-2 text-primary"></i>มอบหมายงาน</h6>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body pt-2">
-  <input type="hidden" id="workflow-task-id">
-  <input type="hidden" id="workflow-step-index">
-  
-  <div class="mb-3">
-    <label class="form-label small fw-bold text-muted">ผู้รับผิดชอบ</label>
-    <select class="form-select border-primary bg-light" id="workflow-assignee-select" style="font-size:0.9rem;">
-      <option value="Unassigned">-- ไม่ระบุ --</option>
-    </select>
-  </div>
-
-  <div class="mb-3">
-    <label class="form-label small fw-bold text-muted">วันที่ต้องการ (Optional)</label>
-    <input type="date" class="form-control form-control-sm" id="workflow-step-date">
-  </div>
-  <div class="mb-3">
-    <label class="form-label small fw-bold text-muted">รายละเอียด (เช่น สถานที่ถ่าย/นัดหมาย)</label>
-    <textarea class="form-control form-control-sm" id="workflow-step-details" rows="2" placeholder="ระบุรายละเอียดเพิ่มเติม..."></textarea>
-  </div>
-  </div>
+        <input type="hidden" id="workflow-task-id">
+        <input type="hidden" id="workflow-step-index">
+        <div class="mb-3">
+          <label class="form-label small fw-bold text-muted">ผู้รับผิดชอบ</label>
+          <select class="form-select border-primary bg-light" id="workflow-assignee-select" style="font-size:0.9rem;">
+            <option value="Unassigned">-- ไม่ระบุ --</option>
+          </select>
+        </div>
+        <div class="mb-3">
+          <label class="form-label small fw-bold text-muted">วันที่ต้องการ (Optional)</label>
+          <input type="date" class="form-control form-control-sm" id="workflow-step-date">
+        </div>
+        <div class="mb-3">
+          <label class="form-label small fw-bold text-muted">รายละเอียด</label>
+          <textarea class="form-control form-control-sm" id="workflow-step-details" rows="2"
+            placeholder="ระบุรายละเอียดเพิ่มเติม..."></textarea>
+        </div>
+      </div>
       <div class="modal-footer border-0 pt-0">
-        <button type="button" class="btn btn-primary w-100 rounded-pill shadow-sm" onclick="saveStepAssignee()">บันทึก</button>
+        <button type="button" class="btn btn-primary w-100 rounded-pill shadow-sm"
+          onclick="saveStepAssignee()">บันทึก</button>
       </div>
     </div>
   </div>
 </div>
 
-<div class="modal fade" id="updateRemarkModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header bg-warning text-dark border-0"><h6 class="modal-title fw-bold"><i class="fas fa-edit me-2"></i>อัปเดตหมายเหตุ</h6><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><input type="hidden" id="remark-project-id"><label class="form-label small text-muted">ข้อความเดิม</label><div id="old-remark-text" class="p-2 bg-light border rounded mb-3 text-muted small"></div><label class="form-label fw-bold">ข้อความใหม่</label><textarea id="new-remark-text" class="form-control" rows="3"></textarea></div><div class="modal-footer border-0 pt-0"><button type="button" class="btn btn-light btn-sm" data-bs-dismiss="modal">ปิด</button><button type="button" class="btn btn-warning btn-sm fw-bold" onclick="saveRemark()">บันทึก</button></div></div></div></div>
-<div class="modal fade" id="reviseModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header bg-warning text-dark"><h5 class="modal-title"><i class="fas fa-undo me-2"></i>สั่งแก้ไขงาน</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><input type="hidden" id="revise-task-id"><input type="hidden" id="revise-task-name"><div class="mb-3"><label class="form-label fw-bold small text-uppercase text-muted">กำหนดส่งงานแก้</label><input type="date" id="revise-due-date" class="form-control"></div><div class="mb-3"><label class="form-label fw-bold">เหตุผล *</label><textarea id="revise-reason" class="form-control" rows="3"></textarea></div><div class="mb-3"><label class="form-label small">แนบลิงก์</label><input type="url" id="revise-link" class="form-control form-control-sm"></div><div class="mb-3"><label class="form-label small">แนบไฟล์</label><input type="file" id="revise-file" class="form-control form-control-sm" accept="image/*,application/pdf"></div></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ยกเลิก</button><button type="button" class="btn btn-warning fw-bold" onclick="submitRevise()">ยืนยัน</button></div></div></div></div>
+<div class="modal fade" id="updateRemarkModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-warning text-dark border-0">
+        <h6 class="modal-title fw-bold"><i class="fas fa-edit me-2"></i>อัปเดตหมายเหตุ</h6><button type="button"
+          class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body"><input type="hidden" id="remark-project-id"><label
+          class="form-label small text-muted">ข้อความเดิม</label>
+        <div id="old-remark-text" class="p-2 bg-light border rounded mb-3 text-muted small"></div><label
+          class="form-label fw-bold">ข้อความใหม่</label><textarea id="new-remark-text" class="form-control"
+          rows="3"></textarea>
+      </div>
+      <div class="modal-footer border-0 pt-0"><button type="button" class="btn btn-light btn-sm"
+          data-bs-dismiss="modal">ปิด</button><button type="button" class="btn btn-warning btn-sm fw-bold"
+          onclick="saveRemark()">บันทึก</button></div>
+    </div>
+  </div>
+</div>
+<div class="modal fade" id="reviseModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg">
+      <div class="modal-header bg-warning text-dark border-0">
+        <h5 class="modal-title fw-bold"><i class="fas fa-undo-alt me-2"></i>สั่งแก้ไขงาน (Revise)</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body pt-3">
+        <input type="hidden" id="revise-task-id">
+        <input type="hidden" id="revise-task-name">
+
+        <div class="alert alert-light border border-warning d-flex align-items-center mb-3">
+          <i class="fas fa-exclamation-triangle text-warning me-3 fs-4"></i>
+          <div>
+            <div class="small text-muted fw-bold text-uppercase">กำลังสั่งแก้</div>
+            <strong class="text-dark" id="revise-task-display-name">-</strong>
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label small fw-bold text-muted">กำหนดส่งงานแก้ (New Due Date)</label>
+          <input type="date" id="revise-due-date" class="form-control">
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label small fw-bold text-muted">เหตุผล / สิ่งที่ต้องแก้ *</label>
+          <textarea id="revise-reason" class="form-control" rows="3" placeholder="ระบุสิ่งที่ต้องแก้ไข..."></textarea>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label small fw-bold text-muted">แนบไฟล์ตัวอย่าง (Optional)</label>
+          <input type="file" id="revise-file" class="form-control form-control-sm">
+        </div>
+
+        <div class="mb-2">
+          <label class="form-label small fw-bold text-muted">แนบลิงก์ (Optional)</label>
+          <input type="url" id="revise-link" class="form-control form-control-sm" placeholder="https://...">
+        </div>
+      </div>
+      <div class="modal-footer border-0 pt-0">
+        <button type="button" class="btn btn-light btn-sm" data-bs-dismiss="modal">ยกเลิก</button>
+        <button type="button" class="btn btn-warning btn-sm fw-bold px-4 shadow-sm"
+          onclick="submitRevise()">ยืนยันสั่งแก้</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <script>
+  // ==========================================
+  // 1. GLOBAL VARIABLES & CONFIG
+  // ==========================================
   let currentProjectId = null;
   let selectedFile = null;
   let calendarInstance = null;
@@ -207,10 +915,14 @@
   let lastUpdateId = null; 
   let pollingInterval = null;
 
-  // ✅ ROLE MAP
   const ROLE_MAP = {
-      'Content': ['Content', 'Editor'], 'Graphic': ['Graphic', 'Designer'], 'VDO': ['VDO', 'Editor'],
-      'Admin': ['Admin'], 'Ads': ['AE', 'Ads Specialist'], 'Web': ['Programmer', 'Web Developer'], 'Other': []
+      'Content': ['Content', 'Editor'], 
+      'Graphic': ['Graphic', 'Designer'], 
+      'VDO': ['VDO', 'Editor'],
+      'Admin': ['Admin'], 
+      'Ads': ['AE', 'Ads Specialist'], 
+      'Web': ['Programmer', 'Web Developer'], 
+      'Other': []
   };
 
   const WORKFLOW_TEMPLATES = {
@@ -221,49 +933,114 @@
       'Default': [{name:'To Do',role:'Any'}, {name:'Doing',role:'Any'}, {name:'Done',role:'Any'}]
   };
 
-  function autoResize(el) { el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px'; }
+  // Helper: Auto resize textarea
+  function autoResize(el) { 
+      el.style.height = 'auto'; 
+      el.style.height = el.scrollHeight + 'px'; 
+  }
 
+  // ==========================================
+  // 2. MAIN NAVIGATION (OPEN PROJECT)
+  // ==========================================
   function openProjectDetail(pid) {
     currentProjectId = pid;
     const p = globalData.projects.find(x => x[0] === pid);
     const tasks = globalData.tasks.filter(x => x[1] === pid);
     if(!p) return;
 
+    // Set Header Info
     document.getElementById('detail-title').innerText = p[1];
     document.getElementById('detail-status-badge').innerText = p[9];
     document.getElementById('detail-status-badge').className = `badge ${p[9]==='Active'?'bg-success':(p[9]==='Hold'?'bg-warning text-dark':'bg-secondary')}`;
     document.getElementById('detail-subtitle').innerText = p[2];
     document.getElementById('detail-sheet-link').href = p[8] || '#';
+    
+    // Set Metrics
     document.getElementById('info-budget').innerText = p[4] || '-';
     document.getElementById('info-period').innerText = p[5] || '-';
     document.getElementById('info-ae').innerText = p[3] || '-';
     document.getElementById('info-product').innerText = p[2] || '-';
 
+    // Set Target Badges
     const targetDiv = document.getElementById('target-badges'); targetDiv.innerHTML = '';
     const addTag = (icon, label, value, unit='') => { if(value && value != '0' && value != '-') targetDiv.innerHTML += `<div class="target-tag"><i class="fas ${icon} text-primary"></i> ${label}: <span class="fw-bold text-dark">${value}</span> ${unit}</div>`; }
     addTag('fa-pen-nib','Content',p[6]); addTag('fa-palette','Graphic',p[15]); addTag('fa-video','VDO',p[7]); addTag('fa-comments','Admin',p[11]); addTag('fa-ad','Ads',p[12]); addTag('fa-globe','Web',p[13]);
 
-    const remarkDiv = document.getElementById('remark-box'); const remarkText = p[14] || 'ยังไม่มีหมายเหตุ';
-    if(p[14] && p[14].trim() !== '') { remarkDiv.style.display = 'flex'; document.getElementById('remark-text-content').innerText = remarkText; remarkDiv.onclick = function() { openUpdateRemark(p[0], remarkText); }; } 
-    else { remarkDiv.style.display = 'none'; }
+    // Set Remark
+    const remarkDiv = document.getElementById('remark-box'); 
+    const remarkText = p[14] || 'ยังไม่มีหมายเหตุ';
+    if(p[14] && p[14].trim() !== '') { 
+        remarkDiv.style.display = 'flex'; 
+        document.getElementById('remark-text-content').innerText = remarkText; 
+        remarkDiv.onclick = function() { openUpdateRemark(p[0], remarkText); }; 
+    } else { 
+        remarkDiv.style.display = 'none'; 
+    }
 
-    renderListView(tasks); renderKanbanView(tasks); renderSummaryView(tasks); renderTimeline(pid); startPolling();
-    switchDetailTab('list'); showPage('page-detail');
+    // Render All Views
+    renderListView(tasks); 
+    renderKanbanView(tasks); 
+    renderSummaryView(tasks); 
+    renderTimeline(pid); 
+    
+    startPolling(); // Start Chat Polling
+    switchDetailTab('list'); // Default Tab
+    showPage('page-detail');
   }
 
-  // ✅ Open Add Task Modal (Dynamic)
+  // ==========================================
+  // 3. TASK MANAGEMENT (ADD / VIEW / REVISE)
+  // ==========================================
+
   function openAddTaskModal() {
       const p = globalData.projects.find(x => x[0] === currentProjectId); if(!p) return;
       const typeSelect = document.getElementById('task-type-select'); typeSelect.innerHTML = ''; 
-      const checkAndAdd = (val, name) => { if(val && val != '0' && val != '-') { const opt = document.createElement('option'); opt.value = name; opt.text = name; typeSelect.appendChild(opt); } };
       
+      const checkAndAdd = (val, name) => { if(val && val != '0' && val != '-') { const opt = document.createElement('option'); opt.value = name; opt.text = name; typeSelect.appendChild(opt); } };
       checkAndAdd(p[6],'Content'); checkAndAdd(p[15],'Graphic'); checkAndAdd(p[7],'VDO'); checkAndAdd(p[11],'Admin'); checkAndAdd(p[12],'Ads'); checkAndAdd(p[13],'Web');
+      
       if(typeSelect.options.length === 0) ['Content','Graphic','VDO','Admin','Web','Ads'].forEach(t => { const opt = document.createElement('option'); opt.value = t; opt.text = t; typeSelect.appendChild(opt); });
       else { const opt = document.createElement('option'); opt.value = 'Other'; opt.text = 'Other'; typeSelect.appendChild(opt); }
 
       typeSelect.onchange = function() { filterAssignees(this.value); };
       if(typeSelect.value) filterAssignees(typeSelect.value);
       new bootstrap.Modal(document.getElementById('addTaskModal')).show();
+  }
+
+  function submitNewTask() { 
+      const f=document.getElementById('create-task-form'); 
+      if(!f.taskName.value) return alert('กรุณาระบุชื่องาน'); 
+      
+      const d={
+          projectId:currentProjectId, 
+          taskName:f.taskName.value, 
+          taskType:f.taskType.value, 
+          assignee:f.assignee.value, 
+          dueDate:f.dueDate.value, 
+          briefLink:f.briefLink.value
+      }; 
+      const file=document.getElementById('task-file-input').files[0]; 
+      
+      const btn = event.target; btn.innerHTML = 'บันทึก...'; btn.disabled = true;
+
+      const handler=(r)=>{ 
+          globalData.tasks.push(r); 
+          openProjectDetail(currentProjectId); // Re-render
+          bootstrap.Modal.getInstance(document.getElementById('addTaskModal')).hide(); 
+          f.reset(); 
+          btn.innerHTML = 'บันทึก'; btn.disabled = false;
+      }; 
+      
+      if(file){ 
+          const r=new FileReader(); 
+          r.onload=function(e){ 
+              d.fileData={name:file.name, mimeType:file.type, data:e.target.result.split(',')[1]}; 
+              google.script.run.withSuccessHandler(handler).createTask(d, d.fileData); 
+          }; 
+          r.readAsDataURL(file); 
+      } else { 
+          google.script.run.withSuccessHandler(handler).createTask(d, null); 
+      } 
   }
 
   function filterAssignees(taskType) {
@@ -279,11 +1056,132 @@
       }
   }
 
-  // ✅ Workflow Render Logic (Updated to open Modal)
+  // --- Task Detail View & Revise Logic ---
+
+  function openTaskView(taskId) {
+    const t = globalData.tasks.find(x => x[0] === taskId); if(!t) return;
+    
+    // Set Task Info
+    document.getElementById('view-task-id').innerText = t[0]; 
+    document.getElementById('view-task-name-full').innerText = t[3]; 
+    document.getElementById('view-task-type').innerText = t[2]; 
+    document.getElementById('view-task-assignee').innerText = t[4]; 
+    document.getElementById('view-task-due').innerText = t[7] || 'Not Set';
+    
+    const s = t[5]; 
+    const badge = document.getElementById('view-task-status-badge');
+    badge.className = `badge ${s==='Done'?'bg-success':(s==='Revise'?'bg-warning text-dark':'bg-primary')}`; 
+    badge.innerText = s;
+    
+    // Set Attachments
+    const resDiv = document.getElementById('view-task-resources'); resDiv.innerHTML = '';
+    if(t[8]) resDiv.innerHTML += `<a href="${t[8]}" target="_blank" class="btn btn-light btn-sm border text-start w-100 mb-2"><i class="fas fa-link me-2 text-primary"></i> Link</a>`;
+    if(t[9]) resDiv.innerHTML += `<a href="${t[9]}" target="_blank" class="btn btn-light btn-sm border text-start w-100"><i class="fas fa-file-pdf me-2 text-danger"></i> File</a>`;
+    
+    // Render Workflow
+    renderWorkflow(t[0], t[2], t[12]); 
+    
+    // ✅ REVISE BUTTON LOGIC
+    const actionDiv = document.getElementById('view-task-actions'); actionDiv.innerHTML = '';
+    const userRole = globalData.currentUser.role;
+    // แสดงปุ่ม Revise เฉพาะ Admin/Manager และงานเสร็จแล้ว (Done)
+    if((userRole === 'Admin' || userRole === 'Manager') && s === 'Done') { 
+        actionDiv.innerHTML = `
+            <button class="btn btn-warning btn-sm fw-bold shadow-sm w-100" 
+                    onclick="bootstrap.Modal.getInstance(document.getElementById('viewTaskModal')).hide(); openReviseModal('${t[0]}', '${t[3].replace(/'/g, "\\'")}')">
+               <i class="fas fa-undo-alt me-2"></i> สั่งแก้ไขงาน (Revise)
+            </button>`; 
+    }
+    
+    new bootstrap.Modal(document.getElementById('viewTaskModal')).show();
+  }
+
+  function openReviseModal(taskId, taskName) { 
+      document.getElementById('revise-task-id').value = taskId; 
+      document.getElementById('revise-task-name').value = taskName; 
+      document.getElementById('revise-task-display-name').innerText = taskName;
+
+      // Reset Form
+      document.getElementById('revise-reason').value = '';
+      document.getElementById('revise-link').value = '';
+      document.getElementById('revise-file').value = '';
+
+      // Default Date = Tomorrow
+      const t = new Date(); t.setDate(t.getDate()+1); 
+      document.getElementById('revise-due-date').value = t.toISOString().split('T')[0]; 
+      
+      new bootstrap.Modal(document.getElementById('reviseModal')).show(); 
+  }
+
+  function submitRevise() { 
+      const tid = document.getElementById('revise-task-id').value; 
+      const tName = document.getElementById('revise-task-name').value; 
+      const reason = document.getElementById('revise-reason').value; 
+      const link = document.getElementById('revise-link').value; 
+      const newDueDate = document.getElementById('revise-due-date').value; 
+      const fileInput = document.getElementById('revise-file').files[0]; 
+      
+      if(!reason) return alert('กรุณาระบุเหตุผลการแก้ไข'); 
+      
+      const btn = event.target; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> บันทึก...'; btn.disabled = true; 
+      
+      // Prepare Chat Message
+      let msg = `🔥 สั่งแก้: "${tName}"\n📅 ส่งภายใน: ${newDueDate}\n📝 เหตุผล: ${reason}`; 
+      if(link) msg += `\n🔗 ลิงก์: ${link}`; 
+      
+      const me = globalData.currentUser.name; 
+      const fileData = fileInput ? {name:fileInput.name, mimeType:fileInput.type} : null; 
+      
+      const exec = (fData) => { 
+          // 1. Update Task Status -> Revise
+          google.script.run.withSuccessHandler((res) => { 
+              if(res.fileUrl) msg += `\n📂 ไฟล์แนบ: ${res.fileName}`; 
+              
+              // 2. Post to Chat
+              google.script.run.withSuccessHandler(() => { 
+                  // Update Local Data
+                  const t = globalData.tasks.find(x => x[0] === tid); 
+                  if(t){ 
+                      t[5] = 'Revise'; 
+                      if(newDueDate) t[7] = newDueDate; 
+                      if(link) t[8] = link; // Optional: Update link
+                      if(res.fileUrl){ t[9] = res.fileUrl; t[10] = res.fileName; } 
+                  } 
+                  
+                  // Refresh UI
+                  const projectTasks = globalData.tasks.filter(x => x[1] === currentProjectId);
+                  renderListView(projectTasks); 
+                  renderKanbanView(projectTasks); 
+                  renderTimeline(currentProjectId); 
+                  
+                  bootstrap.Modal.getInstance(document.getElementById('reviseModal')).hide(); 
+                  alert('สั่งแก้ไขงานเรียบร้อยแล้ว'); 
+                  btn.innerHTML = 'ยืนยันสั่งแก้'; btn.disabled = false; 
+              }).postProjectUpdate(currentProjectId, msg, me, null); 
+          }).updateTaskRevision(tid, newDueDate, link, fData); 
+      }; 
+      
+      if(fileInput){ 
+          const r = new FileReader(); 
+          r.onload = (e) => { fileData.data = e.target.result.split(',')[1]; exec(fileData); }; 
+          r.readAsDataURL(fileInput); 
+      } else { 
+          exec(null); 
+      } 
+  }
+
+  // ==========================================
+  // 4. WORKFLOW SYSTEM
+  // ==========================================
+  
   function renderWorkflow(taskId, taskType, workflowJson) {
       const container = document.getElementById('view-task-workflow'); container.innerHTML = '';
       let steps = []; try { steps = workflowJson ? JSON.parse(workflowJson) : []; } catch(e) { steps = []; }
-      if (steps.length === 0) { const template = WORKFLOW_TEMPLATES[taskType] || WORKFLOW_TEMPLATES['Default']; steps = template.map(t => ({ name: t.name, assignee: 'Unassigned', status: 'pending' })); }
+      
+      if (steps.length === 0) { 
+          const template = WORKFLOW_TEMPLATES[taskType] || WORKFLOW_TEMPLATES['Default']; 
+          steps = template.map(t => ({ name: t.name, assignee: 'Unassigned', status: 'pending' })); 
+      }
       
       let html = '';
       steps.forEach((step, index) => {
@@ -295,7 +1193,6 @@
           const assigneeName = step.assignee === 'Unassigned' ? 'ระบุผู้รับผิดชอบ' : step.assignee;
           const assigneeClass = step.assignee === 'Unassigned' ? 'text-muted fst-italic step-unassigned' : 'text-primary fw-bold';
 
-          // ✅ ส่วนที่เพิ่ม: เตรียม HTML สำหรับ Date และ Details
           let extraInfo = '';
           if(step.dueDate) extraInfo += `<div class="text-danger small mt-1" style="font-size:0.7rem"><i class="far fa-calendar-alt me-1"></i> ${step.dueDate}</div>`;
           if(step.details) extraInfo += `<div class="text-muted small mt-1 text-wrap" style="font-size:0.7rem; line-height:1.2;"><i class="fas fa-info-circle me-1"></i> ${step.details}</div>`;
@@ -307,22 +1204,19 @@
                         <div class="step-assignee ${assigneeClass}" onclick="openAssignStepModal('${taskId}', ${index})">
                             <i class="fas fa-user-circle me-1"></i> ${assigneeName}
                         </div>
-                        ${extraInfo} </div>
+                        ${extraInfo} 
+                     </div>
                    </div>`;
       });
       container.innerHTML = html;
   }
 
-  // ✅ Function to Open Assign Modal & Populate Data
-  // แก้ไขฟังก์ชันเปิด Modal (ประมาณบรรทัด 240)
   function openAssignStepModal(taskId, stepIndex) {
       document.getElementById('workflow-task-id').value = taskId;
       document.getElementById('workflow-step-index').value = stepIndex;
       
-      // ✅ เพิ่ม: ดึงข้อมูลเดิมมาใส่ใน Input (ถ้ามี)
       const t = globalData.tasks.find(x => x[0] === taskId);
       let steps = []; try { steps = JSON.parse(t[12] || '[]'); } catch(e){}
-      // ถ้าไม่มี JSON (ยังไม่เคยแก้) ให้ลองใช้ Template แบบคร่าวๆ หรือปล่อยว่างไว้
       const stepData = steps[stepIndex] || {};
 
       document.getElementById('workflow-step-date').value = stepData.dueDate || '';
@@ -332,7 +1226,6 @@
       select.innerHTML = '<option value="Unassigned">-- ไม่ระบุ --</option>';
 
       if (globalData.allUsers) {
-          // ... (โค้ดส่วนสร้าง options เดิม คงไว้เหมือนเดิม) ...
           const grouped = {};
           globalData.allUsers.forEach(u => {
               const role = u.role || 'Other';
@@ -340,170 +1233,145 @@
               grouped[role].push(u.name || u);
           });
           for (const [role, names] of Object.entries(grouped)) {
-              const group = document.createElement('optgroup');
-              group.label = role;
-              names.forEach(name => {
-                  const opt = document.createElement('option');
-                  opt.value = name; opt.text = name;
-                  group.appendChild(opt);
-              });
+              const group = document.createElement('optgroup'); group.label = role;
+              names.forEach(name => { const opt = document.createElement('option'); opt.value = name; opt.text = name; group.appendChild(opt); });
               select.appendChild(group);
           }
       }
-      
-      // เลือก Assignee เดิม
       if(stepData.assignee) select.value = stepData.assignee;
-
       new bootstrap.Modal(document.getElementById('assignStepModal')).show();
   }
 
-  // แก้ไขฟังก์ชันบันทึก (ประมาณบรรทัด 264)
   function saveStepAssignee() {
       const taskId = document.getElementById('workflow-task-id').value;
       const stepIndex = document.getElementById('workflow-step-index').value;
       const newName = document.getElementById('workflow-assignee-select').value;
-      
-      // ✅ รับค่าใหม่
       const newDate = document.getElementById('workflow-step-date').value;
       const newDetails = document.getElementById('workflow-step-details').value;
 
-      const btn = event.target;
-      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> บันทึก...'; btn.disabled = true;
+      const btn = event.target; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> บันทึก...'; btn.disabled = true;
 
-      // ✅ ส่งค่า newDate, newDetails ไปที่ Server ด้วย
       google.script.run.withSuccessHandler((res) => {
           renderWorkflow(taskId, res.taskType, res.workflowJson);
-          
-          // อัปเดต globalData เพื่อให้ไม่ต้องรีเฟรชหน้า
-          const t = globalData.tasks.find(x => x[0] === taskId);
-          if (t) t[12] = res.workflowJson; 
-
+          const t = globalData.tasks.find(x => x[0] === taskId); if (t) t[12] = res.workflowJson; 
           bootstrap.Modal.getInstance(document.getElementById('assignStepModal')).hide();
           btn.innerHTML = 'บันทึก'; btn.disabled = false;
       }).updateTaskWorkflowAssignee(taskId, stepIndex, newName, newDate, newDetails);
   }
 
-
-function toggleStepStatus(taskId, stepIndex) { 
+  function toggleStepStatus(taskId, stepIndex) { 
       google.script.run.withSuccessHandler((res) => { 
           renderWorkflow(taskId, res.taskType, res.workflowJson); 
-          
-          // ✅ เพิ่มส่วนนี้: อัปเดต globalData
-          const t = globalData.tasks.find(x => x[0] === taskId);
-          if (t) { 
-             t[12] = res.workflowJson; 
-          }
+          const t = globalData.tasks.find(x => x[0] === taskId); if (t) { t[12] = res.workflowJson; }
       }).updateTaskWorkflowStatus(taskId, stepIndex); 
   }
-  function openTaskView(taskId) {
-    const t = globalData.tasks.find(x => x[0] === taskId); if(!t) return;
-    document.getElementById('view-task-id').innerText = t[0]; document.getElementById('view-task-name-full').innerText = t[3]; document.getElementById('view-task-type').innerText = t[2]; document.getElementById('view-task-assignee').innerText = t[4]; document.getElementById('view-task-due').innerText = t[7] || 'Not Set';
-    const s = t[5]; document.getElementById('view-task-status-badge').className = `badge ${s==='Done'?'bg-success':(s==='Revise'?'bg-warning text-dark':'bg-primary')}`; document.getElementById('view-task-status-badge').innerText = s;
-    const resDiv = document.getElementById('view-task-resources'); resDiv.innerHTML = '';
-    if(t[8]) resDiv.innerHTML += `<a href="${t[8]}" target="_blank" class="btn btn-light btn-sm border text-start w-100 mb-2"><i class="fas fa-link me-2 text-primary"></i> Link</a>`;
-    if(t[9]) resDiv.innerHTML += `<a href="${t[9]}" target="_blank" class="btn btn-light btn-sm border text-start w-100"><i class="fas fa-file-pdf me-2 text-danger"></i> File</a>`;
-    
-    // Workflow (Column 12 = Workflow_JSON)
-    renderWorkflow(t[0], t[2], t[12]); 
-    
-    const actionDiv = document.getElementById('view-task-actions'); actionDiv.innerHTML = '';
-    if(globalData.currentUser.role === 'Admin' || globalData.currentUser.role === 'Manager') { if(s === 'Done') actionDiv.innerHTML = `<button class="btn btn-warning btn-sm fw-bold shadow-sm" onclick="bootstrap.Modal.getInstance(document.getElementById('viewTaskModal')).hide(); openReviseModal('${t[0]}', '${t[3]}')"><i class="fas fa-undo me-1"></i> Revise Task</button>`; }
-    new bootstrap.Modal(document.getElementById('viewTaskModal')).show();
-  }
 
-  // ... (Standard functions) ...
-  function openUpdateRemark(projectId, oldText) { document.getElementById('remark-project-id').value = projectId; document.getElementById('old-remark-text').innerText = oldText; document.getElementById('new-remark-text').value = ''; new bootstrap.Modal(document.getElementById('updateRemarkModal')).show(); }
-  function saveRemark() { const pid = document.getElementById('remark-project-id').value; const newText = document.getElementById('new-remark-text').value; if(!newText) return alert('ระบุข้อความ'); const btn = event.target; btn.innerHTML = 'บันทึก...'; btn.disabled = true; const user = globalData.currentUser.name || 'Admin'; const time = new Date().toLocaleString('th-TH', { month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit'}); const fullText = `${newText} (แก้ไขโดย ${user} ${time})`; google.script.run.withSuccessHandler(() => { const p = globalData.projects.find(x => x[0] === pid); if(p) p[14] = fullText; document.getElementById('remark-text-content').innerText = fullText; bootstrap.Modal.getInstance(document.getElementById('updateRemarkModal')).hide(); btn.innerHTML = 'บันทึก'; btn.disabled = false; }).updateProjectRemark(pid, fullText); }
-  function startPolling() { if(pollingInterval) clearInterval(pollingInterval); pollingInterval = setInterval(() => { if(!currentProjectId) return; google.script.run.withSuccessHandler((allData) => { if(!allData.updates) return; const updates = allData.updates.filter(u => u[1] === currentProjectId); const newMsgs = []; if(lastUpdateId) { const lastIdx = updates.findIndex(u => u[0] === lastUpdateId); if(lastIdx !== -1 && lastIdx < updates.length - 1) { for(let i=lastIdx+1; i<updates.length; i++) newMsgs.push(updates[i]); } } else if(updates.length > 0 && !lastUpdateId) { } if(newMsgs.length > 0) { newMsgs.forEach(msg => { if(msg[3] !== globalData.currentUser.name) { showToast(`New msg from ${msg[3]}`, msg[4]); updateBadge(1); } }); globalData.updates = allData.updates; renderTimeline(currentProjectId); lastUpdateId = updates[updates.length-1][0]; } }).getSystemData(); }, 10000); }
-  function showToast(title, message) { const container = document.getElementById('toast-area'); const toast = document.createElement('div'); toast.className = 'toast-alert'; toast.innerHTML = `<div class="toast-header"><span><i class="fas fa-comment-dots text-primary me-2"></i> ${title}</span><button type="button" class="btn-close" style="font-size:0.7rem;" onclick="this.parentElement.parentElement.remove()"></button></div><div class="toast-body text-truncate">${message}</div>`; container.appendChild(toast); setTimeout(() => { toast.style.opacity='0'; setTimeout(()=>toast.remove(),300); }, 5000); }
-  function updateBadge(count) { const badge = document.getElementById('noti-badge'); let current = parseInt(badge.innerText)||0; let next = current+count; badge.innerText = next; badge.style.display = next>0?'block':'none'; }
- 
- 
-  function renderListView(tasks) { let html=''; tasks.forEach(t=>{ let sClass='bg-secondary'; if(t[5]==='Done') sClass='bg-success'; else if(t[5]==='In Progress') sClass='bg-primary'; else if(t[5]==='Revise') sClass='bg-warning text-dark'; html+=`<tr class="clickable-row" onclick="openTaskView('${t[0]}')"><td class="ps-4 fw-bold text-dark">${t[3]}</td><td><span class="badge bg-white text-secondary border fw-normal">${t[2]}</span></td><td><div class="d-flex align-items-center text-muted small"><i class="fas fa-user-circle me-2"></i>${t[4]}</div></td><td class="${t[7]&&new Date(t[7])<new Date()&&t[5]!=='Done'?'text-danger fw-bold':'text-muted'}">${t[7]||'-'}</td><td><span class="badge ${sClass}">${t[5]}</span></td></tr>`; }); document.getElementById('detail-list-tbody').innerHTML=html||'<tr><td colspan="5" class="text-center p-5 text-muted">No tasks found</td></tr>'; }
-  function renderKanbanView(tasks) { const board = document.getElementById('kanban-board'); const columns = { 'Pending': { title: 'To Do', items: [] }, 'In Progress': { title: 'Doing', items: [] }, 'Revise': { title: 'Revise', items: [] }, 'Done': { title: 'Done', items: [] } }; tasks.forEach(t => { let s = t[5]; if(s==='To Do'||s==='Pending') columns['Pending'].items.push(t); else if(s==='Revise') columns['Revise'].items.push(t); else if(s==='Done') columns['Done'].items.push(t); else columns['In Progress'].items.push(t); }); let html = ''; for (const [key, col] of Object.entries(columns)) { let statusValue = key === 'In Progress' ? 'In Progress' : (key === 'Pending' ? 'Pending' : key); let cardsHtml = ''; col.items.forEach(t => { let borderClass = `border-status-${key.toLowerCase().replace(' ', '')}`; cardsHtml += `<div class="kanban-card ${borderClass}" draggable="true" id="card-${t[0]}" ondragstart="drag(event)" onclick="openTaskView('${t[0]}')"><div class="d-flex justify-content-between mb-2"><span class="badge bg-light text-secondary border fw-normal" style="font-size:0.6rem;">${t[2]}</span>${t[9] ? '<i class="fas fa-paperclip text-muted small"></i>' : ''}</div><div class="fw-bold mb-3" style="color:var(--ci-text); font-size:0.85rem; white-space:normal; line-height:1.4;">${t[3]}</div><div class="d-flex justify-content-between align-items-center pt-2 border-top"><div class="d-flex align-items-center text-muted" style="font-size:0.7rem;"><i class="fas fa-user me-1"></i> ${t[4].split(' ')[0]}</div><div class="${t[7]&&new Date(t[7])<new Date()?'text-danger fw-bold':'text-muted'} small" style="font-size:0.7rem;">${t[7]||''}</div></div></div>`; }); html += `<div class="kanban-col" ondrop="drop(event, '${statusValue}')" ondragover="allowDrop(event)"><div class="kanban-header"><span>${col.title}</span> <span class="badge bg-white text-secondary border ms-1">${col.items.length}</span></div>${cardsHtml}</div>`; } board.innerHTML = html; }
-  function renderCalendarView(tasks) { const calendarEl = document.getElementById('calendar'); if (calendarInstance) calendarInstance.destroy(); calendarInstance = new FullCalendar.Calendar(calendarEl, { initialView: 'dayGridMonth', themeSystem: 'standard', headerToolbar: { left: 'title', center: '', right: 'today prev,next' }, height: '100%', contentHeight: 'auto', dayMaxEvents: 3, editable: false, events: tasks.map(t => ({ id: t[0], title: t[3], start: t[7] || new Date(), backgroundColor: t[5]==='Done' ? '#198754' : (t[5]==='Revise'?'#ffc107':'#0d6efd'), borderColor: 'transparent', textColor: '#fff', extendedProps: { type: t[2] } })), eventClick: function(info) { openTaskView(info.event.id); }, eventDidMount: function(info) { info.el.setAttribute('title', info.event.title); }, eventContent: function(arg) { let icon = ''; const type = arg.event.extendedProps.type; if(type === 'Graphic') icon = '<i class="fas fa-palette me-1"></i>'; else if(type === 'VDO') icon = '<i class="fas fa-video me-1"></i>'; else icon = '<i class="fas fa-tasks me-1"></i>'; return { html: `<div class="fc-event-main-frame" style="padding:1px 2px;">${icon} ${arg.event.title}</div>` }; } }); setTimeout(() => { calendarInstance.render(); }, 150); }
-  function renderSummaryView(tasks) { const statusCounts = {}; const typeCounts = {}; tasks.forEach(t => { statusCounts[t[5]] = (statusCounts[t[5]]||0)+1; typeCounts[t[2]] = (typeCounts[t[2]]||0)+1; }); if(chartStatusInstance) chartStatusInstance.destroy(); chartStatusInstance = new Chart(document.getElementById('detailChartStatus'), { type: 'doughnut', data: { labels: Object.keys(statusCounts), datasets: [{ data: Object.values(statusCounts), backgroundColor: ['#0d6efd','#198754','#ffc107','#6c757d'] }] }, options: { responsive: true, maintainAspectRatio: false } }); if(chartTypeInstance) chartTypeInstance.destroy(); chartTypeInstance = new Chart(document.getElementById('detailChartType'), { type: 'bar', data: { labels: Object.keys(typeCounts), datasets: [{ label: 'Tasks', data: Object.values(typeCounts), backgroundColor: '#0d6efd' }] }, options: { responsive: true, maintainAspectRatio: false } }); let w = {}; tasks.forEach(t => { let u = t[4]||'Unassigned'; if(!w[u]) w[u] = {total:0, done:0}; w[u].total++; if(t[5]==='Done') w[u].done++; }); let html = ''; for(let u in w) { let p = Math.round((w[u].done/w[u].total)*100); html += `<tr><td class="ps-2">${u}</td><td class="text-center">${w[u].done}/${w[u].total}</td><td class="pe-2"><div class="progress" style="height:6px"><div class="progress-bar bg-primary" style="width:${p}%"></div></div></td></tr>`; } document.getElementById('detail-workload-list').innerHTML = html; }
-  function switchDetailTab(tabName) { document.querySelectorAll('#detail-tabs .nav-link').forEach(el => el.classList.remove('active')); document.querySelector(`#detail-tabs .nav-link[onclick*="'${tabName}'"]`).classList.add('active'); document.querySelectorAll('.view-content > div').forEach(el => el.style.display = 'none'); document.getElementById(`view-${tabName}`).style.display = 'block'; if(tabName === 'calendar') { const tasks = globalData.tasks.filter(x => x[1] === currentProjectId); renderCalendarView(tasks); } }
-  function allowDrop(ev) { ev.preventDefault(); } function drag(ev) { ev.dataTransfer.setData("text", ev.target.id); } function drop(ev, newStatus) { ev.preventDefault(); var data = ev.dataTransfer.getData("text"); var taskId = data.replace("card-", ""); google.script.run.withSuccessHandler(() => { const t = globalData.tasks.find(x => x[0] === taskId); if(t) t[5] = newStatus; const tasks = globalData.tasks.filter(x => x[1] === currentProjectId); renderKanbanView(tasks); renderListView(tasks); renderSummaryView(tasks); renderCalendarView(tasks); sendSystemMessage(`🔄 Status Updated: "${t[3]}" → ${newStatus}`); }).updateTaskProgress(taskId, newStatus, 0); }
-  function prepareTaskModal() { /* Handled by openAddTaskModal */ }
-  function submitNewTask() { const f=document.getElementById('create-task-form'); if(!f.taskName.value) return alert('Name required'); const d={projectId:currentProjectId, taskName:f.taskName.value, taskType:f.taskType.value, assignee:f.assignee.value, dueDate:f.dueDate.value, briefLink:f.briefLink.value}; const file=document.getElementById('task-file-input').files[0]; const h=(r)=>{ globalData.tasks.push(r); openProjectDetail(currentProjectId); bootstrap.Modal.getInstance(document.getElementById('addTaskModal')).hide(); f.reset(); }; if(file){ const r=new FileReader(); r.onload=function(e){ d.fileData={name:file.name, mimeType:file.type, data:e.target.result.split(',')[1]}; google.script.run.withSuccessHandler(h).createTask(d, d.fileData); }; r.readAsDataURL(file); } else { google.script.run.withSuccessHandler(h).createTask(d, null); } }
-  function openReviseModal(id,name) { document.getElementById('revise-task-id').value=id; document.getElementById('revise-task-name').value=name; const t=new Date(); t.setDate(t.getDate()+1); document.getElementById('revise-due-date').value=t.toISOString().split('T')[0]; new bootstrap.Modal(document.getElementById('reviseModal')).show(); }
-  function submitRevise() { const tid=document.getElementById('revise-task-id').value; const tName=document.getElementById('revise-task-name').value; const reason=document.getElementById('revise-reason').value; const link=document.getElementById('revise-link').value; const newDueDate=document.getElementById('revise-due-date').value; const fileInput=document.getElementById('revise-file').files[0]; if(!reason) return alert('Reason required'); const btn=event.target; btn.innerHTML='Saving...'; btn.disabled=true; let msg=`🔥 Revise: "${tName}"\nDue: ${newDueDate}\nReason: ${reason}`; if(link) msg+=`\nLink: ${link}`; const me=globalData.currentUser.name; const fileData=fileInput?{name:fileInput.name, mimeType:fileInput.type}:null; const exec=(fData)=>{ google.script.run.withSuccessHandler((res)=>{ if(res.fileUrl) msg+=`\nFile: ${res.fileName}`; google.script.run.withSuccessHandler(()=>{ const t=globalData.tasks.find(x=>x[0]===tid); if(t){t[5]='Revise';if(newDueDate)t[7]=newDueDate;if(link)t[8]=link;if(res.fileUrl){t[9]=res.fileUrl;t[10]=res.fileName;}} renderListView(globalData.tasks.filter(x=>x[1]===currentProjectId)); renderKanbanView(globalData.tasks.filter(x=>x[1]===currentProjectId)); renderTimeline(currentProjectId); bootstrap.Modal.getInstance(document.getElementById('reviseModal')).hide(); alert('Revised!'); btn.innerHTML='Confirm'; btn.disabled=false; }).postProjectUpdate(currentProjectId, msg, me, null); }).updateTaskRevision(tid, newDueDate, link, fData); }; if(fileInput){ const r=new FileReader(); r.onload=(e)=>{ fileData.data=e.target.result.split(',')[1]; exec(fileData); }; r.readAsDataURL(fileInput); } else { exec(null); } }
-
-
-
-// ==========================================
-  // 💬 CHAT & TIMELINE FUNCTIONS (ส่วนที่หายไป)
+  // ==========================================
+  // 5. REMARK & POLLING & CHAT
   // ==========================================
 
+  function openUpdateRemark(projectId, oldText) { 
+      document.getElementById('remark-project-id').value = projectId; 
+      document.getElementById('old-remark-text').innerText = oldText; 
+      document.getElementById('new-remark-text').value = ''; 
+      new bootstrap.Modal(document.getElementById('updateRemarkModal')).show(); 
+  }
+
+  function saveRemark() { 
+      const pid = document.getElementById('remark-project-id').value; 
+      const newText = document.getElementById('new-remark-text').value; 
+      if(!newText) return alert('ระบุข้อความ'); 
+      const btn = event.target; btn.innerHTML = 'บันทึก...'; btn.disabled = true; 
+      
+      const user = globalData.currentUser.name || 'Admin'; 
+      const time = new Date().toLocaleString('th-TH', { month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit'}); 
+      const fullText = `${newText} (แก้ไขโดย ${user} ${time})`; 
+      
+      google.script.run.withSuccessHandler(() => { 
+          const p = globalData.projects.find(x => x[0] === pid); if(p) p[14] = fullText; 
+          document.getElementById('remark-text-content').innerText = fullText; 
+          bootstrap.Modal.getInstance(document.getElementById('updateRemarkModal')).hide(); 
+          btn.innerHTML = 'บันทึก'; btn.disabled = false; 
+      }).updateProjectRemark(pid, fullText); 
+  }
+
+  function startPolling() { 
+      if(pollingInterval) clearInterval(pollingInterval); 
+      pollingInterval = setInterval(() => { 
+          if(!currentProjectId) return; 
+          google.script.run.withSuccessHandler((allData) => { 
+              if(!allData.updates) return; 
+              const updates = allData.updates.filter(u => u[1] === currentProjectId); 
+              const newMsgs = []; 
+              if(lastUpdateId) { 
+                  const lastIdx = updates.findIndex(u => u[0] === lastUpdateId); 
+                  if(lastIdx !== -1 && lastIdx < updates.length - 1) { 
+                      for(let i=lastIdx+1; i<updates.length; i++) newMsgs.push(updates[i]); 
+                  } 
+              } else if(updates.length > 0 && !lastUpdateId) { } 
+              
+              if(newMsgs.length > 0) { 
+                  newMsgs.forEach(msg => { 
+                      if(msg[3] !== globalData.currentUser.name) { showToast(`New msg from ${msg[3]}`, msg[4]); updateBadge(1); } 
+                  }); 
+                  globalData.updates = allData.updates; 
+                  renderTimeline(currentProjectId); 
+                  lastUpdateId = updates[updates.length-1][0]; 
+              } 
+          }).getSystemData(); 
+      }, 10000); 
+  }
+
+  function showToast(title, message) { 
+      const container = document.getElementById('toast-area'); 
+      const toast = document.createElement('div'); 
+      toast.className = 'toast-alert'; 
+      toast.innerHTML = `<div class="toast-header"><span><i class="fas fa-comment-dots text-primary me-2"></i> ${title}</span><button type="button" class="btn-close" style="font-size:0.7rem;" onclick="this.parentElement.parentElement.remove()"></button></div><div class="toast-body text-truncate">${message}</div>`; 
+      container.appendChild(toast); 
+      setTimeout(() => { toast.style.opacity='0'; setTimeout(()=>toast.remove(),300); }, 5000); 
+  }
+  
+  function updateBadge(count) { 
+      const badge = document.getElementById('noti-badge'); 
+      let current = parseInt(badge.innerText)||0; let next = current+count; 
+      badge.innerText = next; badge.style.display = next>0?'block':'none'; 
+  }
+  
+  // Chat & Timeline
   function renderTimeline(pid) {
      const container = document.getElementById('timeline-container');
-     // ป้องกัน Error กรณี globalData.updates ยังไม่มีค่า
      const updates = (globalData.updates || []).filter(r => r[1] === pid);
-     
-     if(updates.length === 0) { 
-        container.innerHTML = '<div class="text-center text-muted mt-5 small opacity-50"><i class="far fa-comments fa-3x mb-2"></i><br>เริ่มการสนทนา...</div>'; 
-        return; 
-     }
+     if(updates.length === 0) { container.innerHTML = '<div class="text-center text-muted mt-5 small opacity-50"><i class="far fa-comments fa-3x mb-2"></i><br>เริ่มการสนทนา...</div>'; return; }
      
      let html = '';
      updates.forEach(m => {
         const isMe = m[3] === globalData.currentUser.name;
-        let timeDisplay = m[2];
-        try { let parts = m[2].split(' '); if (parts.length > 1) timeDisplay = parts[1]; } catch(e) {}
-
-        let f = ''; 
-        // ตรวจสอบว่ามีไฟล์แนบไหม
-        if(m[6]) { 
-            if(m[5].match(/\.(jpg|png|jpeg|gif)$/i)) 
-                f = `<div class="img-container mt-2"><a href="${m[6]}" target="_blank"><img src="${m[6]}" class="chat-img"></a></div>`; 
-            else 
-                f = `<a href="${m[6]}" target="_blank" class="btn btn-sm btn-light border mt-2 text-truncate" style="max-width:150px; font-size:0.8rem;"><i class="fas fa-file-download me-1"></i> ${m[5]}</a>`; 
-        }
+        let timeDisplay = m[2]; try { let parts = m[2].split(' '); if (parts.length > 1) timeDisplay = parts[1]; } catch(e) {}
         
-        html += `
-        <div class="chat-row ${isMe ? 'me' : 'other'}">
-           <div class="chat-meta">
-              ${isMe ? '' : `<span class="fw-bold text-dark">${m[3]}</span>`} 
-              <span>${timeDisplay}</span>
-           </div>
-           <div class="chat-bubble">
-              <div>${m[4]}</div>${f}
-           </div>
-        </div>`;
+        let f = ''; 
+        if(m[6]) { 
+            if(m[5].match(/\.(jpg|png|jpeg|gif)$/i)) f = `<div class="img-container mt-2"><a href="${m[6]}" target="_blank"><img src="${m[6]}" class="chat-img"></a></div>`; 
+            else f = `<a href="${m[6]}" target="_blank" class="btn btn-sm btn-light border mt-2 text-truncate" style="max-width:150px; font-size:0.8rem;"><i class="fas fa-file-download me-1"></i> ${m[5]}</a>`; 
+        }
+        html += `<div class="chat-row ${isMe ? 'me' : 'other'}"><div class="chat-meta">${isMe ? '' : `<span class="fw-bold text-dark">${m[3]}</span>`} <span>${timeDisplay}</span></div><div class="chat-bubble"><div>${m[4]}</div>${f}</div></div>`;
      });
-     container.innerHTML = html;
-     container.scrollTop = container.scrollHeight;
+     container.innerHTML = html; container.scrollTop = container.scrollHeight;
   }
 
   function sendUpdate() {
-     const txt = document.getElementById('new-update-input'); 
-     const msg = txt.value.trim(); 
-     
+     const txt = document.getElementById('new-update-input'); const msg = txt.value.trim(); 
      if(!msg && !selectedFile) return;
-     
      const me = globalData.currentUser.name;
-     // แสดงข้อความจำลองก่อนส่งจริง (Optimistic UI)
      document.getElementById('timeline-container').insertAdjacentHTML('beforeend', `<div class="chat-row me"><div class="chat-bubble" style="background-color:var(--ci-blue);color:white;">Sending...</div></div>`);
      
-     // เตรียมข้อมูลไฟล์ (ถ้ามี)
-     let filePayload = null;
-     if (selectedFile) {
-        filePayload = { name: selectedFile.name, mimeType: selectedFile.type, data: selectedFile.base64 };
-     }
-
-     google.script.run.withSuccessHandler(res => {
-        if(!globalData.updates) globalData.updates = []; 
-        // เพิ่มข้อมูลจริงลงในตัวแปร globalData
-        globalData.updates.push([res.id, currentProjectId, res.date, me, msg, res.fileName, res.fileUrl]);
-        
-        // Render ใหม่
-        renderTimeline(currentProjectId); 
-        
-        // เคลียร์ค่า input
-        txt.value = ''; 
-        txt.style.height = 'auto'; 
-        clearFile(); 
+     let filePayload = null; 
+     if (selectedFile) { filePayload = { name: selectedFile.name, mimeType: selectedFile.type, data: selectedFile.base64 }; }
+     
+     google.script.run.withSuccessHandler(res => { 
+         if(!globalData.updates) globalData.updates = []; 
+         globalData.updates.push([res.id, currentProjectId, res.date, me, msg, res.fileName, res.fileUrl]); 
+         renderTimeline(currentProjectId); 
+         txt.value = ''; txt.style.height = 'auto'; clearFile(); 
      }).postProjectUpdate(currentProjectId, msg, me, filePayload);
   }
 
@@ -513,17 +1381,129 @@ function toggleStepStatus(taskId, stepIndex) {
           const r = new FileReader(); 
           r.onload = function(e){ selectedFile.base64 = e.target.result.split(',')[1]; }; 
           r.readAsDataURL(selectedFile); 
-          
           document.getElementById('upload-preview').style.display = 'flex'; 
           document.getElementById('preview-name').innerText = selectedFile.name; 
       } 
   }
-  
   function clearFile() { 
       selectedFile = null; 
       document.getElementById('file-input').value = ''; 
       document.getElementById('upload-preview').style.display = 'none'; 
   }
 
+  // ==========================================
+  // 6. VIEW RENDERERS (LIST, KANBAN, CALENDAR, SUMMARY)
+  // ==========================================
+  
+  function switchDetailTab(tabName) { 
+      document.querySelectorAll('#detail-tabs .nav-link').forEach(el => el.classList.remove('active')); 
+      const targetLink = document.querySelector(`#detail-tabs .nav-link[onclick*="'${tabName}'"]`);
+      if(targetLink) targetLink.classList.add('active');
+      
+      document.querySelectorAll('.view-content > div').forEach(el => el.style.display = 'none'); 
+      document.getElementById(`detail-view-${tabName}`).style.display = 'block'; // Fixed ID
+      
+      if(tabName === 'calendar') { 
+          const tasks = globalData.tasks.filter(x => x[1] === currentProjectId); 
+          setTimeout(() => renderCalendarView(tasks), 50); 
+      } 
+  }
 
+  function renderListView(tasks) { 
+      let html=''; 
+      tasks.forEach(t=>{ 
+          let sClass='bg-secondary'; 
+          if(t[5]==='Done') sClass='bg-success'; 
+          else if(t[5]==='In Progress') sClass='bg-primary'; 
+          else if(t[5]==='Revise') sClass='bg-warning text-dark'; 
+          
+          html+=`<tr class="clickable-row" onclick="openTaskView('${t[0]}')"><td class="ps-4 fw-bold text-dark">${t[3]}</td><td><span class="badge bg-white text-secondary border fw-normal">${t[2]}</span></td><td><div class="d-flex align-items-center text-muted small"><i class="fas fa-user-circle me-2"></i>${t[4]}</div></td><td class="${t[7]&&new Date(t[7])<new Date()&&t[5]!=='Done'?'text-danger fw-bold':'text-muted'}">${t[7]||'-'}</td><td><span class="badge ${sClass}">${t[5]}</span></td></tr>`; 
+      }); 
+      // Fixed ID
+      const tbody = document.getElementById('detail-task-list-body'); 
+      if(tbody) tbody.innerHTML=html||'<tr><td colspan="5" class="text-center p-5 text-muted">No tasks found</td></tr>'; 
+  }
+
+  function renderKanbanView(tasks) { 
+      const board = document.getElementById('kanban-board'); 
+      const columns = { 'Pending': { title: 'To Do', items: [] }, 'In Progress': { title: 'Doing', items: [] }, 'Revise': { title: 'Revise', items: [] }, 'Done': { title: 'Done', items: [] } }; 
+      tasks.forEach(t => { let s = t[5]; if(s==='To Do'||s==='Pending') columns['Pending'].items.push(t); else if(s==='Revise') columns['Revise'].items.push(t); else if(s==='Done') columns['Done'].items.push(t); else columns['In Progress'].items.push(t); }); 
+      
+      let html = ''; 
+      for (const [key, col] of Object.entries(columns)) { 
+          let statusValue = key === 'In Progress' ? 'In Progress' : (key === 'Pending' ? 'Pending' : key); 
+          let cardsHtml = ''; 
+          col.items.forEach(t => { 
+              let borderClass = `border-status-${key.toLowerCase().replace(' ', '')}`; 
+              cardsHtml += `<div class="kanban-card ${borderClass}" draggable="true" id="card-${t[0]}" ondragstart="drag(event)" onclick="openTaskView('${t[0]}')"><div class="d-flex justify-content-between mb-2"><span class="badge bg-light text-secondary border fw-normal" style="font-size:0.6rem;">${t[2]}</span>${t[9] ? '<i class="fas fa-paperclip text-muted small"></i>' : ''}</div><div class="fw-bold mb-3" style="color:var(--ci-text); font-size:0.85rem; white-space:normal; line-height:1.4;">${t[3]}</div><div class="d-flex justify-content-between align-items-center pt-2 border-top"><div class="d-flex align-items-center text-muted" style="font-size:0.7rem;"><i class="fas fa-user me-1"></i> ${t[4].split(' ')[0]}</div><div class="${t[7]&&new Date(t[7])<new Date()?'text-danger fw-bold':'text-muted'} small" style="font-size:0.7rem;">${t[7]||''}</div></div></div>`; 
+          }); 
+          html += `<div class="kanban-col" ondrop="drop(event, '${statusValue}')" ondragover="allowDrop(event)"><div class="kanban-header"><span>${col.title}</span> <span class="badge bg-white text-secondary border ms-1">${col.items.length}</span></div>${cardsHtml}</div>`; 
+      } 
+      board.innerHTML = html; 
+  }
+
+  function renderCalendarView(tasks) { 
+      const calendarEl = document.getElementById('task-calendar'); 
+      if (!calendarEl) return;
+      if (typeof FullCalendar === 'undefined') { calendarEl.innerHTML = '<div class="alert alert-danger p-2 small">Calendar Error</div>'; return; }
+      if (calendarInstance) calendarInstance.destroy(); 
+      
+      calendarInstance = new FullCalendar.Calendar(calendarEl, { 
+          initialView: 'dayGridMonth', 
+          themeSystem: 'standard', 
+          headerToolbar: { left: 'title', center: '', right: 'today prev,next' }, 
+          height: '100%', 
+          contentHeight: 'auto', 
+          dayMaxEvents: 3, 
+          editable: false, 
+          events: tasks.map(t => ({ 
+              id: t[0], 
+              title: t[3], 
+              start: t[7] || new Date(), 
+              backgroundColor: t[5]==='Done' ? '#198754' : (t[5]==='Revise'?'#ffc107':'#0d6efd'), 
+              borderColor: 'transparent', 
+              textColor: '#fff', 
+              extendedProps: { type: t[2] } 
+          })), 
+          eventClick: function(info) { openTaskView(info.event.id); }, 
+          eventDidMount: function(info) { info.el.setAttribute('title', info.event.title); }, 
+          eventContent: function(arg) { 
+              let icon = ''; 
+              const type = arg.event.extendedProps.type; 
+              if(type === 'Graphic') icon = '<i class="fas fa-palette me-1"></i>'; else if(type === 'VDO') icon = '<i class="fas fa-video me-1"></i>'; else icon = '<i class="fas fa-tasks me-1"></i>'; 
+              return { html: `<div class="fc-event-main-frame" style="padding:1px 2px;">${icon} ${arg.event.title}</div>` }; 
+          } 
+      }); 
+      setTimeout(() => calendarInstance.render(), 100); 
+  }
+
+  function renderSummaryView(tasks) { 
+      const statusCounts = {}; const typeCounts = {}; 
+      tasks.forEach(t => { statusCounts[t[5]] = (statusCounts[t[5]]||0)+1; typeCounts[t[2]] = (typeCounts[t[2]]||0)+1; }); 
+      
+      if(chartStatusInstance) chartStatusInstance.destroy(); 
+      chartStatusInstance = new Chart(document.getElementById('detailChartStatus'), { type: 'doughnut', data: { labels: Object.keys(statusCounts), datasets: [{ data: Object.values(statusCounts), backgroundColor: ['#0d6efd','#198754','#ffc107','#6c757d'] }] }, options: { responsive: true, maintainAspectRatio: false } }); 
+      
+      if(chartTypeInstance) chartTypeInstance.destroy(); 
+      chartTypeInstance = new Chart(document.getElementById('detailChartType'), { type: 'bar', data: { labels: Object.keys(typeCounts), datasets: [{ label: 'Tasks', data: Object.values(typeCounts), backgroundColor: '#0d6efd' }] }, options: { responsive: true, maintainAspectRatio: false } }); 
+      
+      let w = {}; 
+      tasks.forEach(t => { let u = t[4]||'Unassigned'; if(!w[u]) w[u] = {total:0, done:0}; w[u].total++; if(t[5]==='Done') w[u].done++; }); 
+      let html = ''; 
+      for(let u in w) { let p = Math.round((w[u].done/w[u].total)*100); html += `<tr><td class="ps-2">${u}</td><td class="text-center">${w[u].done}/${w[u].total}</td><td class="pe-2"><div class="progress" style="height:6px"><div class="progress-bar bg-primary" style="width:${p}%"></div></div></td></tr>`; } 
+      document.getElementById('detail-workload-list').innerHTML = html; 
+  }
+
+  // Drag & Drop
+  function allowDrop(ev) { ev.preventDefault(); } 
+  function drag(ev) { ev.dataTransfer.setData("text", ev.target.id); } 
+  function drop(ev, newStatus) { 
+      ev.preventDefault(); var data = ev.dataTransfer.getData("text"); var taskId = data.replace("card-", ""); 
+      google.script.run.withSuccessHandler(() => { 
+          const t = globalData.tasks.find(x => x[0] === taskId); if(t) t[5] = newStatus; 
+          const tasks = globalData.tasks.filter(x => x[1] === currentProjectId); 
+          renderKanbanView(tasks); renderListView(tasks); renderSummaryView(tasks); renderCalendarView(tasks); 
+          sendSystemMessage(`🔄 Status Updated: "${t[3]}" → ${newStatus}`); 
+      }).updateTaskProgress(taskId, newStatus, 0); 
+  }
 </script>
