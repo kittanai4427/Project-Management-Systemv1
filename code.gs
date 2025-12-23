@@ -44,6 +44,99 @@ function getSystemData() {
   }
   return data;
 }
+
+function checkLoginUser(input) {
+  var ss = SpreadsheetApp.openById(SHEET_ID);
+  var sheet = ss.getSheetByName("DB_Users");
+  var data = sheet.getDataRange().getValues();
+  
+  var searchStr = input.toString().trim().toLowerCase(); // แปลงเป็นตัวพิมพ์เล็ก
+
+  for (var i = 1; i < data.length; i++) {
+    var dbName = data[i][0].toString().trim().toLowerCase();  // ชื่อใน DB
+    var dbEmail = data[i][1].toString().trim().toLowerCase(); // อีเมลใน DB
+
+    // ✅ เช็คว่า input ตรงกับ "ชื่อ" หรือ "อีเมล" ไหม
+    if ((dbName === searchStr) || (dbEmail === searchStr && dbEmail !== "")) {
+      return {
+        status: true,
+        user: {
+          name: data[i][0],
+          email: data[i][1],
+          role: data[i][2],
+          team: data[i][3]
+        }
+      };
+    }
+  }
+  
+  return { status: false };
+}
+
+
+// --- User Management Functions ---
+
+// บันทึกข้อมูลผู้ใช้งาน (เพิ่มใหม่ หรือ แก้ไข)
+// --- User Management Functions (Updated) ---
+
+function saveUserDB(data) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ws = ss.getSheetByName("DB_Users");
+  const values = ws.getDataRange().getValues();
+  
+  let rowIndex = -1;
+  // หาแถวจากอีเมลเดิม (กรณีแก้ไข)
+  if (data.originalEmail) {
+    rowIndex = values.findIndex(row => row[1] == data.originalEmail); 
+  }
+  
+  // กรณีเพิ่มใหม่ เช็คอีเมลซ้ำ
+  if (rowIndex === -1) {
+     const dupIndex = values.findIndex(row => row[1] == data.email);
+     if (dupIndex !== -1 && !data.originalEmail) {
+       return { success: false, message: "อีเมลนี้มีอยู่ในระบบแล้ว" };
+     }
+     if (rowIndex === -1) rowIndex = values.length; 
+  }
+
+  const rowNum = rowIndex + 1;
+  
+  // บันทึกข้อมูล (Name, Email, Role, Team, Photo, Status)
+  ws.getRange(rowNum, 1).setValue(data.name);
+  ws.getRange(rowNum, 2).setValue(data.email);
+  ws.getRange(rowNum, 3).setValue(data.role);
+  ws.getRange(rowNum, 4).setValue(data.team);
+  
+  // ถ้ามีคอลัมน์รูป (Col 5) และสถานะ (Col 6)
+  // แนะนำให้ไปเพิ่มหัวข้อคอลัมน์ F ใน Sheet ว่า "Status"
+  if(data.photoUrl) ws.getRange(rowNum, 5).setValue(data.photoUrl);
+  ws.getRange(rowNum, 6).setValue(data.status || 'Active'); // Default Active
+
+  return { success: true };
+}
+
+// เปลี่ยนเป็นฟังก์ชัน "ระงับสิทธิ์" แทนการลบถาวร (Soft Delete)
+function deleteUserDB(email) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ws = ss.getSheetByName("DB_Users");
+  const values = ws.getDataRange().getValues();
+  
+  for (let i = 1; i < values.length; i++) {
+    if (values[i][1] == email) {
+      // แทนที่จะลบแถว ให้เปลี่ยนสถานะเป็น Inactive
+      ws.getRange(i + 1, 6).setValue('Inactive'); 
+      return { success: true };
+    }
+  }
+  return { success: false, message: "ไม่พบผู้ใช้งาน" };
+}
+
+// เพิ่มฟังก์ชันนี้ลงใน code.gs
+function getCurrentUserEmail() {
+  // ดึงอีเมลของคนที่กำลังเปิดเว็บอยู่
+  return Session.getActiveUser().getEmail();
+}
+
 function fetchFromSheet() {
   var systemData = {
     currentUser: { name: "Guest", email: "", role: "User" },
@@ -57,14 +150,26 @@ function fetchFromSheet() {
     systemData.currentUser.email = userEmail;
 
     // 1. Users
+    // 1. Users
     var usersSheet = ss.getSheetByName("DB_Users");
     if (usersSheet) {
       var uData = usersSheet.getDataRange().getValues();
       uData.shift(); 
+      
       var foundUser = uData.find(r => r[1] === userEmail);
       if (foundUser) systemData.currentUser = { name: foundUser[0], email: foundUser[1], role: foundUser[2] };
       else systemData.currentUser.name = userEmail;
-     systemData.allUsers = uData.map(r => ({ name: r[0], role: r[2] }));
+
+      // ✅ แก้ตรงนี้: ดึงข้อมูลมาให้ครบทุกช่อง (Name, Email, Role, Team, Photo, Status)
+      systemData.allUsers = uData.map(r => ({ 
+        name: r[0], 
+        email: r[1], 
+        role: r[2], 
+        team: r[3], 
+        photoUrl: r[4], 
+        status: r[5] 
+      }));
+    
     }
 
     // 2. Projects (ดึงมาครบทุกคอลัมน์)
@@ -481,36 +586,78 @@ function saveContentTaskDB(data, fileData) {
   let fileUrl = "";
   let fileName = "";
 
-  // ========================================================
-  // 🔴 แก้ไขตรงนี้: เรียกใช้ฟังก์ชัน uploadFileToDrive แทนการใส่ ID เอง
-  // ========================================================
+  // 1. อัปโหลดไฟล์ (ถ้ามี)
   if (fileData) {
-    // เรียกใช้ฟังก์ชันที่มีอยู่แล้ว (บรรทัด 63) ระบบจะหาโฟลเดอร์ "Project_Uploads" ให้เอง
-    var fileInfo = uploadFileToDrive(fileData); 
-    fileUrl = fileInfo.url;
-    fileName = fileInfo.name;
+    try {
+      var fileInfo = uploadFileToDrive(fileData); 
+      fileUrl = fileInfo.url;
+      fileName = fileInfo.name;
+    } catch(e) { }
   }
-  // ========================================================
 
-  // 2. บันทึกลง Sheet (ส่วนด้านล่างเหมือนเดิม)
+  // ============================================================
+  // ✅ ส่วนที่ปรับปรุง: สร้าง Workflow ตามตำแหน่งที่ระบุมา
+  // ============================================================
+  let workflowJson = "";
+  try {
+     // ดึง Template ตามประเภทงาน (Content, Graphic, VDO)
+     var steps = getWorkflowTemplate(data.taskType || 'Content'); 
+     
+     // ถ้ามีข้อมูลการมอบหมายตำแหน่งส่งมา (roleAssignments)
+     if (steps && steps.length > 0 && data.roleAssignments) {
+         steps.forEach(step => {
+             // ถ้ามีชื่อคนรับผิดชอบใน Role นี้ ให้ใส่ชื่อคนนั้น
+             if (data.roleAssignments[step.role]) {
+                 step.assignee = data.roleAssignments[step.role];
+                 // (Optional) ถ้าอยากให้เริ่มงานเลยเฉพาะคนแรก
+                 // if (step === steps[0]) step.status = 'doing'; 
+             }
+         });
+     }
+     workflowJson = JSON.stringify(steps);
+  } catch(e) { workflowJson = "[]"; }
+  // ============================================================
+
+  // 3. บันทึกลง Sheet
   if (taskId) {
-     // ... (ส่วนโค้ดแก้ไข Task - ถ้ามี) ...
+    // --- กรณีแก้ไข (Edit) ---
+    var dataRange = ws.getDataRange().getValues();
+    for (var i = 1; i < dataRange.length; i++) {
+      if (dataRange[i][0] == taskId) {
+        ws.getRange(i + 1, 3).setValue(data.taskType); // Col C: Task Type (เผื่อเปลี่ยน)
+        ws.getRange(i + 1, 4).setValue(data.taskName);
+        ws.getRange(i + 1, 5).setValue(data.mainAssignee); // ผู้รับผิดชอบหลัก
+        
+        // อัปเดต Workflow ใหม่ (ทับของเดิมเพื่อให้คนรับผิดชอบเปลี่ยนตาม)
+        ws.getRange(i + 1, 13).setValue(workflowJson); 
+        
+        ws.getRange(i + 1, 14).setValue(data.pillar);   
+        ws.getRange(i + 1, 15).setValue(data.mediaType);
+        ws.getRange(i + 1, 16).setValue(data.remark);   
+        
+        if (fileUrl) {
+          ws.getRange(i + 1, 10).setValue(fileUrl);
+          ws.getRange(i + 1, 11).setValue(fileName);
+        }
+        break;
+      }
+    }
   } else {
+    // --- กรณีสร้างใหม่ (New) ---
     taskId = "T-" + Math.floor(Math.random() * 1000000).toString(16);
-    
     const newRow = [
       taskId,
       data.projectId,
-      data.taskType,
+      data.taskType,   // ✅ ใช้ Type ที่ส่งมา (Content/Graphic/VDO)
       data.taskName,
-      data.assignee,
+      data.mainAssignee, // ✅ ผู้รับผิดชอบหลัก
       data.status,
       0,
       data.dueDate,
       "",
-      fileUrl,       // ✅ ใช้ตัวแปรที่ได้จากฟังก์ชัน helper
-      fileName,      // ✅ ใช้ตัวแปรที่ได้จากฟังก์ชัน helper
-      "",
+      fileUrl,
+      fileName,
+      workflowJson,    // ✅ Workflow ที่ระบุคนแล้ว
       "",
       data.pillar,
       data.mediaType,
@@ -521,8 +668,29 @@ function saveContentTaskDB(data, fileData) {
   
   return [
       taskId, data.projectId, data.taskType, data.taskName, 
-      data.assignee, data.status, 0, data.dueDate, "", 
-      fileUrl, fileName, "", "", 
-      data.pillar, data.mediaType, data.remark
+      data.mainAssignee, data.status, 0, data.dueDate, "", 
+      fileUrl, fileName, workflowJson, 
+      "", data.pillar, data.mediaType, data.remark
   ];
+}
+
+function updateUserProfile(data) {
+  var ss = SpreadsheetApp.openById(SHEET_ID); // หรือ SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName("DB_Users");
+  var values = sheet.getDataRange().getValues();
+  
+  // ค้นหาแถวของผู้ใช้จาก Email (Column B -> Index 1)
+  for (var i = 1; i < values.length; i++) {
+    if (values[i][1].toString().toLowerCase() === data.email.toLowerCase()) {
+      // อัปเดตชื่อ (Column A -> แถว i+1, คอลัมน์ 1)
+      sheet.getRange(i + 1, 1).setValue(data.name);
+      
+      // อัปเดตรูปภาพ (Column E -> แถว i+1, คอลัมน์ 5)
+      // *ต้องมั่นใจว่าสร้างคอลัมน์ E ไว้แล้ว*
+      sheet.getRange(i + 1, 5).setValue(data.photoUrl);
+      
+      return true; // สำเร็จ
+    }
+  }
+  return false; // ไม่พบผู้ใช้
 }
