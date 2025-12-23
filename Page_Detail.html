@@ -701,13 +701,14 @@
       display: flex; 
       flex-direction: column;
   }
-  .calendar-grid { 
-      display: grid; 
-      grid-template-columns: repeat(7, 1fr); 
-      gap: 8px; 
-      flex-grow: 1; 
-      overflow-y: auto;
-  }
+.calendar-grid { 
+    display: grid; 
+    grid-template-columns: repeat(7, 1fr); 
+    /* ✅ บังคับความสูงแถวให้เท่ากัน (100px) ไม่ยืดตามเนื้อหา */
+    grid-auto-rows: 100px; 
+    gap: 8px; 
+    padding: 2px;
+}
   .calendar-day-name { 
       text-align: center; 
       font-weight: 700; 
@@ -716,15 +717,18 @@
       text-transform: uppercase; 
       font-size: 0.8rem; 
   }
-  .calendar-day { 
-      min-height: 80px; 
-      border: 1px solid var(--ci-border); 
-      border-radius: 8px; 
-      padding: 6px; 
-      background: #fff; 
-      transition: 0.2s; 
-      position: relative;
-  }
+.calendar-day { 
+    background: #fff; 
+    border: 1px solid var(--ci-border); 
+    border-radius: 8px; 
+    padding: 6px; 
+    /* ✅ ตัดส่วนเกินทิ้งทันที เพื่อรักษาทรงตาราง */
+    overflow: hidden; 
+    display: flex;
+    flex-direction: column;
+    transition: 0.2s;
+    cursor: pointer; /* ให้รู้ว่ากดดูรายละเอียดทั้งวันได้ */
+}
   .calendar-day:hover { 
       background-color: #f8fafc; 
       border-color: #cbd5e1; 
@@ -737,14 +741,41 @@
       background-color: #f9fafb; 
       border: none; 
   }
-  .day-number { 
-      font-weight: 700; 
-      font-size: 0.85rem; 
-      color: #64748b; 
-      display: block; 
-      text-align: right; 
-      margin-bottom: 4px; 
-  }
+
+.day-number { 
+    text-align: right; 
+    font-weight: 700; 
+    color: #64748b; 
+    font-size: 0.85rem;
+    margin-bottom: 2px;
+}
+.task-list-container {
+    flex-grow: 1;    /* ✅ ให้กินพื้นที่ที่เหลือทั้งหมด */
+    overflow-y: auto; /* ✅ ให้ Scroll ได้เฉพาะส่วนรายการงาน */
+    overflow-x: hidden;
+    padding-right: 2px;
+    /* ปรับ Scrollbar ให้สวยงาม (สำหรับ Chrome/Safari) */
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 transparent;
+}
+
+.day-task-area {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+}
+
+/* ปรับแต่ง Scrollbar ให้เล็กและสวยงาม */
+.day-task-area::-webkit-scrollbar { width: 4px; }
+.day-task-area::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 4px; }
+.task-list-container::-webkit-scrollbar {
+    width: 4px;
+}
+.task-list-container::-webkit-scrollbar-thumb {
+    background-color: #cbd5e1;
+    border-radius: 4px;
+}
   
   /* Task Event Pill */
   .task-event-pill { 
@@ -767,6 +798,22 @@
       transform: translateY(-1px); 
       filter: brightness(0.95);
   }
+
+  more-tasks-btn {
+    font-size: 0.7rem;
+    color: #64748b;
+    background-color: #f1f5f9;
+    border-radius: 4px;
+    padding: 2px 6px;
+    text-align: center;
+    cursor: pointer;
+    font-weight: 600;
+}
+.more-tasks-btn:hover {
+    background-color: #e2e8f0;
+    color: var(--ci-navy);
+}
+
   /* Status Icons */
   .pill-icon { font-size: 0.65rem; opacity: 0.8; margin-right: 4px; }
   .pill-status { font-size: 0.7rem; color: rgba(255,255,255,0.8); }
@@ -828,11 +875,15 @@
                 class="fas fa-columns me-1"></i> Board</a></li>
           <li class="nav-item"><a class="nav-link" onclick="switchDetailTab('calendar')"><i
                 class="far fa-calendar-alt me-1"></i> Calendar</a></li>
+          <li class="nav-item"><a class="nav-link" onclick="switchView('content')"><i
+                class="far fa-calendar-alt me-1"></i> Content Plan</a></li>
           <li class="nav-item"><a class="nav-link" onclick="switchDetailTab('summary')"><i
                 class="fas fa-chart-pie me-1"></i> Dashboard</a></li>
         </ul>
         <button class="btn btn-primary btn-sm px-3 rounded-pill shadow-sm" style="font-size:0.8rem;"
           onclick="openAddTaskModal()"><i class="fas fa-plus"></i> เพิ่มงาน</button>
+
+
       </div>
 
       <div class="view-content">
@@ -1089,6 +1140,65 @@
   </div>
 </div>
 
+
+<div class="modal fade" id="dailyTasksModal" tabindex="-1" style="z-index: 1070;">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content shadow-lg border-0">
+      <div class="modal-header bg-light">
+        <h6 class="modal-title fw-bold text-primary" id="dailyTasksTitle">
+          <i class="fas fa-calendar-day me-2"></i>รายละเอียดงาน
+        </h6>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-2" id="dailyTasksBody" style="background: #f8f9fa;">
+        </div>
+    </div>
+  </div>
+</div>
+
+
+
+<div id="view-content" class="view-section" style="display:none; animation: fadeIn 0.3s;">
+    
+    <div class="card border-0 shadow-sm mb-3">
+        <div class="card-body d-flex justify-content-between align-items-center py-3">
+            <div>
+                <h5 class="mb-1 fw-bold text-primary">
+                    <i class="fas fa-layer-group me-2"></i>Content Hub
+                </h5>
+                <small class="text-muted">วางแผนและติดตามสถานะงานคอนเทนต์ (Content / Graphic / VDO / Ads)</small>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <span class="badge bg-white text-secondary border px-3 py-2">
+                    <i class="fas fa-list me-1"></i> Total: <span id="content-count" class="fw-bold text-dark">0</span>
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0 align-middle" style="font-size:0.9rem;">
+                    <thead class="bg-light text-secondary border-bottom">
+                        <tr>
+                            <th class="ps-4" width="12%">Date</th>
+                            <th width="15%">Content Pillar</th>
+                            <th width="10%">Media Type</th>
+                            <th width="35%">Content Ideas / Topic</th>
+                            <th width="10%">Status</th>
+                            <th width="18%" class="pe-4 text-end">Action / Link</th>
+                        </tr>
+                    </thead>
+                    <tbody id="content-plan-body">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 <script>
   // ==========================================
   // 1. GLOBAL VARIABLES & CONFIG
@@ -1256,107 +1366,63 @@
   }
 
   // --- 3. ฟังก์ชัน Render ปฏิทิน (Custom Grid) ---
-  function renderCalendarView(tasks) {
-      const container = document.getElementById('detail-view-calendar');
-      
-      // สีแยกตามประเภทงาน (Pillar Colors)
-      const typeColors = {
-          'Content': '#3b82f6', // สีฟ้า
-          'Graphic': '#8b5cf6', // สีม่วง
-          'VDO':     '#ef4444', // สีแดง
-          'Web':     '#10b981', // สีเขียว
-          'Ads':     '#f59e0b', // สีส้ม
-          'Admin':   '#64748b', // สีเทา
-          'Other':   '#6b7280'
-      };
-
-      // สร้างโครงสร้าง HTML ของปฏิทิน (ถ้ายังไม่มี)
-      const monthNames = ["มกราคม","กุมภาพันธ์","มีนาคม","เมษายน","พฤษภาคม","มิถุนายน","กรกฎาคม","สิงหาคม","กันยายน","ตุลาคม","พฤศจิกายน","ธันวาคม"];
-      const year = calendarViewDate.getFullYear();
-      const month = calendarViewDate.getMonth();
-      const titleText = `${monthNames[month]} ${year + 543}`;
-
-      // เขียน HTML ใหม่ลงใน Container เลย (เพื่อให้เหมือน MyTasks)
-      let html = `
-        <div class="calendar-wrapper shadow-sm">
-            <div class="d-flex justify-content-between mb-3 align-items-center">
-                <button class="btn btn-light btn-sm rounded-circle border shadow-sm" onclick="changeProjectCalendarMonth(-1)"><i class="fas fa-chevron-left"></i></button>
-                <h5 class="mb-0 fw-bold" style="color:var(--ci-navy);">${titleText}</h5>
-                <button class="btn btn-light btn-sm rounded-circle border shadow-sm" onclick="changeProjectCalendarMonth(1)"><i class="fas fa-chevron-right"></i></button>
-            </div>
-            <div class="calendar-grid">`;
-
-      // Header วัน (อา-ส)
-      ['อา','จ','อ','พ','พฤ','ศ','ส'].forEach(d => {
-          html += `<div class="calendar-day-name">${d}</div>`;
-      });
-
-      // คำนวณวันในปฏิทิน
-      const firstDay = new Date(year, month, 1).getDay();
-      const daysInMonth = new Date(year, month + 1, 0).getDate();
-      const todayStr = new Date().toISOString().split('T')[0];
-
-      // ช่องว่างก่อนวันที่ 1
-      for (let i = 0; i < firstDay; i++) {
-          html += `<div class="calendar-day empty"></div>`;
-      }
-
-      // วนลูปสร้างวันที่ 1 - สิ้นเดือน
-      for (let day = 1; day <= daysInMonth; day++) {
-          const dStr = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
-          const isToday = (dStr === todayStr) ? 'today' : '';
-          
-          // หางานที่ตรงกับวันนี้
-          const dayTasks = tasks.filter(t => t[7] === dStr);
-          
-          let taskHtml = '';
-          dayTasks.forEach(t => {
-              const type = t[2] || 'Other';
-              const status = t[5];
-              const bgColor = typeColors[type] || typeColors['Other'];
-              
-              // ไอคอนตามประเภท
-              let icon = '';
-              if(type === 'Graphic') icon = 'fa-palette';
-              else if(type === 'VDO') icon = 'fa-video';
-              else if(type === 'Web') icon = 'fa-code';
-              else if(type === 'Ads') icon = 'fa-bullhorn';
-              else if(type === 'Content') icon = 'fa-pen-nib';
-              else icon = 'fa-circle';
-
-              // สัญลักษณ์สถานะ
-              let statusSign = '';
-              let opacity = '';
-              if (status === 'Done') {
-                  statusSign = '<i class="fas fa-check-circle"></i>';
-                  opacity = 'opacity-50'; // งานเสร็จแล้วให้จางลง
-              } else if (status === 'Revise') {
-                  statusSign = '<i class="fas fa-exclamation-triangle text-warning"></i>';
-              }
-
-              taskHtml += `
-                  <div class="task-event-pill ${opacity}" style="background-color:${bgColor};" onclick="openTaskView('${t[0]}'); event.stopPropagation();" title="${t[3]}">
-                      <div class="d-flex align-items-center overflow-hidden">
-                          <i class="fas ${icon} pill-icon"></i>
-                          <span class="text-truncate">${t[3]}</span>
-                      </div>
-                      <div class="pill-status ms-1">${statusSign}</div>
-                  </div>`;
-          });
-
-          html += `
-              <div class="calendar-day ${isToday}">
-                  <span class="day-number">${day}</span>
-                  <div style="overflow-y:auto; max-height:80px; padding-right:2px;">
-                      ${taskHtml}
-                  </div>
-              </div>`;
-      }
-
-      html += `</div></div>`; // ปิด calendar-grid และ wrapper
-      container.innerHTML = html;
-  }
+  // ฟังก์ชันวาดปฏิทินแบบ Limit Items (แก้ปัญหาตกขอบถาวร)
   
+
+  // Helper: สร้าง Pill เล็กๆ ในปฏิทิน
+  function createMiniTaskPill(t, colors) {
+      const color = colors[t[2]] || '#666';
+      const statusIcon = t[5] === 'Done' ? '<i class="fas fa-check-circle ms-1"></i>' : '';
+      const opacity = t[5] === 'Done' ? 'opacity-50' : '';
+      return `
+      <div class="task-event-pill ${opacity}" style="background-color:${color}; font-size:0.7rem; padding:1px 4px;" onclick="openTaskView('${t[0]}'); event.stopPropagation();">
+          <div class="text-truncate">${t[3]}</div>
+      </div>`;
+  }
+
+  // ✅ ฟังก์ชันใหม่: เปิด Modal ดูงานรายวัน (เมื่อกด +More)
+  function openDailyTasksModal(dateStr) {
+      event.stopPropagation();
+      const tasks = globalData.tasks.filter(t => t[1] === currentProjectId && t[7] === dateStr);
+      
+      // แปลงวันที่เป็นไทย
+      const dateObj = new Date(dateStr);
+      const thDate = dateObj.toLocaleDateString('th-TH', { day: 'numeric', month: 'long', year: 'numeric' });
+      document.getElementById('dailyTasksTitle').innerHTML = `<i class="fas fa-calendar-day me-2"></i> งานวันที่ ${thDate}`;
+
+      const container = document.getElementById('dailyTasksBody');
+      if (tasks.length === 0) {
+          container.innerHTML = '<div class="text-center text-muted p-4">ไม่มีงานในวันนี้</div>';
+      } else {
+          container.innerHTML = tasks.map(t => createFullTaskCard(t)).join('');
+      }
+
+      new bootstrap.Modal(document.getElementById('dailyTasksModal')).show();
+  }
+
+  // Helper: สร้าง Card งานใน Modal (สวยงาม เต็มตา)
+  function createFullTaskCard(t) {
+      const typeColors = {
+          'Content': 'primary', 'Graphic': 'info', 'VDO': 'danger', 
+          'Web': 'success', 'Ads': 'warning', 'Admin': 'secondary'
+      };
+      const badgeColor = typeColors[t[2]] || 'secondary';
+      const statusBadge = t[5] === 'Done' ? '<span class="badge bg-success">Done</span>' : `<span class="badge bg-light text-dark border">${t[5]}</span>`;
+
+      return `
+      <div class="card mb-2 border shadow-sm" style="cursor:pointer;" onclick="bootstrap.Modal.getInstance(document.getElementById('dailyTasksModal')).hide(); openTaskView('${t[0]}');">
+          <div class="card-body p-2 d-flex justify-content-between align-items-center">
+              <div style="overflow:hidden;">
+                  <span class="badge bg-${badgeColor} mb-1">${t[2]}</span>
+                  <div class="fw-bold text-truncate text-dark">${t[3]}</div>
+                  <div class="small text-muted"><i class="fas fa-user-circle me-1"></i> ${t[4]}</div>
+              </div>
+              <div class="ps-2 text-end flex-shrink-0">
+                  ${statusBadge}
+              </div>
+          </div>
+      </div>`;
+  }
 
   function openTaskView(taskId) {
     const t = globalData.tasks.find(x => x[0] === taskId); if(!t) return;
@@ -1905,5 +1971,134 @@ function toggleStepStatus(taskId, stepIndex) {
           renderKanbanView(tasks); renderListView(tasks); renderSummaryView(tasks); renderCalendarView(tasks); 
           sendSystemMessage(`🔄 Status Updated: "${t[3]}" → ${newStatus}`); 
       }).updateTaskProgress(taskId, newStatus, 0); 
+  }
+
+
+   function renderContentPlanView() {
+      const tbody = document.getElementById('content-plan-body');
+      const countBadge = document.getElementById('content-count');
+      
+      // ป้องกัน Error หากหา Element ไม่เจอ
+      if (!tbody) return;
+
+      // แสดง Loading State
+      tbody.innerHTML = `
+          <tr>
+              <td colspan="6" class="text-center py-5">
+                  <div class="spinner-border text-primary mb-2" role="status"></div>
+                  <div class="text-muted small">กำลังโหลดข้อมูล Content Plan...</div>
+              </td>
+          </tr>`;
+
+      // 1. กรองข้อมูล (Filter)
+      // เลือกเฉพาะงานใน Project นี้ และเป็น Type ที่เกี่ยวข้อง
+      const targetTypes = ['Content', 'Graphic', 'VDO', 'Ads'];
+      const tasks = globalData.tasks.filter(t => 
+          t[1] === currentProjectId && 
+          targetTypes.includes(t[2])
+      );
+
+      // 2. เรียงลำดับข้อมูล (Sort) -> เรียงตามวันที่ (เก่า -> ใหม่)
+      tasks.sort((a, b) => {
+          const dA = a[7] ? new Date(a[7]) : new Date('2999-12-31');
+          const dB = b[7] ? new Date(b[7]) : new Date('2999-12-31');
+          return dA - dB; 
+      });
+
+      // อัปเดตตัวนับจำนวน
+      if(countBadge) countBadge.innerText = tasks.length;
+
+      // กรณีไม่มีข้อมูล (Empty State)
+      if (tasks.length === 0) {
+          tbody.innerHTML = `
+            <tr>
+                <td colspan="6" class="text-center py-5 text-muted">
+                    <div style="opacity:0.6">
+                        <i class="fas fa-clipboard-list fa-3x mb-3 text-secondary"></i>
+                        <p class="mb-0">ยังไม่มีรายการ Content ในโปรเจกต์นี้</p>
+                        <small>กดปุ่ม "+ New Task" เพื่อเพิ่มงาน Content, Graphic หรือ VDO</small>
+                    </div>
+                </td>
+            </tr>`;
+          return;
+      }
+
+      // 3. สร้าง HTML ทีละแถว
+      let html = '';
+      tasks.forEach(t => {
+          const taskId = t[0];
+          const taskType = t[2];
+          const taskName = t[3];
+          const assignee = t[4];
+          const status = t[5];
+          const dueDate = t[7];
+          const link = t[8];
+
+          // A. Logic แยก Pillar ออกจากชื่อ
+          // รูปแบบ: "[Awareness] ชื่องาน..."
+          let pillarHtml = '<span class="text-muted small" style="opacity:0.5;">- No Pillar -</span>';
+          let topicHtml = taskName;
+          
+          const pillarMatch = taskName.match(/^\[(.*?)\]/);
+          if (pillarMatch) {
+              const pillarText = pillarMatch[1];
+              // Badge สีขาว ขอบบางๆ
+              pillarHtml = `<span class="badge bg-white text-dark border shadow-sm fw-normal px-2 py-1"><i class="fas fa-tag me-1 text-muted small"></i>${pillarText}</span>`;
+              topicHtml = taskName.replace(/^\[(.*?)\]/, '').trim(); // ตัด Pillar ออกจากชื่อ
+          }
+
+          // B. กำหนดสี Media Type
+          let typeColor = 'secondary';
+          let typeIcon = 'fa-file';
+          
+          if(taskType === 'Content') { typeColor = 'primary'; typeIcon = 'fa-pen-nib'; }
+          else if(taskType === 'Graphic') { typeColor = 'info text-dark'; typeIcon = 'fa-palette'; }
+          else if(taskType === 'VDO') { typeColor = 'danger'; typeIcon = 'fa-video'; }
+          else if(taskType === 'Ads') { typeColor = 'warning text-dark'; typeIcon = 'fa-bullhorn'; }
+
+          // C. จัดรูปแบบวันที่
+          let dateHtml = '<span class="text-muted small">-</span>';
+          if(dueDate) {
+             const d = new Date(dueDate);
+             // แสดงวันที่แบบ "24 Dec"
+             const dateStr = d.toLocaleDateString('en-GB', {day:'numeric', month:'short'});
+             dateHtml = `<span class="fw-bold text-secondary" style="font-family:monospace;">${dateStr}</span>`;
+          }
+
+          // D. จัดรูปแบบสถานะ (Status)
+          let statusHtml = '';
+          if(status === 'Done') {
+              statusHtml = '<span class="badge bg-success rounded-pill px-2"><i class="fas fa-check me-1"></i>Done</span>';
+          } else if(status === 'Revise') {
+              statusHtml = '<span class="badge bg-warning text-dark rounded-pill px-2"><i class="fas fa-exclamation-triangle me-1"></i>Revise</span>';
+          } else {
+              statusHtml = `<span class="badge bg-light text-secondary border rounded-pill px-2">${status}</span>`;
+          }
+
+          // E. ปุ่ม Action / Link
+          let actionHtml = '';
+          if(link) { 
+             // ปุ่ม Open Link
+             actionHtml += `<a href="${link}" target="_blank" class="btn btn-sm btn-outline-primary border-0 py-1 px-2" onclick="event.stopPropagation()" title="Open Link"><i class="fas fa-external-link-alt"></i> Link</a>`;
+          }
+          // ปุ่มดูรายละเอียด (Icon Eye)
+          actionHtml += `<button class="btn btn-sm btn-light text-muted border-0 ms-1" onclick="openTaskDetail('${taskId}'); event.stopPropagation();" title="View Detail"><i class="fas fa-chevron-right"></i></button>`;
+
+          // F. รวมเป็นแถวตาราง
+          html += `
+          <tr class="clickable-row transition-hover" onclick="openTaskDetail('${taskId}')" style="cursor:pointer;">
+              <td class="ps-4">${dateHtml}</td>
+              <td>${pillarHtml}</td>
+              <td><span class="badge bg-${typeColor} bg-opacity-10 text-${typeColor.split(' ')[0]} w-100 border border-${typeColor.split(' ')[0]}"><i class="fas ${typeIcon} me-1"></i>${taskType}</span></td>
+              <td>
+                  <div class="fw-bold text-dark text-truncate" style="max-width: 350px;">${topicHtml}</div>
+                  <div class="small text-muted"><i class="fas fa-user-circle me-1"></i>${assignee || 'Unassigned'}</div>
+              </td>
+              <td>${statusHtml}</td>
+              <td class="pe-4 text-end">${actionHtml}</td>
+          </tr>`;
+      });
+      
+      tbody.innerHTML = html;
   }
 </script>
