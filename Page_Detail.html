@@ -986,6 +986,19 @@
 .bg-pillar-orange { background-color: #fff3e0; color: #ef6c00; border: 1px solid #ffe0b2; }
 .bg-pillar-gray { background-color: #f5f5f5; color: #616161; border: 1px solid #e0e0e0; }
 
+/* --- Content Pillar Colors (สีตามหมวดหมู่) --- */
+.badge-pillar-awareness { background-color: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; } /* เขียว */
+.badge-pillar-consideration { background-color: #fff7ed; color: #9a3412; border: 1px solid #ffedd5; } /* ส้ม */
+.badge-pillar-conversion { background-color: #fee2e2; color: #991b1b; border: 1px solid #fecaca; } /* แดง */
+.badge-pillar-realtime { background-color: #eff6ff; color: #1e40af; border: 1px solid #dbeafe; } /* น้ำเงิน */
+.badge-pillar-engagement { background-color: #f3e8ff; color: #6b21a8; border: 1px solid #e9d5ff; } /* ม่วง */
+.badge-pillar-default { background-color: #f3f4f6; color: #374151; border: 1px solid #e5e7eb; } /* เทา */
+
+/* --- Media Type Colors --- */
+.badge-media { font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; display: inline-flex; align-items: center; gap: 4px; }
+.badge-media-video { background-color: #fae8ff; color: #86198f; } /* ม่วงชมพู */
+.badge-media-single { background-color: #e0f2fe; color: #0369a1; } /* ฟ้า */
+.badge-media-album { background-color: #dcfce7; color: #15803d; } /* เขียว */
 /* Media Type Icon */
 .media-icon {
     font-size: 0.7rem;
@@ -1052,7 +1065,7 @@
 
           <li class="nav-item"><a class="nav-link" onclick="switchDetailTab('summary')"><i
                 class="fas fa-chart-pie me-1"></i> Dashboard</a></li>
-                
+
           <li class="nav-item">
     <a class="nav-link" onclick="switchDetailTab('content')">
         <i class="fas fa-photo-video me-1"></i> Content Plan
@@ -1550,7 +1563,7 @@
     renderTimeline(pid); 
     
     startPolling(); // Start Chat Polling
-    switchDetailTab('list'); // Default Tab
+    switchDetailTab('summary'); // Default Tab
     showPage('page-detail');
   }
 
@@ -2279,18 +2292,14 @@ function changeContentMonth(offset) {
 
 function renderContentPlanView() {
     const container = document.getElementById('detail-view-content');
-    
     const year = currentContentDate.getFullYear();
     const month = currentContentDate.getMonth();
-    
     const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-    const firstDayOfMonth = new Date(year, month, 1).getDay();
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
     
-    // ดึง Task
-    const tasks = globalData.tasks.filter(t => t[1] === currentProjectId && ['Content','Graphic','VDO','Ads'].includes(t[2]));
+    // ดึง Task เฉพาะ Project นี้
+    const tasks = globalData.tasks.filter(t => t[1] === currentProjectId);
 
-    // ... (HTML Header ส่วนตาราง เหมือนเดิม ไม่ต้องแก้) ...
+    // ... (ส่วน HTML Header คงเดิม) ...
     let html = `
     <div class="p-4" style="background-color: #f1f5f9; min-height: 100vh;">
         <div class="d-flex justify-content-between align-items-center mb-3">
@@ -2313,6 +2322,8 @@ function renderContentPlanView() {
                 <tbody>
     `;
 
+    const firstDayOfMonth = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
     let currentDay = 1;
     let weekCount = 0;
     
@@ -2326,17 +2337,12 @@ function renderContentPlanView() {
                 weekDates.push(null);
             } else {
                 weekDays.push(currentDay);
-                
-                // ✅ แก้ไข: สร้าง String วันที่แบบ Manual เพื่อป้องกัน Timezone เพี้ยน
-                // (ถ้าใช้ toISOString() เวลาจะลบไป 7 ชม. ทำให้วันที่ผิด)
                 let dStr = year + '-' + String(month+1).padStart(2,'0') + '-' + String(currentDay).padStart(2,'0');
-                
                 weekDates.push(dStr);
                 currentDay++;
             }
         }
 
-        // --- Helper Function (เหมือนเดิม) ---
         const getTask = (dateStr) => {
              if(!dateStr) return null;
              return tasks.find(t => t[7] === dateStr);
@@ -2346,58 +2352,66 @@ function renderContentPlanView() {
             if (!dateStr) return ''; 
             
             let content = '';
-            let clickAction = `onclick="openContentModal('${dateStr}')"`; 
+            // คลิกเพื่อแก้ไข
+            let clickAction = task ? `onclick="openContentModal('${dateStr}', '${task[0]}')"` : `onclick="openContentModal('${dateStr}')"`;
             
             if (task) {
-                clickAction = `onclick="openContentModal('${dateStr}', '${task[0]}')"`;
-
+                // ✅ 1. ส่วน Pillar (ดึงจาก Col 12)
                 if (fieldType === 'pillar') {
-                    // Index 12 = Workflow, 13 = Pillar (ใน Array ที่ Return มาจาก Backend)
-                    // แต่ใน globalData อาจจะโหลดมาจาก CSV ซึ่ง index อาจต่างกัน
-                    // ใช้การเช็คค่าเอาชัวร์กว่า
-                    let val = task[12] || task[2]; 
-                    // ถ้า task[12] เป็น JSON (Workflow) ให้ข้ามไปใช้ task[13] แทน
-                    if(val && val.startsWith && val.startsWith('[')) val = task[13] || task[2];
-
-                    let badgeClass = 'bg-pillar-gray';
-                    if(val && val.match(/Awareness/i)) badgeClass = 'bg-pillar-green';
-                    else if(val && val.match(/Consideration/i)) badgeClass = 'bg-pillar-orange';
-                    else if(val && val.match(/Real-time/i)) badgeClass = 'bg-pillar-blue';
+                    let val = task[13] || '-'; // Content_Pillar
+                    
+                    // เลือกสี Badge ตามชื่อ Pillar
+                    let badgeClass = 'badge-pillar-default';
+                    let vLower = val.toString().toLowerCase();
+                    if(vLower.includes('awareness')) badgeClass = 'badge-pillar-awareness';
+                    else if(vLower.includes('consideration')) badgeClass = 'badge-pillar-consideration';
+                    else if(vLower.includes('conversion') || vLower.includes('sale')) badgeClass = 'badge-pillar-conversion';
+                    else if(vLower.includes('real-time') || vLower.includes('realtime')) badgeClass = 'badge-pillar-realtime';
+                    else if(vLower.includes('engagement')) badgeClass = 'badge-pillar-engagement';
                     
                     content = `<div class="text-center"><span class="pillar-badge ${badgeClass}">${val}</span></div>`;
                 }
+                // ✅ 2. ส่วน Media Type (ดึงจาก Col 13)
                 else if (fieldType === 'media') {
-                    let val = task[13] || 'Single'; // Index 14 ใน DB คือ 13 ใน Array นี้ (ถ้าตัด Header) -> เช็คให้ดี
-                    // ลองใช้ Logic การดึงค่าแบบปลอดภัย
-                    if(task.length > 13) val = task[13]; 
-                    if(task.length > 14 && task[13] && task[13].length > 20) val = task[14]; // เผื่อ index เลื่อน
-
+                    let val = task[14] || '-'; // Media_Type
+                    
+                    // เลือก Icon และสี
                     let icon = 'fa-image';
-                    if(val === 'Video') icon = 'fa-video';
-                    else if(val === 'Album') icon = 'fa-images';
-                    content = `<div class="text-center text-secondary small"><i class="fas ${icon} me-1"></i>${val}</div>`;
+                    let colorClass = 'badge-media-single';
+                    let vLower = val.toString().toLowerCase();
+
+                    if(vLower.includes('video') || vLower.includes('reels')) { icon = 'fa-video'; colorClass = 'badge-media-video'; }
+                    else if(vLower.includes('carousel') || vLower.includes('album')) { icon = 'fa-images'; colorClass = 'badge-media-album'; }
+                    
+                    content = `<div class="text-center"><span class="badge-media ${colorClass}"><i class="fas ${icon}"></i> ${val}</span></div>`;
                 }
+                // ✅ 3. ส่วน Idea (Task Name [3] + Assignee [4])
                 else if (fieldType === 'idea') {
-                    // Task Name
-                    content = `<div class="text-dark small" style="white-space: pre-wrap; line-height:1.3;">${task[3]}</div>`;
-                    // ✅ เพิ่มชื่อคนรับผิดชอบตัวเล็กๆ
-                    if(task[4] && task[4] !== 'Unassigned') {
-                        content += `<div class="text-muted mt-1" style="font-size:0.65rem;"><i class="fas fa-user-circle"></i> ${task[4]}</div>`;
+                    let taskName = task[3] || 'No Title';
+                    let assignee = task[4] || 'Unassigned';
+                    
+                    content = `<div class="text-dark small fw-bold" style="white-space: pre-wrap; line-height:1.3; font-size:0.8rem;">${taskName}</div>`;
+                    if(assignee !== 'Unassigned') {
+                        // ตัดคำว่า (Admin) ออกถ้าอยากให้สั้นลง หรือโชว์เต็มก็ได้
+                        content += `<div class="text-secondary mt-1" style="font-size:0.7rem;">
+                            <i class="fas fa-user-circle text-primary me-1"></i>${assignee}
+                        </div>`;
                     }
                 }
+                // ✅ 4. ส่วน Remark (ดึงจาก Col 14)
                 else if (fieldType === 'remark') {
-                     // พยายามดึง Remark (Index สุดท้าย)
-                     let val = task[task.length-1] || ''; 
-                     if(val.includes('http')) content = `<a href="${val}" target="_blank" class="text-primary"><i class="fas fa-link"></i> Link</a>`;
-                     else content = `<span class="text-muted small">${val}</span>`;
+                      let val = task[15] || ''; 
+                      if(val.includes('http')) content = `<a href="${val}" target="_blank" class="text-primary text-decoration-none"><i class="fas fa-link me-1"></i>Open Link</a>`;
+                      else content = `<span class="text-muted small">${val}</span>`;
                 }
             } else {
-                content = `<div class="text-light text-center small opacity-25"><i class="fas fa-plus"></i></div>`;
+                // ช่องว่าง แสดงปุ่มบวกจางๆ
+                content = `<div class="text-light text-center small opacity-25 h-100 d-flex align-items-center justify-content-center"><i class="fas fa-plus"></i></div>`;
             }
             return `<div class="w-100 h-100 p-1" style="cursor:pointer; min-height:100%;" ${clickAction}>${content}</div>`;
         };
 
-        // --- Render Rows (เหมือนเดิม) ---
+        // Render Row Headers & Cells (คงเดิม)
         html += `<tr class="row-date"><td class="cal-label-col">DATE</td>`;
         weekDays.forEach((day, idx) => html += `<td class="${day?'has-date':''}">${day || ''}</td>`);
         html += `</tr>`;
@@ -2410,7 +2424,7 @@ function renderContentPlanView() {
         weekDays.forEach((day, idx) => html += `<td class="cell-data p-0">${createCell(weekDates[idx], 'media', getTask(weekDates[idx]))}</td>`);
         html += `</tr>`;
 
-        html += `<tr><td class="cal-label-col">Ideas</td>`;
+        html += `<tr><td class="cal-label-col">Ideas / Assignee</td>`; // เปลี่ยนชื่อ Label ให้ตรงกับข้อมูล
         weekDays.forEach((day, idx) => html += `<td class="cell-data p-0" style="height:80px; vertical-align:top;">${createCell(weekDates[idx], 'idea', getTask(weekDates[idx]))}</td>`);
         html += `</tr>`;
 
@@ -2462,9 +2476,18 @@ function renderContentPlanView() {
   }
 
 
-  function openContentModal(dateStr, taskId = null) {
+  // --- แก้ไขฟังก์ชัน openContentModal ใน <script> ---
+
+// --------------------------------------------------------
+// 📌 แก้ไขฟังก์ชัน openContentModal (ทับของเดิมได้เลย)
+// --------------------------------------------------------
+// --------------------------------------------------------
+// 📌 แก้ไขฟังก์ชัน openContentModal (ฉบับแก้ไข Assignee & Media Type)
+// --------------------------------------------------------
+function openContentModal(dateStr, taskId = null) {
     if(!dateStr) return;
     
+    // 1. Reset Form
     document.getElementById('content-form').reset();
     document.getElementById('content-date').value = dateStr;
     document.getElementById('content-task-id').value = taskId || '';
@@ -2472,38 +2495,81 @@ function renderContentPlanView() {
     let d = new Date(dateStr);
     document.getElementById('content-date-display').innerText = d.toLocaleDateString('th-TH', {day:'numeric', month:'long', year:'numeric'});
 
-    // ✅ โหลดรายชื่อผู้รับผิดชอบ (Assignee)
+    // ==========================================================
+    // 🟡 จุดแก้ที่ 1: ตั้งค่า Value ให้เป็น "ชื่อ (ตำแหน่ง)" เหมือนกับ Text
+    // ==========================================================
     const assigneeSelect = document.getElementById('content-assignee');
     assigneeSelect.innerHTML = '<option value="Unassigned">-- Select Assignee --</option>';
+    
     if(globalData.allUsers) {
-         // กรองเฉพาะทีม Content/Graphic หรือเอาทั้งหมดก็ได้
          globalData.allUsers.forEach(u => {
-             const name = u.name || u;
+             const userName = u.name || u;
+             const userRole = u.role || "";
+             // สร้างข้อความรูปแบบ "ชื่อ (ตำแหน่ง)"
+             const fullText = userRole ? `${userName} (${userRole})` : userName; 
+             
              const opt = document.createElement('option');
-             opt.value = name;
-             opt.text = name;
+             opt.value = fullText; // ✅ บังคับให้ Value เป็น "กิ๊ฟ (Admin)" ให้ตรงกับฐานข้อมูล
+             opt.text = fullText;  // ✅ Text ก็แสดง "กิ๊ฟ (Admin)"
              assigneeSelect.appendChild(opt);
          });
     }
 
+    // 2. ดึงข้อมูลมาใส่ (กรณีแก้ไข)
     if(taskId) {
-        const task = globalData.tasks.find(t => t[0] === taskId);
-        if(task) {
-            document.getElementById('content-idea').value = task[3]; 
-            // เลือก Assignee เดิม
-            if(task[4]) assigneeSelect.value = task[4];
-            
-            // Map คอลัมน์ (ลองดึงจากท้ายมาหน้าเพื่อความชัวร์)
-            // Index: 13=Pillar, 14=Media, 15=Remark
-            document.getElementById('content-pillar').value = task[13] || '';
-            document.getElementById('content-media').value = task[14] || '';
-            document.getElementById('content-remark').value = task[15] || '';
-        }
-    }
+        const ideaInput = document.getElementById('content-idea');
+        ideaInput.disabled = true;
+        ideaInput.value = "กำลังโหลดข้อมูล...";
 
+        google.script.run.withSuccessHandler(function(task) {
+            ideaInput.disabled = false;
+
+            if(task) {
+                // [3] Task Name / Idea
+                ideaInput.value = task[3] || ''; 
+                
+                // ======================================================
+                // 🟡 จุดแก้ที่ 2: Assignee (ระบบเติมชื่อกันพลาด)
+                // ======================================================
+                let currentAssignee = task[4]; 
+                if(currentAssignee && currentAssignee !== 'Unassigned') {
+                    // เช็คว่ามีค่านี้ใน Dropdown ไหม (ต้องตรงกันทั้งตัวอักษร)
+                    let exists = Array.from(assigneeSelect.options).some(opt => opt.value === currentAssignee);
+                    
+                    if (!exists) {
+                        // ถ้าหาไม่เจอ ให้สร้างตัวเลือกใหม่ยัดเข้าไปเลย
+                        const opt = document.createElement('option');
+                        opt.value = currentAssignee;
+                        opt.text = currentAssignee;
+                        assigneeSelect.appendChild(opt);
+                    }
+                    assigneeSelect.value = currentAssignee; // เลือกได้แน่นอน 100%
+                } else {
+                    assigneeSelect.value = "Unassigned";
+                }
+                
+                // ======================================================
+                // 🟡 จุดแก้ที่ 3: ปรับ Index ให้ตรงกับ code.gs (ที่มีการเว้นช่องว่าง Col L)
+                // ======================================================
+                // Col L (Index 11) = ว่าง
+                // Col M (Index 12) = Workflow JSON
+                // Col N (Index 13) = Pillar 
+                // Col O (Index 14) = Media Type
+                // Col P (Index 15) = Remark
+                
+                document.getElementById('content-pillar').value = task[13] || ''; // Index 13
+                document.getElementById('content-media').value = task[14] || '';  // Index 14 (Media Type)
+                document.getElementById('content-remark').value = task[15] || ''; // Index 15
+
+            } else {
+                ideaInput.value = "";
+                alert("ไม่พบข้อมูลงานนี้");
+            }
+        }).getTaskById(taskId);
+    }
+    
     new bootstrap.Modal(document.getElementById('contentTaskModal')).show();
 }
-
 // ฟังก์ชันบันทึกข้อมูล (Save)
 function saveContentTask() {
     const taskId = document.getElementById('content-task-id').value;
@@ -2537,26 +2603,34 @@ function saveContentTask() {
 }
 
 function submitToBackend(data, filePayload) {
-    const btn = event.target; // ปุ่ม Save
+    const btn = event.target; 
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
     btn.disabled = true;
 
     google.script.run.withSuccessHandler((res) => {
-        // อัปเดตข้อมูลในหน้าเว็บทันที (ไม่ต้องรอ Reload)
+        // อัปเดตข้อมูลในตัวแปร globalData
         if (!data.taskId) {
-            // กรณีสร้างใหม่: เพิ่มเข้า array
             globalData.tasks.push(res); 
         } else {
-            // กรณีแก้ไข: หา index แล้วอัปเดต
             const idx = globalData.tasks.findIndex(t => t[0] === res[0]);
             if(idx !== -1) globalData.tasks[idx] = res;
         }
         
-        renderContentPlanView(); // วาดตารางใหม่
+        // 1. วาดตาราง Content Plan ใหม่ (ของเดิมมีอยู่แล้ว)
+        renderContentPlanView(); 
+        
+        // ✅ 2. เพิ่มส่วนนี้: สั่งวาดหน้ารายการ (List) และบอร์ด (Kanban) ใหม่ด้วย
+        // เพื่อให้ข้อมูล Assignee อัปเดตทันทีโดยไม่ต้องรีเฟรชหน้าจอ
+        if (currentProjectId) {
+            const currentProjectTasks = globalData.tasks.filter(t => t[1] === currentProjectId);
+            renderListView(currentProjectTasks);   // อัปเดต List
+            renderKanbanView(currentProjectTasks); // อัปเดต Kanban (ถ้ามี)
+        }
+
         bootstrap.Modal.getInstance(document.getElementById('contentTaskModal')).hide();
         btn.innerHTML = 'Save Content';
         btn.disabled = false;
         
-    }).saveContentTaskDB(data, filePayload); // **ต้องไปสร้างฟังก์ชันนี้ใน Apps Script**
+    }).saveContentTaskDB(data, filePayload);
 }
 </script>
