@@ -1049,6 +1049,15 @@
 
       <div class="nav-bar">
         <ul class="nav nav-tabs-formal mb-0" id="detail-tabs">
+
+          <li class="nav-item"><a class="nav-link" onclick="switchDetailTab('summary')"><i
+                class="fas fa-chart-pie me-1"></i> Dashboard</a></li>
+                
+          <li class="nav-item">
+    <a class="nav-link" onclick="switchDetailTab('content')">
+        <i class="fas fa-photo-video me-1"></i> Content Plan
+    </a>
+</li>
           <li class="nav-item"><a class="nav-link active" onclick="switchDetailTab('list')"><i
                 class="fas fa-list me-1"></i> List</a></li>
           <li class="nav-item"><a class="nav-link" onclick="switchDetailTab('kanban')"><i
@@ -1056,13 +1065,7 @@
           <li class="nav-item"><a class="nav-link" onclick="switchDetailTab('calendar')"><i
                 class="far fa-calendar-alt me-1"></i> Calendar</a></li>
   
-<li class="nav-item">
-    <a class="nav-link" onclick="switchDetailTab('content')">
-        <i class="fas fa-photo-video me-1"></i> Content Plan
-    </a>
-</li>
-          <li class="nav-item"><a class="nav-link" onclick="switchDetailTab('summary')"><i
-                class="fas fa-chart-pie me-1"></i> Dashboard</a></li>
+
         </ul>
         <button class="btn btn-primary btn-sm px-3 rounded-pill shadow-sm" style="font-size:0.8rem;"
           onclick="openAddTaskModal()"><i class="fas fa-plus"></i> เพิ่มงาน</button>
@@ -1404,6 +1407,13 @@
             <div id="content-date-display" class="fw-bold text-primary"></div>
           </div>
 
+          <div class="mb-3">
+  <label class="small fw-bold text-muted">Assignee (ผู้รับผิดชอบ)</label>
+  <select class="form-select form-select-sm" id="content-assignee">
+      <option value="Unassigned">-- Select Assignee --</option>
+  </select>
+</div>
+
           <div class="row g-2 mb-3">
             <div class="col-6">
               <label class="small fw-bold text-muted">Pillar</label>
@@ -1421,7 +1431,6 @@
               <select class="form-select form-select-sm" id="content-media">
                 <option value="">-- Select Type --</option>
                 <option value="Single">Single Image</option>
-                <option value="Album">Album</option>
                 <option value="Video">Video / Reels</option>
                 <option value="Carousel">Carousel</option>
                 <option value="Article">Article / Link</option>
@@ -2278,10 +2287,10 @@ function renderContentPlanView() {
     const firstDayOfMonth = new Date(year, month, 1).getDay();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
     
-    // ดึงเฉพาะ Task ของ Project นี้ และเป็นประเภท Content/Graphic/VDO/Ads
+    // ดึง Task
     const tasks = globalData.tasks.filter(t => t[1] === currentProjectId && ['Content','Graphic','VDO','Ads'].includes(t[2]));
 
-    // --- HTML Structure ---
+    // ... (HTML Header ส่วนตาราง เหมือนเดิม ไม่ต้องแก้) ...
     let html = `
     <div class="p-4" style="background-color: #f1f5f9; min-height: 100vh;">
         <div class="d-flex justify-content-between align-items-center mb-3">
@@ -2292,24 +2301,13 @@ function renderContentPlanView() {
                 <button class="btn btn-white border shadow-sm btn-sm" onclick="changeContentMonth(1)"><i class="fas fa-chevron-right"></i></button>
              </div>
         </div>
-        
         <div class="content-cal-container">
             <table class="content-cal-table">
                 <thead>
-                    <tr>
-                        <th colspan="8" class="cal-month-header">
-                            ${monthNames[month]} ${year}
-                        </th>
-                    </tr>
+                    <tr><th colspan="8" class="cal-month-header">${monthNames[month]} ${year}</th></tr>
                     <tr>
                         <th class="cal-label-col text-center">Week</th>
-                        <th class="cal-day-header">SUN</th>
-                        <th class="cal-day-header">MON</th>
-                        <th class="cal-day-header">TUE</th>
-                        <th class="cal-day-header">WED</th>
-                        <th class="cal-day-header">THU</th>
-                        <th class="cal-day-header">FRI</th>
-                        <th class="cal-day-header">SAT</th>
+                        <th class="cal-day-header">SUN</th><th class="cal-day-header">MON</th><th class="cal-day-header">TUE</th><th class="cal-day-header">WED</th><th class="cal-day-header">THU</th><th class="cal-day-header">FRI</th><th class="cal-day-header">SAT</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -2318,10 +2316,9 @@ function renderContentPlanView() {
     let currentDay = 1;
     let weekCount = 0;
     
-    // Loop สร้างสัปดาห์
     while (currentDay <= daysInMonth) {
         let weekDays = [];
-        let weekDates = []; // เก็บวันที่จริง (YYYY-MM-DD) ไว้ใช้ตอนคลิก
+        let weekDates = []; 
 
         for (let i = 0; i < 7; i++) {
             if ((weekCount === 0 && i < firstDayOfMonth) || currentDay > daysInMonth) {
@@ -2329,100 +2326,94 @@ function renderContentPlanView() {
                 weekDates.push(null);
             } else {
                 weekDays.push(currentDay);
-                // สร้าง string วันที่ YYYY-MM-DD (ระวังเรื่อง Timezone)
-                let d = new Date(year, month, currentDay);
-                let dStr = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+                
+                // ✅ แก้ไข: สร้าง String วันที่แบบ Manual เพื่อป้องกัน Timezone เพี้ยน
+                // (ถ้าใช้ toISOString() เวลาจะลบไป 7 ชม. ทำให้วันที่ผิด)
+                let dStr = year + '-' + String(month+1).padStart(2,'0') + '-' + String(currentDay).padStart(2,'0');
+                
                 weekDates.push(dStr);
                 currentDay++;
             }
         }
 
-        // --- Helper: หา Task ในวันนี้ ---
+        // --- Helper Function (เหมือนเดิม) ---
         const getTask = (dateStr) => {
              if(!dateStr) return null;
-             // สมมติ t[7] คือ DueDate
              return tasks.find(t => t[7] === dateStr);
         };
 
-        // --- Helper: สร้าง Cell ที่คลิกได้ ---
-        // params: dateStr (วันที่), fieldType (ประเภทข้อมูลที่จะโชว์), task (ข้อมูลงาน)
         const createCell = (dateStr, fieldType, task) => {
-            if (!dateStr) return ''; // วันว่าง
+            if (!dateStr) return ''; 
             
             let content = '';
-            let clickAction = `onclick="openContentModal('${dateStr}')"`; // Default คลิกแล้วเปิด Modal ใหม่
+            let clickAction = `onclick="openContentModal('${dateStr}')"`; 
             
             if (task) {
-                // ถ้ามีงานอยู่แล้ว ให้คลิกแล้วเปิดไปแก้ไข (ส่ง ID ไปด้วย)
                 clickAction = `onclick="openContentModal('${dateStr}', '${task[0]}')"`;
 
-                // 1. Pillar
                 if (fieldType === 'pillar') {
-                    // **สมมติ** ว่าเก็บ Pillar ไว้ใน t[13] (คอลัมน์ใหม่) หรือ t[2] (Type เดิม)
-                    // ถ้ายังไม่ได้เพิ่มคอลัมน์ DB ให้ใช้ Logic เดิมในการเดา
-                    let val = task[13] || task[2] || '-'; 
+                    // Index 12 = Workflow, 13 = Pillar (ใน Array ที่ Return มาจาก Backend)
+                    // แต่ใน globalData อาจจะโหลดมาจาก CSV ซึ่ง index อาจต่างกัน
+                    // ใช้การเช็คค่าเอาชัวร์กว่า
+                    let val = task[12] || task[2]; 
+                    // ถ้า task[12] เป็น JSON (Workflow) ให้ข้ามไปใช้ task[13] แทน
+                    if(val && val.startsWith && val.startsWith('[')) val = task[13] || task[2];
+
                     let badgeClass = 'bg-pillar-gray';
-                    if(val.match(/Awareness/i)) badgeClass = 'bg-pillar-green';
-                    else if(val.match(/Consideration/i)) badgeClass = 'bg-pillar-orange';
-                    else if(val.match(/Real-time/i)) badgeClass = 'bg-pillar-blue';
+                    if(val && val.match(/Awareness/i)) badgeClass = 'bg-pillar-green';
+                    else if(val && val.match(/Consideration/i)) badgeClass = 'bg-pillar-orange';
+                    else if(val && val.match(/Real-time/i)) badgeClass = 'bg-pillar-blue';
                     
                     content = `<div class="text-center"><span class="pillar-badge ${badgeClass}">${val}</span></div>`;
                 }
-                // 2. Media
                 else if (fieldType === 'media') {
-                    // **สมมติ** ว่าเก็บ Media ไว้ใน t[14]
-                    let val = task[14] || 'Single';
+                    let val = task[13] || 'Single'; // Index 14 ใน DB คือ 13 ใน Array นี้ (ถ้าตัด Header) -> เช็คให้ดี
+                    // ลองใช้ Logic การดึงค่าแบบปลอดภัย
+                    if(task.length > 13) val = task[13]; 
+                    if(task.length > 14 && task[13] && task[13].length > 20) val = task[14]; // เผื่อ index เลื่อน
+
                     let icon = 'fa-image';
                     if(val === 'Video') icon = 'fa-video';
                     else if(val === 'Album') icon = 'fa-images';
-                    
                     content = `<div class="text-center text-secondary small"><i class="fas ${icon} me-1"></i>${val}</div>`;
                 }
-                // 3. Idea
                 else if (fieldType === 'idea') {
+                    // Task Name
                     content = `<div class="text-dark small" style="white-space: pre-wrap; line-height:1.3;">${task[3]}</div>`;
+                    // ✅ เพิ่มชื่อคนรับผิดชอบตัวเล็กๆ
+                    if(task[4] && task[4] !== 'Unassigned') {
+                        content += `<div class="text-muted mt-1" style="font-size:0.65rem;"><i class="fas fa-user-circle"></i> ${task[4]}</div>`;
+                    }
                 }
-                // 4. Remark
                 else if (fieldType === 'remark') {
-                    // **สมมติ** ว่าเก็บ Remark ไว้ใน t[15] หรือใช้ Description
-                    let val = task[15] || '';
-                    if(val.includes('http')) content = `<a href="${val}" target="_blank" class="text-primary"><i class="fas fa-link"></i> Link</a>`;
-                    else content = `<span class="text-muted small">${val}</span>`;
+                     // พยายามดึง Remark (Index สุดท้าย)
+                     let val = task[task.length-1] || ''; 
+                     if(val.includes('http')) content = `<a href="${val}" target="_blank" class="text-primary"><i class="fas fa-link"></i> Link</a>`;
+                     else content = `<span class="text-muted small">${val}</span>`;
                 }
             } else {
-                // ถ้าไม่มีงาน ให้เป็นพื้นที่ว่างๆ คลิกได้
                 content = `<div class="text-light text-center small opacity-25"><i class="fas fa-plus"></i></div>`;
             }
-
             return `<div class="w-100 h-100 p-1" style="cursor:pointer; min-height:100%;" ${clickAction}>${content}</div>`;
         };
 
-        // --- RENDER ROWS ---
-
-        // Row 1: Date
+        // --- Render Rows (เหมือนเดิม) ---
         html += `<tr class="row-date"><td class="cal-label-col">DATE</td>`;
-        weekDays.forEach((day, idx) => {
-            let dateStr = weekDates[idx];
-            html += `<td class="${day?'has-date':''}">${day || ''}</td>`;
-        });
+        weekDays.forEach((day, idx) => html += `<td class="${day?'has-date':''}">${day || ''}</td>`);
         html += `</tr>`;
 
-        // Row 2: Pillar
         html += `<tr><td class="cal-label-col">Pillar</td>`;
         weekDays.forEach((day, idx) => html += `<td class="cell-data p-0">${createCell(weekDates[idx], 'pillar', getTask(weekDates[idx]))}</td>`);
         html += `</tr>`;
 
-        // Row 3: Media Type
         html += `<tr><td class="cal-label-col">Media Type</td>`;
         weekDays.forEach((day, idx) => html += `<td class="cell-data p-0">${createCell(weekDates[idx], 'media', getTask(weekDates[idx]))}</td>`);
         html += `</tr>`;
 
-        // Row 4: Content Idea
         html += `<tr><td class="cal-label-col">Ideas</td>`;
         weekDays.forEach((day, idx) => html += `<td class="cell-data p-0" style="height:80px; vertical-align:top;">${createCell(weekDates[idx], 'idea', getTask(weekDates[idx]))}</td>`);
         html += `</tr>`;
 
-        // Row 5: Remark
         html += `<tr class="week-divider"><td class="cal-label-col">Remark</td>`;
         weekDays.forEach((day, idx) => html += `<td class="cell-data p-0">${createCell(weekDates[idx], 'remark', getTask(weekDates[idx]))}</td>`);
         html += `</tr>`;
@@ -2474,24 +2465,39 @@ function renderContentPlanView() {
   function openContentModal(dateStr, taskId = null) {
     if(!dateStr) return;
     
-    // Reset Form
     document.getElementById('content-form').reset();
     document.getElementById('content-date').value = dateStr;
     document.getElementById('content-task-id').value = taskId || '';
     
-    // แสดงวันที่หัว Modal
     let d = new Date(dateStr);
     document.getElementById('content-date-display').innerText = d.toLocaleDateString('th-TH', {day:'numeric', month:'long', year:'numeric'});
 
-    // ถ้ามี Task ID (เป็นการแก้ไข) ให้ดึงข้อมูลมาใส่ Form
+    // ✅ โหลดรายชื่อผู้รับผิดชอบ (Assignee)
+    const assigneeSelect = document.getElementById('content-assignee');
+    assigneeSelect.innerHTML = '<option value="Unassigned">-- Select Assignee --</option>';
+    if(globalData.allUsers) {
+         // กรองเฉพาะทีม Content/Graphic หรือเอาทั้งหมดก็ได้
+         globalData.allUsers.forEach(u => {
+             const name = u.name || u;
+             const opt = document.createElement('option');
+             opt.value = name;
+             opt.text = name;
+             assigneeSelect.appendChild(opt);
+         });
+    }
+
     if(taskId) {
         const task = globalData.tasks.find(t => t[0] === taskId);
         if(task) {
-            // Mapping ข้อมูลเข้า Form (ต้องปรับ index ตามคอลัมน์จริงใน DB)
-            document.getElementById('content-idea').value = task[3]; // Task Name
-            document.getElementById('content-pillar').value = task[13] || ''; // Pillar
-            document.getElementById('content-media').value = task[14] || ''; // Media
-            document.getElementById('content-remark').value = task[15] || ''; // Remark
+            document.getElementById('content-idea').value = task[3]; 
+            // เลือก Assignee เดิม
+            if(task[4]) assigneeSelect.value = task[4];
+            
+            // Map คอลัมน์ (ลองดึงจากท้ายมาหน้าเพื่อความชัวร์)
+            // Index: 13=Pillar, 14=Media, 15=Remark
+            document.getElementById('content-pillar').value = task[13] || '';
+            document.getElementById('content-media').value = task[14] || '';
+            document.getElementById('content-remark').value = task[15] || '';
         }
     }
 
@@ -2503,31 +2509,26 @@ function saveContentTask() {
     const taskId = document.getElementById('content-task-id').value;
     const dateStr = document.getElementById('content-date').value;
     
-    // เตรียม Object ข้อมูล
     const data = {
         taskId: taskId,
         projectId: currentProjectId,
         dueDate: dateStr,
-        taskName: document.getElementById('content-idea').value, // ใช้เป็น Ideas
+        taskName: document.getElementById('content-idea').value, 
+        assignee: document.getElementById('content-assignee').value, // ✅ ส่งค่า Assignee
         pillar: document.getElementById('content-pillar').value,
         mediaType: document.getElementById('content-media').value,
         remark: document.getElementById('content-remark').value,
-        // Default values
         taskType: 'Content', 
-        assignee: 'Unassigned',
         status: 'To Do' 
     };
     
-    // ไฟล์แนบ (ถ้ามี)
     const fileInput = document.getElementById('content-file');
     const file = fileInput.files[0];
-    let filePayload = null;
     
     if (file) {
         const reader = new FileReader();
         reader.onload = function(e) {
-            filePayload = { name: file.name, mimeType: file.type, data: e.target.result.split(',')[1] };
-            submitToBackend(data, filePayload);
+            submitToBackend(data, { name: file.name, mimeType: file.type, data: e.target.result.split(',')[1] });
         };
         reader.readAsDataURL(file);
     } else {
