@@ -817,6 +817,186 @@
   /* Status Icons */
   .pill-icon { font-size: 0.65rem; opacity: 0.8; margin-right: 4px; }
   .pill-status { font-size: 0.7rem; color: rgba(255,255,255,0.8); }
+
+  /* --- Content Calendar Spreadsheet Style --- */
+.content-cal-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.75rem;
+    table-layout: fixed; /* บังคับความกว้างเท่ากัน */
+}
+
+.content-cal-table th, 
+.content-cal-table td {
+    border: 1px solid #000; /* เส้นขอบสีดำเข้มตามภาพ */
+    padding: 4px;
+    vertical-align: top;
+    word-wrap: break-word;
+}
+
+/* Header เดือน */
+.cal-month-header {
+    background-color: #0d47a1; /* สีน้ำเงินเข้ม */
+    color: white;
+    text-align: center;
+    font-weight: bold;
+    font-size: 1rem;
+    padding: 8px !important;
+}
+
+/* Header วัน (Sunday - Saturday) */
+.cal-day-header {
+    background-color: #000;
+    color: white;
+    text-align: center;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+/* คอลัมน์ซ้ายสุด (Labels) */
+.cal-label-col {
+    background-color: #212121; /* สีดำ/เทาเข้ม */
+    color: white;
+    font-weight: bold;
+    width: 100px; /* ความกว้างคอลัมน์ Label */
+    text-align: center;
+    vertical-align: middle !important;
+}
+
+/* แถว Date */
+.row-date td {
+    background-color: #cfd8dc; /* สีเทาอ่อน */
+    text-align: center;
+    font-weight: bold;
+    color: #000;
+}
+
+/* พื้นที่ใส่ข้อมูล */
+.cell-data {
+    background-color: #fff;
+    height: 35px; /* ความสูงขั้นต่ำ */
+    color: #333;
+}
+
+/* Highlight ตาม Pillar (ตัวอย่างตามภาพ) */
+.bg-awareness { background-color: #dcedc8 !important; } /* เขียวอ่อน */
+.bg-consideration { background-color: #fff9c4 !important; } /* เหลืองอ่อน */
+.bg-realtime { background-color: #b3e5fc !important; } /* ฟ้าอ่อน */
+
+
+
+/* --- Formal Content Calendar Style --- */
+.content-cal-container {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    overflow: hidden;
+    margin-bottom: 20px;
+    font-family: 'Sarabun', sans-serif;
+}
+
+.content-cal-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8rem;
+    table-layout: fixed;
+    border-style: hidden; /* ซ่อนขอบนอกสุดของตาราง */
+}
+
+.content-cal-table th, 
+.content-cal-table td {
+    border: 1px solid #e2e8f0; /* เส้นสีเทาบาง ดูสะอาด */
+    padding: 8px 10px;
+    vertical-align: middle;
+    word-wrap: break-word;
+}
+
+/* Header ส่วนหัวเดือน */
+.cal-month-header {
+    background-color: #1e293b; /* สี Dark Slate (กรมท่าเข้ม) */
+    color: white;
+    text-align: center;
+    font-weight: 700;
+    font-size: 1.1rem;
+    padding: 12px !important;
+    letter-spacing: 1px;
+    border-bottom: none !important;
+}
+
+/* Header วัน (Sunday - Saturday) */
+.cal-day-header {
+    background-color: #f8fafc; /* พื้นหลังขาวอมเทา */
+    color: #64748b; /* ตัวหนังสือสีเทากลาง */
+    text-align: center;
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    border-bottom: 2px solid #e2e8f0 !important;
+    padding: 10px !important;
+}
+
+/* คอลัมน์ซ้ายสุด (Labels) - ดีไซน์ใหม่ */
+.cal-label-col {
+    background-color: #f1f5f9; /* สีพื้นเทาอ่อนๆ */
+    color: #334155; /* ตัวหนังสือสีเข้ม */
+    font-weight: 700;
+    width: 120px; 
+    text-align: right; /* จัดชิดขวาให้ดูเป็น Label */
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-right: 2px solid #e2e8f0 !important; /* เส้นกั้นหนาหน่อย */
+}
+
+/* แถว Date */
+.row-date td {
+    background-color: #fff;
+    text-align: right; /* วันที่อยู่มุมขวาบน */
+    color: #94a3b8;
+    font-weight: 600;
+    font-size: 0.9rem;
+    height: 30px;
+    vertical-align: top;
+}
+.row-date td.has-date {
+    color: #0f172a; /* วันที่มีเลขจะสีเข้ม */
+}
+
+/* พื้นที่ใส่ข้อมูล */
+.cell-data {
+    background-color: #fff;
+    height: 40px;
+    color: #333;
+    vertical-align: top !important;
+}
+
+/* Style สำหรับ Badge/Pillar */
+.pillar-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: capitalize;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+/* Theme สี Pillar แบบทางการ (Pastel Tone) */
+.bg-pillar-blue { background-color: #e3f2fd; color: #1565c0; border: 1px solid #bbdefb; }
+.bg-pillar-green { background-color: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; }
+.bg-pillar-orange { background-color: #fff3e0; color: #ef6c00; border: 1px solid #ffe0b2; }
+.bg-pillar-gray { background-color: #f5f5f5; color: #616161; border: 1px solid #e0e0e0; }
+
+/* Media Type Icon */
+.media-icon {
+    font-size: 0.7rem;
+    color: #64748b;
+    margin-right: 4px;
+}
+
+/* เส้นคั่นสัปดาห์ */
+.week-divider {
+    border-bottom: 2px solid #cbd5e1 !important; /* เส้นหนาขึ้นเล็กน้อยเมื่อจบสัปดาห์ */
+}
 </style>
 
 <div class="toast-container" id="toast-area"></div>
@@ -875,8 +1055,9 @@
                 class="fas fa-columns me-1"></i> Board</a></li>
           <li class="nav-item"><a class="nav-link" onclick="switchDetailTab('calendar')"><i
                 class="far fa-calendar-alt me-1"></i> Calendar</a></li>
-    <li class="nav-item">
-    <a class="nav-link" id="btn-view-content" href="#" onclick="switchView('content'); return false;">
+  
+<li class="nav-item">
+    <a class="nav-link" onclick="switchDetailTab('content')">
         <i class="fas fa-photo-video me-1"></i> Content Plan
     </a>
 </li>
@@ -918,7 +1099,7 @@
         </div>
 
 
-<div id="view-content" class="view-section" style="display:none; animation: fadeIn 0.3s;">
+<div id="detail-view-content" class="view-section h-100 p-0" style="display:none;">
     
     <div class="card border-0 shadow-sm mb-3">
         <div class="card-body d-flex justify-content-between align-items-center py-3">
@@ -1203,6 +1384,78 @@
   </div>
 </div>
 
+
+<div class="modal fade" id="contentTaskModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content shadow-lg">
+      <div class="modal-header bg-navy text-white" style="background-color: #1e293b;">
+        <h6 class="modal-title fw-bold">
+          <i class="fas fa-pen-nib me-2"></i>Content Details
+        </h6>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="content-form">
+          <input type="hidden" id="content-task-id">
+          <input type="hidden" id="content-date">
+          
+          <div class="mb-3">
+            <label class="small fw-bold text-muted">Date</label>
+            <div id="content-date-display" class="fw-bold text-primary"></div>
+          </div>
+
+          <div class="row g-2 mb-3">
+            <div class="col-6">
+              <label class="small fw-bold text-muted">Pillar</label>
+              <select class="form-select form-select-sm" id="content-pillar">
+                <option value="">-- Select Pillar --</option>
+                <option value="Awareness">Awareness</option>
+                <option value="Consideration">Consideration</option>
+                <option value="Conversion">Conversion</option>
+                <option value="Real-time">Real-time Content</option>
+                <option value="Engagement">Engagement</option>
+              </select>
+            </div>
+            <div class="col-6">
+              <label class="small fw-bold text-muted">Media Type</label>
+              <select class="form-select form-select-sm" id="content-media">
+                <option value="">-- Select Type --</option>
+                <option value="Single">Single Image</option>
+                <option value="Album">Album</option>
+                <option value="Video">Video / Reels</option>
+                <option value="Carousel">Carousel</option>
+                <option value="Article">Article / Link</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="small fw-bold text-muted">Content Ideas / Topic</label>
+            <textarea class="form-control" id="content-idea" rows="4" placeholder="พิมพ์รายละเอียดไอเดีย (รองรับการขึ้นบรรทัดใหม่)"></textarea>
+          </div>
+
+          <div class="mb-3">
+            <label class="small fw-bold text-muted">Remark (Link / Note)</label>
+            <div class="input-group">
+                <span class="input-group-text bg-light"><i class="fas fa-link small"></i></span>
+                <input type="text" class="form-control form-control-sm" id="content-remark" placeholder="วางลิงก์ หรือพิมพ์หมายเหตุ...">
+            </div>
+          </div>
+          
+          <div class="mb-3">
+             <label class="small fw-bold text-muted">แนบรูปภาพ (Optional)</label>
+             <input type="file" id="content-file" class="form-control form-control-sm">
+          </div>
+
+        </form>
+      </div>
+      <div class="modal-footer border-0 pt-0">
+        <button type="button" class="btn btn-light btn-sm" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary btn-sm px-4 rounded-pill" onclick="saveContentTask()">Save Content</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 
 
@@ -1823,18 +2076,42 @@ function toggleStepStatus(taskId, stepIndex) {
   // 6. VIEW RENDERERS (LIST, KANBAN, CALENDAR, SUMMARY)
   // ==========================================
   
-  function switchDetailTab(tabName) { 
+function switchDetailTab(tabName) { 
+      // 1. จัดการ Active Class ที่ปุ่มเมนู
       document.querySelectorAll('#detail-tabs .nav-link').forEach(el => el.classList.remove('active')); 
       const targetLink = document.querySelector(`#detail-tabs .nav-link[onclick*="'${tabName}'"]`);
       if(targetLink) targetLink.classList.add('active');
       
+      // 2. ซ่อนทุกหน้า แล้วเปิดเฉพาะหน้าที่เลือก
       document.querySelectorAll('.view-content > div').forEach(el => el.style.display = 'none'); 
-      document.getElementById(`detail-view-${tabName}`).style.display = 'block'; // Fixed ID
+      const targetView = document.getElementById(`detail-view-${tabName}`);
+      if(targetView) targetView.style.display = 'block'; 
+
+      // ============================================================
+      // ✅ 3. ส่วนที่เพิ่มใหม่: จัดการ Layout (ซ่อน/แสดง Activity Log)
+      // ============================================================
+      const rightPanel = document.querySelector('.right-panel');
+      const leftPanel = document.querySelector('.left-panel');
+
+      if (tabName === 'content') {
+          // กรณีเลือก Content Plan: ซ่อนขวา ขยายซ้ายเต็มจอ
+          if(rightPanel) rightPanel.style.display = 'none';
+          if(leftPanel) leftPanel.style.width = '100%';
+      } else {
+          // กรณีเลือกแท็บอื่น: คืนค่าเดิม (แสดงขวา ซ้ายกว้าง 65%)
+          if(rightPanel) rightPanel.style.display = 'flex'; // ใช้ flex ตาม CSS เดิม
+          if(leftPanel) leftPanel.style.width = '65%';      // ใช้ 65% ตาม CSS เดิม
+      }
+      // ============================================================
       
+      // 4. Logic พิเศษสำหรับแต่ละหน้า
       if(tabName === 'calendar') { 
           const tasks = globalData.tasks.filter(x => x[1] === currentProjectId); 
           setTimeout(() => renderCalendarView(tasks), 50); 
       } 
+      else if (tabName === 'content') {
+          renderContentPlanView(); 
+      }
   }
 
   function renderListView(tasks) { 
@@ -1983,84 +2260,179 @@ function toggleStepStatus(taskId, stepIndex) {
 
 
    
+let currentContentDate = new Date(); // เก็บเดือนปัจจุบันที่แสดงอยู่
 
-  // ---------------------------------------------------------------
-  // 1. ฟังก์ชันวาดตาราง Content Plan (ใส่ไว้ใน script ของ Page_Detail ได้เลย)
-  // ---------------------------------------------------------------
-  function renderContentPlanView() {
-      const tbody = document.getElementById('content-plan-body');
-      const countBadge = document.getElementById('content-count');
-      
-      if (!tbody) return;
+// ฟังก์ชันเปลี่ยนเดือน (Previous / Next)
+function changeContentMonth(offset) {
+    currentContentDate.setMonth(currentContentDate.getMonth() + offset);
+    renderContentPlanView(); // วาดตารางใหม่
+}
 
-      // Loading State
-      tbody.innerHTML = `<tr><td colspan="6" class="text-center py-5"><div class="spinner-border text-primary mb-2"></div><div class="text-muted small">Loading...</div></td></tr>`;
+function renderContentPlanView() {
+    const container = document.getElementById('detail-view-content');
+    
+    const year = currentContentDate.getFullYear();
+    const month = currentContentDate.getMonth();
+    
+    const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    const firstDayOfMonth = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    
+    // ดึงเฉพาะ Task ของ Project นี้ และเป็นประเภท Content/Graphic/VDO/Ads
+    const tasks = globalData.tasks.filter(t => t[1] === currentProjectId && ['Content','Graphic','VDO','Ads'].includes(t[2]));
 
-      // กรองข้อมูล (Filter)
-      const targetTypes = ['Content', 'Graphic', 'VDO', 'Ads'];
-      const tasks = globalData.tasks.filter(t => t[1] === currentProjectId && targetTypes.includes(t[2]));
+    // --- HTML Structure ---
+    let html = `
+    <div class="p-4" style="background-color: #f1f5f9; min-height: 100vh;">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+             <h5 class="fw-bold text-navy mb-0"><i class="fas fa-calendar-alt me-2"></i>Content Plan</h5>
+             <div>
+                <button class="btn btn-white border shadow-sm btn-sm me-1" onclick="changeContentMonth(-1)"><i class="fas fa-chevron-left"></i></button>
+                <button class="btn btn-white border shadow-sm btn-sm me-1" onclick="currentContentDate = new Date(); renderContentPlanView();">Today</button>
+                <button class="btn btn-white border shadow-sm btn-sm" onclick="changeContentMonth(1)"><i class="fas fa-chevron-right"></i></button>
+             </div>
+        </div>
+        
+        <div class="content-cal-container">
+            <table class="content-cal-table">
+                <thead>
+                    <tr>
+                        <th colspan="8" class="cal-month-header">
+                            ${monthNames[month]} ${year}
+                        </th>
+                    </tr>
+                    <tr>
+                        <th class="cal-label-col text-center">Week</th>
+                        <th class="cal-day-header">SUN</th>
+                        <th class="cal-day-header">MON</th>
+                        <th class="cal-day-header">TUE</th>
+                        <th class="cal-day-header">WED</th>
+                        <th class="cal-day-header">THU</th>
+                        <th class="cal-day-header">FRI</th>
+                        <th class="cal-day-header">SAT</th>
+                    </tr>
+                </thead>
+                <tbody>
+    `;
 
-      // เรียงลำดับ (Sort)
-      tasks.sort((a, b) => (a[7] ? new Date(a[7]) : new Date('2999-12-31')) - (b[7] ? new Date(b[7]) : new Date('2999-12-31')));
+    let currentDay = 1;
+    let weekCount = 0;
+    
+    // Loop สร้างสัปดาห์
+    while (currentDay <= daysInMonth) {
+        let weekDays = [];
+        let weekDates = []; // เก็บวันที่จริง (YYYY-MM-DD) ไว้ใช้ตอนคลิก
 
-      // อัปเดตตัวเลข
-      if(countBadge) countBadge.innerText = tasks.length;
+        for (let i = 0; i < 7; i++) {
+            if ((weekCount === 0 && i < firstDayOfMonth) || currentDay > daysInMonth) {
+                weekDays.push(null);
+                weekDates.push(null);
+            } else {
+                weekDays.push(currentDay);
+                // สร้าง string วันที่ YYYY-MM-DD (ระวังเรื่อง Timezone)
+                let d = new Date(year, month, currentDay);
+                let dStr = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+                weekDates.push(dStr);
+                currentDay++;
+            }
+        }
 
-      // กรณีไม่มีข้อมูล
-      if (tasks.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="6" class="text-center py-5 text-muted"><i class="fas fa-clipboard-list fa-3x mb-3 text-secondary opacity-50"></i><p>ยังไม่มีรายการ Content</p></td></tr>`;
-          return;
-      }
+        // --- Helper: หา Task ในวันนี้ ---
+        const getTask = (dateStr) => {
+             if(!dateStr) return null;
+             // สมมติ t[7] คือ DueDate
+             return tasks.find(t => t[7] === dateStr);
+        };
 
-      // สร้าง HTML
-      let html = '';
-      tasks.forEach(t => {
-          // Logic แยก Pillar
-          let pillarHtml = '<span class="text-muted small" style="opacity:0.5;">-</span>';
-          let topicHtml = t[3];
-          const pillarMatch = t[3].match(/^\[(.*?)\]/);
-          if (pillarMatch) {
-              pillarHtml = `<span class="badge bg-white text-dark border shadow-sm fw-normal px-2 py-1">${pillarMatch[1]}</span>`;
-              topicHtml = t[3].replace(/^\[(.*?)\]/, '').trim();
-          }
+        // --- Helper: สร้าง Cell ที่คลิกได้ ---
+        // params: dateStr (วันที่), fieldType (ประเภทข้อมูลที่จะโชว์), task (ข้อมูลงาน)
+        const createCell = (dateStr, fieldType, task) => {
+            if (!dateStr) return ''; // วันว่าง
+            
+            let content = '';
+            let clickAction = `onclick="openContentModal('${dateStr}')"`; // Default คลิกแล้วเปิด Modal ใหม่
+            
+            if (task) {
+                // ถ้ามีงานอยู่แล้ว ให้คลิกแล้วเปิดไปแก้ไข (ส่ง ID ไปด้วย)
+                clickAction = `onclick="openContentModal('${dateStr}', '${task[0]}')"`;
 
-          // สี Media Type
-          let typeColor = 'secondary';
-          let typeIcon = 'fa-file';
-          if(t[2] === 'Content') { typeColor = 'primary'; typeIcon = 'fa-pen-nib'; }
-          else if(t[2] === 'Graphic') { typeColor = 'info text-dark'; typeIcon = 'fa-palette'; }
-          else if(t[2] === 'VDO') { typeColor = 'danger'; typeIcon = 'fa-video'; }
-          else if(t[2] === 'Ads') { typeColor = 'warning text-dark'; typeIcon = 'fa-bullhorn'; }
+                // 1. Pillar
+                if (fieldType === 'pillar') {
+                    // **สมมติ** ว่าเก็บ Pillar ไว้ใน t[13] (คอลัมน์ใหม่) หรือ t[2] (Type เดิม)
+                    // ถ้ายังไม่ได้เพิ่มคอลัมน์ DB ให้ใช้ Logic เดิมในการเดา
+                    let val = task[13] || task[2] || '-'; 
+                    let badgeClass = 'bg-pillar-gray';
+                    if(val.match(/Awareness/i)) badgeClass = 'bg-pillar-green';
+                    else if(val.match(/Consideration/i)) badgeClass = 'bg-pillar-orange';
+                    else if(val.match(/Real-time/i)) badgeClass = 'bg-pillar-blue';
+                    
+                    content = `<div class="text-center"><span class="pillar-badge ${badgeClass}">${val}</span></div>`;
+                }
+                // 2. Media
+                else if (fieldType === 'media') {
+                    // **สมมติ** ว่าเก็บ Media ไว้ใน t[14]
+                    let val = task[14] || 'Single';
+                    let icon = 'fa-image';
+                    if(val === 'Video') icon = 'fa-video';
+                    else if(val === 'Album') icon = 'fa-images';
+                    
+                    content = `<div class="text-center text-secondary small"><i class="fas ${icon} me-1"></i>${val}</div>`;
+                }
+                // 3. Idea
+                else if (fieldType === 'idea') {
+                    content = `<div class="text-dark small" style="white-space: pre-wrap; line-height:1.3;">${task[3]}</div>`;
+                }
+                // 4. Remark
+                else if (fieldType === 'remark') {
+                    // **สมมติ** ว่าเก็บ Remark ไว้ใน t[15] หรือใช้ Description
+                    let val = task[15] || '';
+                    if(val.includes('http')) content = `<a href="${val}" target="_blank" class="text-primary"><i class="fas fa-link"></i> Link</a>`;
+                    else content = `<span class="text-muted small">${val}</span>`;
+                }
+            } else {
+                // ถ้าไม่มีงาน ให้เป็นพื้นที่ว่างๆ คลิกได้
+                content = `<div class="text-light text-center small opacity-25"><i class="fas fa-plus"></i></div>`;
+            }
 
-          // วันที่
-          let dateHtml = t[7] ? `<span class="fw-bold text-secondary" style="font-family:monospace;">${new Date(t[7]).toLocaleDateString('en-GB', {day:'numeric', month:'short'})}</span>` : '-';
+            return `<div class="w-100 h-100 p-1" style="cursor:pointer; min-height:100%;" ${clickAction}>${content}</div>`;
+        };
 
-          // สถานะ
-          let statusHtml = `<span class="badge bg-light text-secondary border rounded-pill px-2">${t[5]}</span>`;
-          if(t[5] === 'Done') statusHtml = '<span class="badge bg-success rounded-pill px-2"><i class="fas fa-check me-1"></i>Done</span>';
-          else if(t[5] === 'Revise') statusHtml = '<span class="badge bg-warning text-dark rounded-pill px-2"><i class="fas fa-exclamation me-1"></i>Revise</span>';
+        // --- RENDER ROWS ---
 
-          // ปุ่ม Action
-          let actionHtml = '';
-          if(t[8]) actionHtml += `<a href="${t[8]}" target="_blank" class="btn btn-sm btn-outline-primary border-0 py-1 px-2 me-1" onclick="event.stopPropagation()"><i class="fas fa-link"></i></a>`;
-          actionHtml += `<button class="btn btn-sm btn-light text-muted border-0" onclick="openTaskDetail('${t[0]}'); event.stopPropagation();"><i class="fas fa-chevron-right"></i></button>`;
+        // Row 1: Date
+        html += `<tr class="row-date"><td class="cal-label-col">DATE</td>`;
+        weekDays.forEach((day, idx) => {
+            let dateStr = weekDates[idx];
+            html += `<td class="${day?'has-date':''}">${day || ''}</td>`;
+        });
+        html += `</tr>`;
 
-          html += `
-          <tr class="clickable-row" onclick="openTaskDetail('${t[0]}')" style="cursor:pointer;">
-              <td class="ps-4">${dateHtml}</td>
-              <td>${pillarHtml}</td>
-              <td><span class="badge bg-${typeColor} bg-opacity-10 text-${typeColor.split(' ')[0]} w-100 border border-${typeColor.split(' ')[0]}"><i class="fas ${typeIcon} me-1"></i>${t[2]}</span></td>
-              <td>
-                  <div class="fw-bold text-dark text-truncate" style="max-width: 350px;">${topicHtml}</div>
-                  <div class="small text-muted"><i class="fas fa-user-circle me-1"></i>${t[4] || 'Unassigned'}</div>
-              </td>
-              <td>${statusHtml}</td>
-              <td class="pe-4 text-end">${actionHtml}</td>
-          </tr>`;
-      });
-      tbody.innerHTML = html;
-  }
+        // Row 2: Pillar
+        html += `<tr><td class="cal-label-col">Pillar</td>`;
+        weekDays.forEach((day, idx) => html += `<td class="cell-data p-0">${createCell(weekDates[idx], 'pillar', getTask(weekDates[idx]))}</td>`);
+        html += `</tr>`;
 
+        // Row 3: Media Type
+        html += `<tr><td class="cal-label-col">Media Type</td>`;
+        weekDays.forEach((day, idx) => html += `<td class="cell-data p-0">${createCell(weekDates[idx], 'media', getTask(weekDates[idx]))}</td>`);
+        html += `</tr>`;
+
+        // Row 4: Content Idea
+        html += `<tr><td class="cal-label-col">Ideas</td>`;
+        weekDays.forEach((day, idx) => html += `<td class="cell-data p-0" style="height:80px; vertical-align:top;">${createCell(weekDates[idx], 'idea', getTask(weekDates[idx]))}</td>`);
+        html += `</tr>`;
+
+        // Row 5: Remark
+        html += `<tr class="week-divider"><td class="cal-label-col">Remark</td>`;
+        weekDays.forEach((day, idx) => html += `<td class="cell-data p-0">${createCell(weekDates[idx], 'remark', getTask(weekDates[idx]))}</td>`);
+        html += `</tr>`;
+
+        weekCount++;
+    }
+
+    html += `</tbody></table></div></div>`;
+    container.innerHTML = html;
+}
   // ---------------------------------------------------------------
   // 2. แก้ไขฟังก์ชัน switchView (รวมอยู่ในไฟล์เดียวกันแล้ว)
   // ---------------------------------------------------------------
@@ -2097,4 +2469,93 @@ function toggleStepStatus(taskId, stepIndex) {
           }
       }
   }
+
+
+  function openContentModal(dateStr, taskId = null) {
+    if(!dateStr) return;
+    
+    // Reset Form
+    document.getElementById('content-form').reset();
+    document.getElementById('content-date').value = dateStr;
+    document.getElementById('content-task-id').value = taskId || '';
+    
+    // แสดงวันที่หัว Modal
+    let d = new Date(dateStr);
+    document.getElementById('content-date-display').innerText = d.toLocaleDateString('th-TH', {day:'numeric', month:'long', year:'numeric'});
+
+    // ถ้ามี Task ID (เป็นการแก้ไข) ให้ดึงข้อมูลมาใส่ Form
+    if(taskId) {
+        const task = globalData.tasks.find(t => t[0] === taskId);
+        if(task) {
+            // Mapping ข้อมูลเข้า Form (ต้องปรับ index ตามคอลัมน์จริงใน DB)
+            document.getElementById('content-idea').value = task[3]; // Task Name
+            document.getElementById('content-pillar').value = task[13] || ''; // Pillar
+            document.getElementById('content-media').value = task[14] || ''; // Media
+            document.getElementById('content-remark').value = task[15] || ''; // Remark
+        }
+    }
+
+    new bootstrap.Modal(document.getElementById('contentTaskModal')).show();
+}
+
+// ฟังก์ชันบันทึกข้อมูล (Save)
+function saveContentTask() {
+    const taskId = document.getElementById('content-task-id').value;
+    const dateStr = document.getElementById('content-date').value;
+    
+    // เตรียม Object ข้อมูล
+    const data = {
+        taskId: taskId,
+        projectId: currentProjectId,
+        dueDate: dateStr,
+        taskName: document.getElementById('content-idea').value, // ใช้เป็น Ideas
+        pillar: document.getElementById('content-pillar').value,
+        mediaType: document.getElementById('content-media').value,
+        remark: document.getElementById('content-remark').value,
+        // Default values
+        taskType: 'Content', 
+        assignee: 'Unassigned',
+        status: 'To Do' 
+    };
+    
+    // ไฟล์แนบ (ถ้ามี)
+    const fileInput = document.getElementById('content-file');
+    const file = fileInput.files[0];
+    let filePayload = null;
+    
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            filePayload = { name: file.name, mimeType: file.type, data: e.target.result.split(',')[1] };
+            submitToBackend(data, filePayload);
+        };
+        reader.readAsDataURL(file);
+    } else {
+        submitToBackend(data, null);
+    }
+}
+
+function submitToBackend(data, filePayload) {
+    const btn = event.target; // ปุ่ม Save
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+    btn.disabled = true;
+
+    google.script.run.withSuccessHandler((res) => {
+        // อัปเดตข้อมูลในหน้าเว็บทันที (ไม่ต้องรอ Reload)
+        if (!data.taskId) {
+            // กรณีสร้างใหม่: เพิ่มเข้า array
+            globalData.tasks.push(res); 
+        } else {
+            // กรณีแก้ไข: หา index แล้วอัปเดต
+            const idx = globalData.tasks.findIndex(t => t[0] === res[0]);
+            if(idx !== -1) globalData.tasks[idx] = res;
+        }
+        
+        renderContentPlanView(); // วาดตารางใหม่
+        bootstrap.Modal.getInstance(document.getElementById('contentTaskModal')).hide();
+        btn.innerHTML = 'Save Content';
+        btn.disabled = false;
+        
+    }).saveContentTaskDB(data, filePayload); // **ต้องไปสร้างฟังก์ชันนี้ใน Apps Script**
+}
 </script>
