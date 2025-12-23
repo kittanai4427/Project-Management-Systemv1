@@ -591,6 +591,185 @@
     font-weight: 600;
     padding: 8px 0;
   }
+
+  /* --- FORMAL CALENDAR STYLES --- */
+#task-calendar {
+    font-family: 'Sarabun', sans-serif;
+    background: #fff;
+    padding: 0;
+}
+
+/* หัวข้อเดือน (Toolbar) */
+#task-calendar .fc-toolbar-title {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: var(--ci-navy);
+    letter-spacing: -0.5px;
+}
+#task-calendar .fc-button {
+    background-color: #fff;
+    border: 1px solid #dee2e6;
+    color: #495057;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: capitalize;
+    box-shadow: none;
+    border-radius: 4px;
+    padding: 6px 12px;
+}
+#task-calendar .fc-button:hover, #task-calendar .fc-button-active {
+    background-color: #f8f9fa !important;
+    border-color: #c1c9d0 !important;
+    color: var(--ci-blue) !important;
+}
+
+/* ตารางและหัวตาราง (Grid & Header) */
+#task-calendar .fc-theme-standard td, 
+#task-calendar .fc-theme-standard th {
+    border-color: #e9ecef; /* เส้นตารางสีเทาอ่อน */
+}
+#task-calendar .fc-col-header-cell {
+    background-color: #f8f9fa;
+    padding: 10px 0;
+    border-bottom: 2px solid #dee2e6 !important;
+}
+#task-calendar .fc-col-header-cell-cushion {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #64748b;
+    font-weight: 700;
+    text-decoration: none;
+}
+#task-calendar .fc-daygrid-day-number {
+    font-size: 0.8rem;
+    color: #94a3b8;
+    font-weight: 600;
+    padding: 8px 10px;
+}
+#task-calendar .fc-day-today {
+    background-color: #fff !important; /* พื้นหลังขาว */
+}
+#task-calendar .fc-day-today .fc-daygrid-day-number {
+    color: var(--ci-blue);
+    font-size: 1rem;
+    font-weight: 800;
+}
+
+/* อีเวนต์งาน (Events) - ปรับให้ดู Clean & Formal */
+.fc-h-event {
+    background: transparent;
+    border: none;
+    margin-bottom: 4px;
+    cursor: pointer;
+}
+.formal-event-card {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-left-width: 4px; /* แถบสีด้านซ้าย */
+    border-radius: 2px; /* มุมเหลี่ยมเล็กน้อย */
+    padding: 4px 6px;
+    font-size: 0.75rem;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+    transition: all 0.15s ease;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    line-height: 1.3;
+}
+.formal-event-card:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.06);
+    border-color: #cbd5e1;
+}
+.event-title {
+    font-weight: 600;
+    color: #334155;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+
+/* --- CUSTOM CALENDAR STYLE (Like MyTasks) --- */
+  .calendar-wrapper { 
+      background: white; 
+      border-radius: 12px; 
+      border: 1px solid var(--ci-border); 
+      padding: 20px; 
+      height: 100%; 
+      display: flex; 
+      flex-direction: column;
+  }
+  .calendar-grid { 
+      display: grid; 
+      grid-template-columns: repeat(7, 1fr); 
+      gap: 8px; 
+      flex-grow: 1; 
+      overflow-y: auto;
+  }
+  .calendar-day-name { 
+      text-align: center; 
+      font-weight: 700; 
+      color: var(--ci-navy); 
+      padding-bottom: 10px; 
+      text-transform: uppercase; 
+      font-size: 0.8rem; 
+  }
+  .calendar-day { 
+      min-height: 80px; 
+      border: 1px solid var(--ci-border); 
+      border-radius: 8px; 
+      padding: 6px; 
+      background: #fff; 
+      transition: 0.2s; 
+      position: relative;
+  }
+  .calendar-day:hover { 
+      background-color: #f8fafc; 
+      border-color: #cbd5e1; 
+  }
+  .calendar-day.today { 
+      border: 2px solid var(--ci-blue); 
+      background-color: #eff6ff; 
+  }
+  .calendar-day.empty { 
+      background-color: #f9fafb; 
+      border: none; 
+  }
+  .day-number { 
+      font-weight: 700; 
+      font-size: 0.85rem; 
+      color: #64748b; 
+      display: block; 
+      text-align: right; 
+      margin-bottom: 4px; 
+  }
+  
+  /* Task Event Pill */
+  .task-event-pill { 
+      font-size: 0.75rem; 
+      border-radius: 4px; 
+      padding: 3px 6px; 
+      margin-bottom: 4px; 
+      cursor: pointer; 
+      white-space: nowrap; 
+      overflow: hidden; 
+      text-overflow: ellipsis; 
+      color: white;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+      transition: transform 0.1s;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+  }
+  .task-event-pill:hover { 
+      transform: translateY(-1px); 
+      filter: brightness(0.95);
+  }
+  /* Status Icons */
+  .pill-icon { font-size: 0.65rem; opacity: 0.8; margin-right: 4px; }
+  .pill-status { font-size: 0.7rem; color: rgba(255,255,255,0.8); }
 </style>
 
 <div class="toast-container" id="toast-area"></div>
@@ -863,22 +1042,29 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body pt-3">
-        <input type="hidden" id="revise-task-id">
-        <input type="hidden" id="revise-task-name">
+    <input type="hidden" id="revise-task-id">
+    <input type="hidden" id="revise-task-name">
 
-        <div class="alert alert-light border border-warning d-flex align-items-center mb-3">
-          <i class="fas fa-exclamation-triangle text-warning me-3 fs-4"></i>
-          <div>
+    <div class="alert alert-light border border-warning d-flex align-items-center mb-3">
+        <i class="fas fa-exclamation-triangle text-warning me-3 fs-4"></i>
+        <div>
             <div class="small text-muted fw-bold text-uppercase">กำลังสั่งแก้</div>
             <strong class="text-dark" id="revise-task-display-name">-</strong>
-          </div>
         </div>
+    </div>
 
-        <div class="mb-3">
-          <label class="form-label small fw-bold text-muted">กำหนดส่งงานแก้ (New Due Date)</label>
-          <input type="date" id="revise-due-date" class="form-control">
-        </div>
+    <div class="mb-3">
+        <label class="form-label small fw-bold text-muted">ต้องการสั่งแก้ขั้นตอนไหน? (Select Step)</label>
+        <select id="revise-step-select" class="form-select border-warning bg-light text-dark fw-bold">
+            </select>
+    </div>
 
+    <div class="mb-3">
+        <label class="form-label small fw-bold text-muted">กำหนดส่งงานแก้ (New Due Date)</label>
+        <input type="date" id="revise-due-date" class="form-control">
+    </div>
+
+      
         <div class="mb-3">
           <label class="form-label small fw-bold text-muted">เหตุผล / สิ่งที่ต้องแก้ *</label>
           <textarea id="revise-reason" class="form-control" rows="3" placeholder="ระบุสิ่งที่ต้องแก้ไข..."></textarea>
@@ -1056,7 +1242,121 @@
       }
   }
 
-  // --- Task Detail View & Revise Logic ---
+ // --- 1. ตัวแปรสำหรับจัดการเดือนปฏิทิน ---
+  let calendarViewDate = new Date();
+
+  // --- 2. ฟังก์ชันเปลี่ยนเดือน (Previous / Next) ---
+  function changeProjectCalendarMonth(step) {
+      calendarViewDate.setMonth(calendarViewDate.getMonth() + step);
+      // รีโหลดข้อมูลงานของโปรเจกต์ปัจจุบัน
+      if (currentProjectId) {
+          const tasks = globalData.tasks.filter(x => x[1] === currentProjectId);
+          renderCalendarView(tasks);
+      }
+  }
+
+  // --- 3. ฟังก์ชัน Render ปฏิทิน (Custom Grid) ---
+  function renderCalendarView(tasks) {
+      const container = document.getElementById('detail-view-calendar');
+      
+      // สีแยกตามประเภทงาน (Pillar Colors)
+      const typeColors = {
+          'Content': '#3b82f6', // สีฟ้า
+          'Graphic': '#8b5cf6', // สีม่วง
+          'VDO':     '#ef4444', // สีแดง
+          'Web':     '#10b981', // สีเขียว
+          'Ads':     '#f59e0b', // สีส้ม
+          'Admin':   '#64748b', // สีเทา
+          'Other':   '#6b7280'
+      };
+
+      // สร้างโครงสร้าง HTML ของปฏิทิน (ถ้ายังไม่มี)
+      const monthNames = ["มกราคม","กุมภาพันธ์","มีนาคม","เมษายน","พฤษภาคม","มิถุนายน","กรกฎาคม","สิงหาคม","กันยายน","ตุลาคม","พฤศจิกายน","ธันวาคม"];
+      const year = calendarViewDate.getFullYear();
+      const month = calendarViewDate.getMonth();
+      const titleText = `${monthNames[month]} ${year + 543}`;
+
+      // เขียน HTML ใหม่ลงใน Container เลย (เพื่อให้เหมือน MyTasks)
+      let html = `
+        <div class="calendar-wrapper shadow-sm">
+            <div class="d-flex justify-content-between mb-3 align-items-center">
+                <button class="btn btn-light btn-sm rounded-circle border shadow-sm" onclick="changeProjectCalendarMonth(-1)"><i class="fas fa-chevron-left"></i></button>
+                <h5 class="mb-0 fw-bold" style="color:var(--ci-navy);">${titleText}</h5>
+                <button class="btn btn-light btn-sm rounded-circle border shadow-sm" onclick="changeProjectCalendarMonth(1)"><i class="fas fa-chevron-right"></i></button>
+            </div>
+            <div class="calendar-grid">`;
+
+      // Header วัน (อา-ส)
+      ['อา','จ','อ','พ','พฤ','ศ','ส'].forEach(d => {
+          html += `<div class="calendar-day-name">${d}</div>`;
+      });
+
+      // คำนวณวันในปฏิทิน
+      const firstDay = new Date(year, month, 1).getDay();
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      const todayStr = new Date().toISOString().split('T')[0];
+
+      // ช่องว่างก่อนวันที่ 1
+      for (let i = 0; i < firstDay; i++) {
+          html += `<div class="calendar-day empty"></div>`;
+      }
+
+      // วนลูปสร้างวันที่ 1 - สิ้นเดือน
+      for (let day = 1; day <= daysInMonth; day++) {
+          const dStr = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+          const isToday = (dStr === todayStr) ? 'today' : '';
+          
+          // หางานที่ตรงกับวันนี้
+          const dayTasks = tasks.filter(t => t[7] === dStr);
+          
+          let taskHtml = '';
+          dayTasks.forEach(t => {
+              const type = t[2] || 'Other';
+              const status = t[5];
+              const bgColor = typeColors[type] || typeColors['Other'];
+              
+              // ไอคอนตามประเภท
+              let icon = '';
+              if(type === 'Graphic') icon = 'fa-palette';
+              else if(type === 'VDO') icon = 'fa-video';
+              else if(type === 'Web') icon = 'fa-code';
+              else if(type === 'Ads') icon = 'fa-bullhorn';
+              else if(type === 'Content') icon = 'fa-pen-nib';
+              else icon = 'fa-circle';
+
+              // สัญลักษณ์สถานะ
+              let statusSign = '';
+              let opacity = '';
+              if (status === 'Done') {
+                  statusSign = '<i class="fas fa-check-circle"></i>';
+                  opacity = 'opacity-50'; // งานเสร็จแล้วให้จางลง
+              } else if (status === 'Revise') {
+                  statusSign = '<i class="fas fa-exclamation-triangle text-warning"></i>';
+              }
+
+              taskHtml += `
+                  <div class="task-event-pill ${opacity}" style="background-color:${bgColor};" onclick="openTaskView('${t[0]}'); event.stopPropagation();" title="${t[3]}">
+                      <div class="d-flex align-items-center overflow-hidden">
+                          <i class="fas ${icon} pill-icon"></i>
+                          <span class="text-truncate">${t[3]}</span>
+                      </div>
+                      <div class="pill-status ms-1">${statusSign}</div>
+                  </div>`;
+          });
+
+          html += `
+              <div class="calendar-day ${isToday}">
+                  <span class="day-number">${day}</span>
+                  <div style="overflow-y:auto; max-height:80px; padding-right:2px;">
+                      ${taskHtml}
+                  </div>
+              </div>`;
+      }
+
+      html += `</div></div>`; // ปิด calendar-grid และ wrapper
+      container.innerHTML = html;
+  }
+  
 
   function openTaskView(taskId) {
     const t = globalData.tasks.find(x => x[0] === taskId); if(!t) return;
@@ -1101,14 +1401,37 @@
       document.getElementById('revise-task-name').value = taskName; 
       document.getElementById('revise-task-display-name').innerText = taskName;
 
+      // ✅ เพิ่มส่วนนี้: สร้างตัวเลือกขั้นตอน (Step) ลงใน Dropdown
+      const t = globalData.tasks.find(x => x[0] === taskId);
+      const stepSelect = document.getElementById('revise-step-select');
+      stepSelect.innerHTML = '';
+      
+      let steps = [];
+      try { steps = t[12] ? JSON.parse(t[12]) : []; } catch(e) {}
+      
+      if(steps.length > 0) {
+          steps.forEach((step, index) => {
+              const opt = document.createElement('option');
+              opt.value = index;
+              // แสดงชื่อขั้นตอน และ คนรับผิดชอบ
+              opt.text = `${index+1}. ${step.name} (${step.assignee || 'Unassigned'})`;
+              stepSelect.appendChild(opt);
+          });
+          // เลือกขั้นตอนล่าสุดที่ทำเสร็จไปแล้ว (optional)
+          const lastDone = steps.map(s => s.status).lastIndexOf('done');
+          if(lastDone !== -1) stepSelect.value = lastDone;
+      } else {
+          stepSelect.innerHTML = '<option value="-1">-- ไม่มีขั้นตอนระบุ --</option>';
+      }
+
       // Reset Form
       document.getElementById('revise-reason').value = '';
       document.getElementById('revise-link').value = '';
       document.getElementById('revise-file').value = '';
 
       // Default Date = Tomorrow
-      const t = new Date(); t.setDate(t.getDate()+1); 
-      document.getElementById('revise-due-date').value = t.toISOString().split('T')[0]; 
+      const today = new Date(); today.setDate(today.getDate()+1); 
+      document.getElementById('revise-due-date').value = today.toISOString().split('T')[0]; 
       
       new bootstrap.Modal(document.getElementById('reviseModal')).show(); 
   }
@@ -1116,6 +1439,7 @@
   function submitRevise() { 
       const tid = document.getElementById('revise-task-id').value; 
       const tName = document.getElementById('revise-task-name').value; 
+      const stepIndex = document.getElementById('revise-step-select').value; // ✅ รับค่าขั้นตอนที่เลือก
       const reason = document.getElementById('revise-reason').value; 
       const link = document.getElementById('revise-link').value; 
       const newDueDate = document.getElementById('revise-due-date').value; 
@@ -1126,26 +1450,30 @@
       const btn = event.target; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> บันทึก...'; btn.disabled = true; 
       
       // Prepare Chat Message
-      let msg = `🔥 สั่งแก้: "${tName}"\n📅 ส่งภายใน: ${newDueDate}\n📝 เหตุผล: ${reason}`; 
+      let msg = `🔥 สั่งแก้: "${tName}"\n📌 ขั้นตอน: ${document.getElementById('revise-step-select').options[document.getElementById('revise-step-select').selectedIndex].text}\n📅 ส่งภายใน: ${newDueDate}\n📝 เหตุผล: ${reason}`; 
       if(link) msg += `\n🔗 ลิงก์: ${link}`; 
       
       const me = globalData.currentUser.name; 
       const fileData = fileInput ? {name:fileInput.name, mimeType:fileInput.type} : null; 
       
       const exec = (fData) => { 
-          // 1. Update Task Status -> Revise
+          // 1. Update Task Status -> Revise (ส่ง stepIndex ไปด้วย)
           google.script.run.withSuccessHandler((res) => { 
               if(res.fileUrl) msg += `\n📂 ไฟล์แนบ: ${res.fileName}`; 
               
               // 2. Post to Chat
               google.script.run.withSuccessHandler(() => { 
-                  // Update Local Data
+                  // Update Local Data (เพื่อให้หน้าเว็บแสดงผลทันทีโดยไม่ต้องโหลดใหม่)
                   const t = globalData.tasks.find(x => x[0] === tid); 
                   if(t){ 
                       t[5] = 'Revise'; 
                       if(newDueDate) t[7] = newDueDate; 
-                      if(link) t[8] = link; // Optional: Update link
+                      if(link) t[8] = link;
                       if(res.fileUrl){ t[9] = res.fileUrl; t[10] = res.fileName; } 
+                      // ✅ อัปเดต Workflow ในหน่วยความจำเครื่องด้วย
+                      if(res.updatedWorkflow) t[12] = res.updatedWorkflow;
+                      // ✅ อัปเดตผู้รับผิดชอบ (Assignee)
+                      if(res.newAssignee) t[4] = res.newAssignee;
                   } 
                   
                   // Refresh UI
@@ -1158,7 +1486,8 @@
                   alert('สั่งแก้ไขงานเรียบร้อยแล้ว'); 
                   btn.innerHTML = 'ยืนยันสั่งแก้'; btn.disabled = false; 
               }).postProjectUpdate(currentProjectId, msg, me, null); 
-          }).updateTaskRevision(tid, newDueDate, link, fData); 
+          // ✅ ส่ง stepIndex ไปที่ฟังก์ชัน Backend
+          }).updateTaskRevision(tid, newDueDate, link, fData, stepIndex); 
       }; 
       
       if(fileInput){ 
@@ -1259,13 +1588,38 @@
       }).updateTaskWorkflowAssignee(taskId, stepIndex, newName, newDate, newDetails);
   }
 
-  function toggleStepStatus(taskId, stepIndex) { 
+function toggleStepStatus(taskId, stepIndex) { 
       google.script.run.withSuccessHandler((res) => { 
+          // 1. วาด Workflow ใหม่ให้เป็นสถานะล่าสุด (ติ๊กถูก/สีเขียว)
           renderWorkflow(taskId, res.taskType, res.workflowJson); 
-          const t = globalData.tasks.find(x => x[0] === taskId); if (t) { t[12] = res.workflowJson; }
+          
+          // 2. อัปเดตข้อมูลในตัวแปร globalData
+          const t = globalData.tasks.find(x => x[0] === taskId); 
+          if (t) { 
+              t[12] = res.workflowJson; // อัปเดต Workflow JSON
+              
+              // ✅ เพิ่มส่วนนี้: ตรวจสอบและอัปเดตสถานะงานหลัก (Main Status)
+              if (res.newMainStatus) {
+                  t[5] = res.newMainStatus; // อัปเดตค่าสถานะในตัวแปร
+                  
+                  // A. อัปเดตป้าย Status บน Modal ที่เปิดอยู่ทันที
+                  const badge = document.getElementById('view-task-status-badge');
+                  if (badge) {
+                      badge.innerText = res.newMainStatus;
+                      badge.className = `badge ${res.newMainStatus==='Done'?'bg-success':(res.newMainStatus==='Revise'?'bg-warning text-dark':'bg-primary')}`;
+                  }
+
+                  // B. สั่งวาด List/Kanban ด้านหลังใหม่ เพื่อให้ตารางข้างนอกเปลี่ยนสีด้วย
+                  if (currentProjectId) {
+                      const projectTasks = globalData.tasks.filter(x => x[1] === currentProjectId);
+                      renderListView(projectTasks); 
+                      renderKanbanView(projectTasks);
+                      renderSummaryView(projectTasks);
+                  }
+              }
+          }
       }).updateTaskWorkflowStatus(taskId, stepIndex); 
   }
-
   // ==========================================
   // 5. REMARK & POLLING & CHAT
   // ==========================================
@@ -1448,30 +1802,76 @@
       if (typeof FullCalendar === 'undefined') { calendarEl.innerHTML = '<div class="alert alert-danger p-2 small">Calendar Error</div>'; return; }
       if (calendarInstance) calendarInstance.destroy(); 
       
+      // 1. ชุดสีแบบ Formal (ใช้เป็นสีเส้นแถบด้านซ้าย)
+      const typeColors = {
+          'Content': '#0d6efd', // Blue
+          'Graphic': '#6f42c1', // Purple
+          'VDO':     '#dc3545', // Red
+          'Web':     '#198754', // Green
+          'Ads':     '#fd7e14', // Orange
+          'Admin':   '#6c757d', // Grey
+          'Other':   '#adb5bd'
+      };
+
       calendarInstance = new FullCalendar.Calendar(calendarEl, { 
           initialView: 'dayGridMonth', 
           themeSystem: 'standard', 
-          headerToolbar: { left: 'title', center: '', right: 'today prev,next' }, 
+          headerToolbar: { left: 'title', right: 'today prev,next' }, // ตัด center ออกให้ดูคลีน
           height: '100%', 
           contentHeight: 'auto', 
-          dayMaxEvents: 3, 
+          dayMaxEvents: 4, 
           editable: false, 
-          events: tasks.map(t => ({ 
-              id: t[0], 
-              title: t[3], 
-              start: t[7] || new Date(), 
-              backgroundColor: t[5]==='Done' ? '#198754' : (t[5]==='Revise'?'#ffc107':'#0d6efd'), 
-              borderColor: 'transparent', 
-              textColor: '#fff', 
-              extendedProps: { type: t[2] } 
-          })), 
+          fixedWeekCount: false, // ไม่ต้องโชว์แถวว่างท้ายเดือน
+          
+          events: tasks.map(t => {
+              const type = t[2] || 'Other';
+              const status = t[5];
+              const isDone = status === 'Done';
+              const colorCode = typeColors[type] || typeColors['Other'];
+              
+              return { 
+                  id: t[0], 
+                  title: t[3], 
+                  start: t[7] || new Date(),
+                  // เก็บค่าสีไว้ใช้ใน extendedProps แทน backgroundColor เดิม
+                  extendedProps: { 
+                      type: type,
+                      status: status,
+                      color: colorCode,
+                      isDone: isDone
+                  } 
+              };
+          }), 
+          
           eventClick: function(info) { openTaskView(info.event.id); }, 
-          eventDidMount: function(info) { info.el.setAttribute('title', info.event.title); }, 
+          
+          // 3. Custom Render แบบ Formal (การ์ดขาว มีแถบสีซ้าย)
           eventContent: function(arg) { 
-              let icon = ''; 
-              const type = arg.event.extendedProps.type; 
-              if(type === 'Graphic') icon = '<i class="fas fa-palette me-1"></i>'; else if(type === 'VDO') icon = '<i class="fas fa-video me-1"></i>'; else icon = '<i class="fas fa-tasks me-1"></i>'; 
-              return { html: `<div class="fc-event-main-frame" style="padding:1px 2px;">${icon} ${arg.event.title}</div>` }; 
+              const props = arg.event.extendedProps;
+              const color = props.color;
+              
+              // ไอคอนสถานะ (ถ้าเสร็จแล้วขึ้นติ๊กถูก ถ้าแก้ขึ้นตกใจ)
+              let statusIcon = '';
+              let opacityClass = '';
+              let decorationClass = '';
+
+              if (props.status === 'Done') {
+                  statusIcon = '<i class="fas fa-check-circle text-success ms-1" style="font-size:0.7rem;"></i>';
+                  opacityClass = 'opacity-50'; // จางลงเมื่อเสร็จ
+                  decorationClass = 'text-decoration-line-through text-muted';
+              } else if (props.status === 'Revise') {
+                  statusIcon = '<i class="fas fa-exclamation-circle text-warning ms-1"></i>';
+              }
+
+              return { 
+                  html: `
+                  <div class="formal-event-card ${opacityClass}" style="border-left-color: ${color};">
+                      <div class="event-title ${decorationClass}">
+                          ${arg.event.title}
+                      </div>
+                      <div>${statusIcon}</div>
+                  </div>` 
+              }; 
           } 
       }); 
       setTimeout(() => calendarInstance.render(), 100); 
