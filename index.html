@@ -9,7 +9,8 @@
     
     <?!= include('Global_CSS_JS'); ?> 
 
-    <style>
+   <style>
+      /* ... Existing styles ... */
       :root {
         --primary-color: #0d6efd; 
         --primary-hover: #0b5ed7;
@@ -38,34 +39,94 @@
         align-items: center;
       }
 
-      /* ✅ ปรับแต่งปุ่มเมนู (Nav Link) */
       .nav-link {
         color: #6c757d !important;
         font-weight: 500;
         margin-right: 5px;
-        padding: 8px 20px !important; /* เพิ่มพื้นที่ภายในปุ่ม */
-        border-radius: 50px;          /* ทำเป็นทรงแคปซูล (Pill) */
+        padding: 8px 20px !important;
+        border-radius: 50px;
         transition: all 0.3s ease;
       }
 
-      /* ✅ เมื่อเอาเมาส์ชี้ (Hover) หรือ เลือกอยู่ (Active) */
       .nav-link:hover, .nav-link.active {
-        color: #ffffff !important;           /* ตัวหนังสือสีขาว */
-        background-color: var(--primary-color); /* พื้นหลังสีฟ้า */
-        box-shadow: 0 4px 6px rgba(13, 110, 253, 0.2); /* เงาฟุ้งๆ สวยงาม */
-        transform: translateY(-1px); /* ลอยขึ้นเล็กน้อย */
+        color: #ffffff !important;
+        background-color: var(--primary-color);
+        box-shadow: 0 4px 6px rgba(13, 110, 253, 0.2);
+        transform: translateY(-1px);
       }
 
-      /* User Profile Badge */
-      .user-badge {
-        background-color: #f8f9fa;
-        padding: 5px 15px;
+      /* Modern Login Overlay */
+      #login-overlay {
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        display: flex;
+      }
+
+      .login-card {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 16px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        padding: 3rem 2.5rem;
+        width: 100%;
+        max-width: 400px;
+        text-align: center;
+        border: 1px solid rgba(255, 255, 255, 0.5);
+      }
+
+      .login-logo {
+        width: 80px;
+        height: 80px;
+        object-fit: contain;
+        margin-bottom: 1.5rem;
+        filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1)); 
+      }
+
+      .login-title {
+        font-weight: 800;
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
+        font-size: 1.75rem;
+        letter-spacing: -0.5px;
+      }
+
+      .login-subtitle {
+        color: #6c757d;
+        font-size: 0.95rem;
+        margin-bottom: 2rem;
+        font-weight: 400;
+      }
+
+      .btn-login-google {
+        background-color: #ffffff;
+        color: #333;
+        border: 1px solid #ddd;
+        padding: 0.75rem 1rem;
+        font-weight: 600;
+        font-size: 1rem;
         border-radius: 50px;
-        border: 1px solid #e9ecef;
+        transition: all 0.2s ease;
         display: flex;
         align-items: center;
+        justify-content: center;
         gap: 10px;
-        font-size: 0.9rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      }
+
+      .btn-login-google:hover {
+        background-color: #f8f9fa;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        border-color: #c0c0c0;
+      }
+      
+      .btn-login-google:active {
+        transform: translateY(0);
+      }
+
+      .login-footer {
+        margin-top: 2rem;
+        font-size: 0.75rem;
+        color: #adb5bd;
       }
       
       .main-container { min-height: 85vh; }
@@ -103,16 +164,65 @@
                 <i class="fas fa-user-shield me-1"></i> ผู้บริหาร
               </a>
             </li>
+            <li class="nav-item" id="menu-adduser" style="display:none;">
+        <a class="nav-link" onclick="showPage('page-adduser', this)">
+            <i class="fas fa-user-plus me-1"></i> เพิ่มพนักงาน
+        </a>
+    </li>
           </ul>
 
-          <div class="user-badge text-secondary">
-            <div class="bg-primary text-white rounded-circle d-flex justify-content-center align-items-center" style="width: 30px; height: 30px;">
-              <i class="fas fa-user small"></i>
-            </div>
-            <div>
-              <span class="d-block lh-1 fw-bold text-dark" id="user-display">Loading...</span>
-              <small class="text-muted" style="font-size: 0.7rem;" id="role-display">User</small>
-            </div>
+          <div class="dropdown">
+            <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle hide-arrow" 
+               id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false" 
+               style="background: #f8f9fa; padding: 4px 12px 4px 4px; border-radius: 50px; border: 1px solid #e9ecef; transition: all 0.2s;">
+              
+              <img id="nav-user-avatar" src="https://ui-avatars.com/api/?name=User&background=0d6efd&color=fff" 
+                   alt="User" class="rounded-circle shadow-sm me-2" width="32" height="32" style="object-fit: cover;">
+              
+              <div class="text-start d-none d-sm-block lh-1 me-2">
+                <span class="d-block fw-bold text-dark small" id="user-display">Loading...</span>
+                <small class="text-muted" style="font-size: 0.65rem;" id="role-display">User</small>
+              </div>
+
+              <i class="fas fa-chevron-down text-muted" style="font-size: 0.7rem;"></i>
+            </a>
+
+            <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2 p-2" aria-labelledby="userDropdown" style="width: 220px; border-radius: 12px;">
+              <li>
+                  <div class="d-flex align-items-center p-2">
+                      <div class="flex-shrink-0">
+                           <img id="menu-user-avatar" src="https://ui-avatars.com/api/?name=User" class="rounded-circle" width="40" height="40">
+                      </div>
+                      <div class="flex-grow-1 ms-2 overflow-hidden">
+                          <h6 class="mb-0 text-truncate" style="font-size: 0.9rem;" id="menu-user-name">User</h6>
+                          <small class="text-muted text-truncate d-block" style="font-size: 0.7rem;" id="menu-user-email">email@example.com</small>
+                      </div>
+                  </div>
+              </li>
+              <li><hr class="dropdown-divider my-1"></li>
+              
+             
+    <li>
+        <a class="dropdown-item rounded-2 py-2 small" href="javascript:void(0)" onclick="openEditProfileModal()">
+            <i class="fas fa-user-edit me-2 text-primary"></i> แก้ไขโปรไฟล์
+        </a>
+    </li>
+    
+    <li>
+        <a class="dropdown-item rounded-2 py-2 small" href="javascript:void(0)" onclick="alert('ฟีเจอร์นี้กำลังพัฒนา...')">
+            <i class="fas fa-cog me-2 text-secondary"></i> ตั้งค่าระบบ
+        </a>
+    </li>
+    
+    <li><hr class="dropdown-divider my-1"></li>
+    
+    <li>
+        <a class="dropdown-item rounded-2 py-2 small text-danger fw-bold" href="javascript:void(0)" onclick="handleLogout()">
+            <i class="fas fa-sign-out-alt me-2"></i> ออกจากระบบ
+        </a>
+    </li>
+
+            </ul>
           </div>
 
         </div>
@@ -124,61 +234,348 @@
       <div id="page-mytasks" class="page-section" style="display:none;"><?!= include('Page_MyTasks'); ?></div>
       <div id="page-admin" class="page-section" style="display:none;"><?!= include('Page_Admin'); ?></div>
       <div id="page-detail" class="page-section" style="display:none;"><?!= include('Page_Detail'); ?></div>
+    <div id="page-adduser" class="page-section" style="display:none;"><?!= include('Page_adduser'); ?></div>
     </div>
 
+    <div class="modal fade" id="editProfileModal" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
+          <div class="modal-header border-0 pb-0">
+            <h6 class="modal-title fw-bold">แก้ไขโปรไฟล์</h6>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body text-center">
+            <div class="position-relative d-inline-block mb-3">
+                <img id="edit-avatar-preview" src="" class="rounded-circle shadow-sm border" width="80" height="80" style="object-fit: cover;">
+                <button class="btn btn-sm btn-primary rounded-circle position-absolute bottom-0 end-0 shadow-sm" 
+                        onclick="setGoogleAvatar()" title="ใช้รูปจาก Google" style="width: 28px; height: 28px; padding: 0;">
+                    <i class="fab fa-google" style="font-size: 0.7rem;"></i>
+                </button>
+            </div>
+            
+            <form id="profile-form">
+                <div class="mb-2 text-start">
+                    <label class="form-label small fw-bold text-muted">ชื่อแสดงผล</label>
+                    <input type="text" class="form-control form-control-sm" id="edit-profile-name">
+                </div>
+                <div class="mb-3 text-start">
+                    <label class="form-label small fw-bold text-muted">ลิงก์รูปภาพ (URL)</label>
+                    <input type="text" class="form-control form-control-sm" id="edit-profile-img" placeholder="https://..." oninput="updateAvatarPreview(this.value)">
+                </div>
+            </form>
+          </div>
+          <div class="modal-footer border-0 pt-0 justify-content-center">
+            <button type="button" class="btn btn-light btn-sm rounded-pill px-3" data-bs-dismiss="modal">ยกเลิก</button>
+            <button type="button" class="btn btn-primary btn-sm rounded-pill px-4" onclick="saveProfile()">บันทึก</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="login-overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 99999; display: flex; justify-content: center; align-items: center;">
+      <div class="login-card">
+        
+        <img src="https://media.internth.com/company/13445/d8fa38c5a25801bb6af91b8c28238cd4.png" alt="Company Logo" class="login-logo">
+        
+        <h1 class="login-title">Welcome Back</h1>
+        <p class="login-subtitle">Please sign in to access your dashboard</p>
+        
+        <button class="btn btn-login-google w-100" onclick="handleAutoLogin()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M23.52 12.29C23.52 11.43 23.47 10.73 23.32 10.01H12V14.51H18.47C18.18 15.99 17.34 17.25 16.08 18.1L19.95 21.1C22.2 19.01 23.52 15.92 23.52 12.29Z" fill="#4285F4"/>
+              <path d="M12 24C15.24 24 17.96 22.92 19.95 21.1L16.08 18.1C15.01 18.82 13.63 19.23 12 19.23C8.87 19.23 6.22 17.13 5.27 14.29L1.27 17.38C3.25 21.32 7.31 24 12 24Z" fill="#34A853"/>
+              <path d="M5.27 14.29C5.02 13.56 4.89 12.79 4.89 12C4.89 11.21 5.03 10.43 5.27 9.71L1.27 6.62C0.46 8.23 0 10.06 0 12C0 13.94 0.46 15.77 1.27 17.38L5.27 14.29Z" fill="#FBBC05"/>
+              <path d="M12 4.77C13.77 4.77 15.35 5.38 16.6 6.57L20.02 3.16C17.96 1.25 15.24 0 12 0C7.31 0 3.25 2.68 1.27 6.62L5.27 9.71C6.22 6.87 8.87 4.77 12 4.77Z" fill="#EA4335"/>
+          </svg>
+          Sign in with Google
+        </button>
+        
+        <div id="login-error" class="alert alert-danger small mt-3 border-0 bg-danger bg-opacity-10 text-danger" style="display:none; border-radius: 8px;"></div>
+        
+        <div class="login-footer">
+          © 2025 Project Management System<br>Internal Use Only
+        </div>
+      </div>
+    </div>
+    
     <footer class="text-center py-3 text-muted small mt-auto border-top bg-white">
       © 2024 Project Management System. All rights reserved.
     </footer>
 
-    <script>
-       let globalData = {};
+  <script>
+    let globalData = {};
 
-       window.onload = function() {
-         google.script.run.withSuccessHandler(initApp).getSystemData();
-       };
+    // เริ่มต้นการทำงาน (ไม่โหลดข้อมูลทันที รอ Login)
+    window.onload = function() {
+        console.log("App Started");
+    };
 
-       function initApp(data) {
-         globalData = data;
-         document.getElementById('user-display').innerText = data.currentUser.name;
-         document.getElementById('role-display').innerText = data.currentUser.role || 'Team Member';
+    function loadSystemData() {
+        google.script.run.withSuccessHandler(initApp).getSystemData();
+    }
 
-         if (data.currentUser.role === 'Admin' || data.currentUser.role === 'Manager' || data.currentUser.role === 'Management') {
-           document.getElementById('menu-admin').style.display = 'block';
-           if(typeof renderAdminPage === 'function') renderAdminPage();
-         }
-         
-         if(typeof renderProjects === 'function') renderProjects();
-         if(typeof renderMyTasks === 'function') renderMyTasks();
-       }
+    function initApp(data) {
+        globalData = data;
+        updateNavbarProfile(data.currentUser);
 
-       function showPage(pageId, element) {
-         document.querySelectorAll('.page-section').forEach(el => el.style.display = 'none');
-         document.getElementById(pageId).style.display = 'block';
-         
-         // Logic สลับปุ่ม Active
-         if (element) {
-            document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
-            element.classList.add('active');
-         } else {
-            // กรณีไม่มี element (เช่น กด Back) ให้หาปุ่มแล้ว Active เอง
-            document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
-            if(pageId === 'page-dashboard') document.querySelector('a[onclick*="page-dashboard"]').classList.add('active');
-            if(pageId === 'page-mytasks') document.querySelector('a[onclick*="page-mytasks"]').classList.add('active');
-            if(pageId === 'page-admin') document.querySelector('a[onclick*="page-admin"]').classList.add('active');
-         }
-         
-         if(pageId === 'page-mytasks' && typeof renderMyTasks === 'function') renderMyTasks();
-         if(pageId === 'page-dashboard' && typeof renderProjects === 'function') renderProjects();
-         if(pageId === 'page-admin' && typeof renderAdminPage === 'function') renderAdminPage();
-       }
-       
-       function getStatusColor(status) {
-         if(status === 'Done' || status === 'Completed') return 'success';
-         if(status === 'In Progress' || status === 'Active') return 'primary';
-         if(status === 'Review' || status === 'Hold') return 'warning';
-         if(status === 'Revise') return 'danger';
-         return 'secondary';
-       }
-    </script>
-  </body>
-</html>
+        // เช็คสิทธิ์เพื่อเปิดเมนู
+        if (data.currentUser.role === 'Admin' || data.currentUser.role === 'Manager' || data.currentUser.role === 'Management') {
+            document.getElementById('menu-admin').style.display = 'block';
+            document.getElementById('menu-adduser').style.display = 'block';
+            
+            // ถ้าอยู่ในหน้า Admin ให้วาดตาราง
+            if(typeof renderAdminPage === 'function') renderAdminPage();
+        }
+        
+        if(typeof renderProjects === 'function') renderProjects();
+        if(typeof renderMyTasks === 'function') renderMyTasks();
+    }
+
+    // --- User Management Functions (Global) ---
+    // ย้ายมาไว้ที่นี่เพื่อให้เรียกใช้ได้จากทุกที่
+
+    function renderUserTable() {
+        const tbody = document.getElementById('user-table-body');
+        if(!tbody) return;
+
+        if(!globalData.allUsers || globalData.allUsers.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="6" class="text-center py-5 text-muted">ไม่พบข้อมูลผู้ใช้งาน</td></tr>`;
+            return;
+        }
+
+        let html = '';
+        globalData.allUsers.forEach((u, index) => {
+            let avatar = u.photoUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(u.name)}&background=random&color=fff`;
+            
+            let roleBadge = 'bg-light text-dark border';
+            if(u.role === 'Admin') roleBadge = 'bg-danger text-white border-0';
+            if(u.role === 'Manager') roleBadge = 'bg-primary text-white border-0';
+
+            let status = u.status || 'Active';
+            let statusBadge = status === 'Active' 
+                ? '<span class="badge bg-success bg-opacity-10 text-success border border-success px-2 rounded-pill">Active</span>'
+                : '<span class="badge bg-secondary bg-opacity-10 text-secondary border px-2 rounded-pill">Inactive</span>';
+            
+            // ✅ ใช้ชื่อตัวแปรปลอดภัย
+            let trClass = status === 'Inactive' ? 'table-light text-muted opacity-75' : '';
+
+            html += `
+            <tr class="${trClass}">
+                <td class="ps-4 text-muted">${index + 1}</td>
+                <td>
+                    <div class="d-flex align-items-center">
+                        <img src="${avatar}" class="rounded-circle me-3 border shadow-sm" width="40" height="40" style="object-fit: cover;">
+                        <div>
+                            <div class="fw-bold ${status === 'Inactive' ? 'text-secondary' : 'text-dark'}">${u.name}</div>
+                            <small class="text-muted" style="font-size:0.8rem;">${u.email || '<span class="text-danger">*No Email</span>'}</small>
+                        </div>
+                    </div>
+                </td>
+                <td><span class="badge ${roleBadge} rounded-pill fw-normal px-3 shadow-sm">${u.role}</span></td>
+                <td><span class="small"><i class="fas fa-users me-1 text-muted"></i>${u.team}</span></td>
+                <td>${statusBadge}</td>
+                <td class="text-end pe-4">
+                    <button class="btn btn-white btn-sm border me-1 shadow-sm text-primary rounded-circle" style="width:32px; height:32px;" onclick="openUserModal('${u.email}')">
+                        <i class="fas fa-pen" style="font-size:0.8rem;"></i>
+                    </button>
+                    ${u.role !== 'Admin' ? `
+                    <button class="btn btn-white btn-sm border shadow-sm text-danger rounded-circle" style="width:32px; height:32px;" onclick="deleteUser('${u.email}', '${u.name}')">
+                        <i class="fas fa-ban" style="font-size:0.8rem;"></i>
+                    </button>` : ''} 
+                </td>
+            </tr>`;
+        });
+        tbody.innerHTML = html;
+    }
+
+    function openUserModal(email = null) {
+        document.getElementById('userForm').reset();
+        document.getElementById('original-email').value = '';
+        
+        var modalEl = document.getElementById('userModal');
+        if(!modalEl) return;
+
+        if(email) {
+            const user = globalData.allUsers.find(u => u.email === email);
+            if(user) {
+                document.getElementById('userModalTitle').innerText = 'แก้ไขข้อมูลพนักงาน';
+                document.getElementById('original-email').value = user.email;
+                document.getElementById('u-name').value = user.name;
+                document.getElementById('u-email').value = user.email;
+                document.getElementById('u-role').value = user.role;
+                document.getElementById('u-team').value = user.team;
+                if(document.getElementById('u-status')) document.getElementById('u-status').value = user.status || 'Active';
+                document.getElementById('u-photo').value = user.photoUrl || '';
+            }
+        } else {
+            document.getElementById('userModalTitle').innerText = 'เพิ่มพนักงานใหม่';
+            if(document.getElementById('u-role')) document.getElementById('u-role').value = 'User'; 
+            if(document.getElementById('u-status')) document.getElementById('u-status').value = 'Active'; 
+        }
+        new bootstrap.Modal(modalEl).show();
+    }
+
+    function submitUser() {
+        const name = document.getElementById('u-name').value;
+        const email = document.getElementById('u-email').value;
+        const role = document.getElementById('u-role').value;
+        const team = document.getElementById('u-team').value;
+        const photo = document.getElementById('u-photo').value;
+        const originalEmail = document.getElementById('original-email').value;
+        const status = document.getElementById('u-status') ? document.getElementById('u-status').value : 'Active';
+
+        if(!name || !email) return alert('กรุณากรอกชื่อและอีเมล');
+
+        const btn = event.target;
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ...';
+        btn.disabled = true;
+
+        const userData = {
+            originalEmail: originalEmail,
+            name: name,
+            email: email,
+            role: role,
+            team: team,
+            status: status,
+            photoUrl: photo
+        };
+
+        google.script.run.withSuccessHandler((res) => {
+            if(res.success) {
+                loadSystemData(); 
+                bootstrap.Modal.getInstance(document.getElementById('userModal')).hide();
+            } else {
+                alert('Error: ' + res.message);
+            }
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }).saveUserDB(userData);
+    }
+
+    function deleteUser(email, name) {
+        if(confirm(`ระงับการใช้งาน "${name}" ใช่หรือไม่?`)) {
+            google.script.run.withSuccessHandler((res) => {
+                if(res.success) loadSystemData();
+                else alert('Error: ' + res.message);
+            }).deleteUserDB(email);
+        }
+    }
+
+    // --- General Functions ---
+
+    function updateNavbarProfile(user) {
+        document.getElementById('user-display').innerText = user.name;
+        document.getElementById('role-display').innerText = user.role || 'Team Member';
+        document.getElementById('menu-user-name').innerText = user.name;
+        document.getElementById('menu-user-email').innerText = user.email || 'No Email';
+        
+        let avatarUrl = user.photoUrl;
+        if (!avatarUrl) {
+           avatarUrl = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user.name) + '&background=0d6efd&color=fff';
+        }
+        document.getElementById('nav-user-avatar').src = avatarUrl;
+        document.getElementById('menu-user-avatar').src = avatarUrl;
+    }
+
+    function showPage(pageId, element) {
+        document.querySelectorAll('.page-section').forEach(el => el.style.display = 'none');
+        let target = document.getElementById(pageId);
+        if(target) target.style.display = 'block';
+        
+        document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
+        if (element) {
+           element.classList.add('active');
+        } 
+        
+        // ถ้าเข้าหน้า Add User ให้วาดตาราง
+        if(pageId === 'page-adduser') renderUserTable();
+    }
+
+    function handleAutoLogin() {
+        var btn = event.target;
+        if(btn.tagName !== 'BUTTON') btn = btn.closest('button');
+        
+        var errorMsg = document.getElementById('login-error');
+        errorMsg.style.display = 'none';
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Checking...';
+
+        google.script.run.withSuccessHandler(function(email) {
+            console.log("Email:", email);
+            if (!email) {
+                showError('ไม่พบอีเมล Google');
+                btn.disabled = false;
+                btn.innerHTML = 'Sign in with Google';
+                return;
+            }
+            checkUserAccess(email, btn);
+        }).getCurrentUserEmail();
+    }
+
+    function checkUserAccess(email, btn) {
+        google.script.run.withSuccessHandler(function(res) {
+            if (res.status) {
+                document.getElementById('login-overlay').style.display = 'none';
+                if(typeof globalData !== 'undefined') globalData.currentUser = res.user;
+                loadSystemData(); 
+            } else {
+                showError('อีเมลนี้ไม่มีสิทธิ์เข้าใช้งาน');
+                btn.disabled = false;
+                btn.innerHTML = 'Sign in with Google';
+            }
+        }).checkLoginUser(email);
+    }
+
+    function showError(msg) {
+        var el = document.getElementById('login-error');
+        el.innerText = msg;
+        el.style.display = 'block';
+    }
+
+    function handleLogout() {
+        if(confirm('ยืนยันออกจากระบบ?')) {
+            globalData = {};
+            location.reload(); // รีโหลดหน้าเว็บเพื่อง่ายต่อการเคลียร์ค่า
+        }
+    }
+
+    function openEditProfileModal() {
+        const user = globalData.currentUser;
+        document.getElementById('edit-profile-name').value = user.name;
+        document.getElementById('edit-profile-img').value = user.photoUrl || '';
+        updateAvatarPreview(user.photoUrl);
+        new bootstrap.Modal(document.getElementById('editProfileModal')).show();
+    }
+
+    function updateAvatarPreview(url) {
+        const preview = document.getElementById('edit-avatar-preview');
+        if (url && url.trim() !== '') preview.src = url;
+        else preview.src = 'https://ui-avatars.com/api/?name=User';
+    }
+
+    function saveProfile() {
+        const newName = document.getElementById('edit-profile-name').value;
+        const newImg = document.getElementById('edit-profile-img').value;
+        const btn = event.target;
+        btn.disabled = true;
+        
+        const updateData = {
+           email: globalData.currentUser.email,
+           name: newName,
+           photoUrl: newImg
+        };
+
+        google.script.run.withSuccessHandler(function(success) {
+            if(success) {
+                globalData.currentUser.name = newName;
+                globalData.currentUser.photoUrl = newImg;
+                updateNavbarProfile(globalData.currentUser);
+                bootstrap.Modal.getInstance(document.getElementById('editProfileModal')).hide();
+            } else {
+                alert('บันทึกไม่สำเร็จ');
+            }
+            btn.disabled = false;
+        }).updateUserProfile(updateData);
+    }
+</script>
