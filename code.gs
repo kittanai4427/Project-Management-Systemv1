@@ -24,7 +24,8 @@ function include(filename) {
 function getSystemData() {
   var cache = CacheService.getScriptCache();
   try {
-    var cachedJSON = cache.get("SYSTEM_DATA_V5"); // เปลี่ยน version cache
+    // 🔴 แก้จาก V5 เป็น V6
+    var cachedJSON = cache.get("SYSTEM_DATA_V6"); 
     if (cachedJSON != null) {
       return JSON.parse(cachedJSON);
     }
@@ -36,13 +37,13 @@ function getSystemData() {
     try {
       var jsonStr = JSON.stringify(data);
       if (jsonStr.length < 95000) { 
-        cache.put("SYSTEM_DATA_V5", jsonStr, 600); // Cache 10 นาทีพอ (เพื่อความสดใหม่ของแชท)
+        // 🔴 แก้จาก V5 เป็น V6
+        cache.put("SYSTEM_DATA_V6", jsonStr, 600); 
       }
     } catch(e) { console.log("Cannot cache data: " + e.message); }
   }
   return data;
 }
-
 function fetchFromSheet() {
   var systemData = {
     currentUser: { name: "Guest", email: "", role: "User" },
@@ -286,6 +287,8 @@ function updateProjectRemark(projectId, newRemark) {
 
 
 
+
+
 // ==========================================
 // 🔄 WORKFLOW FUNCTIONS (ฉบับ Auto-Init)
 // ==========================================
@@ -323,45 +326,13 @@ function getWorkflowTemplate(type) {
   return templates[type] || templates['Default'];
 }
 
-// 1. อัปเดตสถานะ (ถ้าไม่มีข้อมูล จะสร้างให้ก่อน)
-function updateTaskWorkflowStatus(taskId, stepIndex) {
-  var ss = SpreadsheetApp.openById(SHEET_ID);
-  var sheet = ss.getSheetByName("DB_Tasks");
-  var data = sheet.getDataRange().getValues();
-  
-  for (var i = 1; i < data.length; i++) {
-    if (data[i][0] == taskId) {
-      var taskType = data[i][2]; // Col C = Type
-      var jsonStr = data[i][12]; // Col M = Workflow_JSON (Index 12)
-      
-      var steps = [];
-      try { steps = jsonStr ? JSON.parse(jsonStr) : []; } catch(e) { steps = []; }
-      
-      // ⚠️ สำคัญ: ถ้าว่างเปล่า ให้โหลด Template มาใช้เลย
-      if (steps.length === 0) {
-        steps = getWorkflowTemplate(taskType);
-      }
-      
-      // อัปเดตสถานะ
-      if (steps[stepIndex]) {
-         var current = steps[stepIndex].status || 'pending';
-         steps[stepIndex].status = (current === 'pending') ? 'doing' : (current === 'doing' ? 'done' : 'pending');
-         
-         var newJson = JSON.stringify(steps);
-         sheet.getRange(i + 1, 13).setValue(newJson); // Save to Col M (13)
-         
-         // ล้าง Cache
-         try { CacheService.getScriptCache().remove("SYSTEM_DATA_V5"); } catch(e){}
-         
-         return { taskType: taskType, workflowJson: newJson };
-      }
-    }
-  }
-  return null;
-}
+// ==========================================
+// 🔄 WORKFLOW FUNCTIONS (Update Status)
+// ==========================================
 
-// 2. อัปเดตคนรับผิดชอบ (ถ้าไม่มีข้อมูล จะสร้างให้ก่อน)
-function updateTaskWorkflowAssignee(taskId, stepIndex, newName) {
+// ในไฟล์ code.gs
+
+function updateTaskWorkflowStatus(taskId, stepIndex) {
   var ss = SpreadsheetApp.openById(SHEET_ID);
   var sheet = ss.getSheetByName("DB_Tasks");
   var data = sheet.getDataRange().getValues();
@@ -374,7 +345,67 @@ function updateTaskWorkflowAssignee(taskId, stepIndex, newName) {
       var steps = [];
       try { steps = jsonStr ? JSON.parse(jsonStr) : []; } catch(e) { steps = []; }
       
-      // ⚠️ สำคัญ: ถ้าว่างเปล่า ให้โหลด Template
+      if (steps.length === 0) steps = getWorkflowTemplate(taskType);
+      
+      // 1. อัปเดตสถานะของขั้นตอนย่อยที่กด
+      if (steps[stepIndex]) {
+         var current = steps[stepIndex].status || 'pending';
+         // วนลูป: pending -> doing -> done -> pending
+         steps[stepIndex].status = (current === 'pending') ? 'doing' : (current === 'doing' ? 'done' : 'pending');
+      }
+
+      // =======================================================
+      // ✅ ส่วนที่เพิ่ม: ตรวจสอบและเปลี่ยนสถานะงานหลักอัตโนมัติ
+      // =======================================================
+      var allDone = steps.every(function(s) { return s.status === 'done'; });
+      var anyDoing = steps.some(function(s) { return s.status === 'doing' || s.status === 'done'; });
+
+      var newMainStatus = data[i][5]; // ค่าเดิม
+
+      if (allDone) {
+        newMainStatus = 'Done';        // ถ้าเสร็จครบทุกข้อ -> Done
+      } else if (anyDoing) {
+        newMainStatus = 'In Progress'; // ถ้าเริ่มทำบางข้อ -> In Progress
+      } else {
+        newMainStatus = 'Pending';     // ถ้ายังไม่ทำอะไรเลย -> Pending
+      }
+
+      // 2. บันทึก Workflow JSON
+      var newJson = JSON.stringify(steps);
+      sheet.getRange(i + 1, 13).setValue(newJson); 
+
+      // 3. ✅ บันทึกสถานะงานหลักลง Database (Col F = Index 6)
+      sheet.getRange(i + 1, 6).setValue(newMainStatus);
+      // =======================================================
+      
+     try { CacheService.getScriptCache().remove("SYSTEM_DATA_V6"); } catch(e){}
+      
+      // ส่งค่ากลับไปบอกหน้าเว็บ
+      return { 
+        taskType: taskType, 
+        workflowJson: newJson, 
+        newMainStatus: newMainStatus // ✅ ส่งค่าสถานะใหม่กลับไปด้วย
+      };
+    }
+  }
+  return null;
+}
+
+// 2. อัปเดตคนรับผิดชอบ (ถ้าไม่มีข้อมูล จะสร้างให้ก่อน)
+// แก้ไขบรรทัดรับค่า function ให้รับ newDate, newDetails เพิ่ม
+function updateTaskWorkflowAssignee(taskId, stepIndex, newName, newDate, newDetails) {
+  var ss = SpreadsheetApp.openById(SHEET_ID);
+  var sheet = ss.getSheetByName("DB_Tasks");
+  var data = sheet.getDataRange().getValues();
+  
+  for (var i = 1; i < data.length; i++) {
+    if (data[i][0] == taskId) {
+      var taskType = data[i][2];
+      var jsonStr = data[i][12]; // Col M
+      
+      var steps = [];
+      try { steps = jsonStr ? JSON.parse(jsonStr) : []; } catch(e) { steps = []; }
+      
       if (steps.length === 0) {
         steps = getWorkflowTemplate(taskType);
       }
@@ -382,6 +413,10 @@ function updateTaskWorkflowAssignee(taskId, stepIndex, newName) {
       if (steps[stepIndex]) {
          steps[stepIndex].assignee = newName;
          
+         // ✅ บันทึกค่าใหม่ลงไปใน Object
+         steps[stepIndex].dueDate = newDate || "";
+         steps[stepIndex].details = newDetails || "";
+
          var newJson = JSON.stringify(steps);
          sheet.getRange(i + 1, 13).setValue(newJson);
          
@@ -393,6 +428,5 @@ function updateTaskWorkflowAssignee(taskId, stepIndex, newName) {
   }
   return null;
 }
-
 
 function forceAuth() { DriveApp.getRootFolder(); }
