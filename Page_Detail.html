@@ -1212,31 +1212,69 @@
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header bg-primary text-white">
-        <h5 class="modal-title">เพิ่มงานใหม่</h5><button type="button" class="btn-close btn-close-white"
-          data-bs-dismiss="modal"></button>
+        <h5 class="modal-title">เพิ่มงานใหม่</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
         <form id="create-task-form">
-          <div class="mb-2"><label class="small fw-bold">ชื่องาน *</label><input type="text" class="form-control"
-              name="taskName" required></div>
-          <div class="row g-2 mb-2">
-            <div class="col-6"><label class="small fw-bold">ประเภท</label><select class="form-select" name="taskType"
-                id="task-type-select"></select></div>
-            <div class="col-6"><label class="small fw-bold">ผู้รับผิดชอบ</label><select class="form-select"
-                name="assignee" id="assignee-select"></select></div>
+          <div class="mb-2">
+            <label class="small fw-bold">ชื่องาน *</label>
+            <input type="text" class="form-control" name="taskName" required>
           </div>
-          <div class="mb-2"><label class="small fw-bold">กำหนดส่ง</label><input type="date" class="form-control"
-              name="dueDate"></div>
+          
+          <div class="row g-2 mb-2">
+            <div class="col-6">
+              <label class="small fw-bold">ประเภท</label>
+              <select class="form-select" name="taskType" id="task-type-select"></select>
+            </div>
+            <div class="col-6">
+              <label class="small fw-bold">ผู้รับผิดชอบ</label>
+              <select class="form-select" name="assignee" id="assignee-select"></select>
+            </div>
+          </div>
+
+          <div class="row g-2 mb-2">
+  <div class="col-6">
+    <label class="small fw-bold text-muted">Pillar</label>
+    <select class="form-select form-select-sm" id="create-task-pillar">
+      <option value="">-- Select Pillar --</option>
+      <option value="Awareness">Awareness</option>
+      <option value="Consideration">Consideration</option>
+      <option value="Conversion">Conversion</option>
+      <option value="Real-time">Real-time Content</option>
+      <option value="Engagement">Engagement</option>
+    </select>
+  </div>
+  <div class="col-6">
+    <label class="small fw-bold text-muted">Media Type</label>
+    <select class="form-select form-select-sm" id="create-task-media">
+      <option value="">-- Select Type --</option>
+      <option value="Single">Single Image</option>
+      <option value="Video">Video / Reels</option>
+      <option value="Carousel">Carousel</option>
+      <option value="Article">Article / Link</option>
+    </select>
+  </div>
+</div>
+          <div class="mb-2">
+            <label class="small fw-bold">กำหนดส่ง</label>
+            <input type="date" class="form-control" name="dueDate">
+          </div>
           <hr>
-          <div class="mb-2"><label class="small">ลิงก์บรีฟ</label><input type="url" class="form-control form-control-sm"
-              name="briefLink"></div>
-          <div class="mb-2"><label class="small">แนบไฟล์</label><input type="file" class="form-control form-control-sm"
-              id="task-file-input"></div>
+          <div class="mb-2">
+            <label class="small">ลิงก์บรีฟ</label>
+            <input type="url" class="form-control form-control-sm" name="briefLink">
+          </div>
+          <div class="mb-2">
+            <label class="small">แนบไฟล์</label>
+            <input type="file" class="form-control form-control-sm" id="task-file-input">
+          </div>
         </form>
       </div>
-      <div class="modal-footer"><button type="button" class="btn btn-secondary"
-          data-bs-dismiss="modal">ยกเลิก</button><button type="button" class="btn btn-primary"
-          onclick="submitNewTask()">บันทึก</button></div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ยกเลิก</button>
+        <button type="button" class="btn btn-primary" onclick="submitNewTask()">บันทึก</button>
+      </div>
     </div>
   </div>
 </div>
@@ -1586,41 +1624,53 @@
       new bootstrap.Modal(document.getElementById('addTaskModal')).show();
   }
 
-  function submitNewTask() { 
-      const f=document.getElementById('create-task-form'); 
+  // ในส่วน <script>
+function submitNewTask() { 
+      const f = document.getElementById('create-task-form'); 
       if(!f.taskName.value) return alert('กรุณาระบุชื่องาน'); 
       
-      const d={
-          projectId:currentProjectId, 
-          taskName:f.taskName.value, 
-          taskType:f.taskType.value, 
-          assignee:f.assignee.value, 
-          dueDate:f.dueDate.value, 
-          briefLink:f.briefLink.value
+      const d = {
+          projectId: currentProjectId, 
+          taskName: f.taskName.value, 
+          taskType: f.taskType.value, 
+          assignee: f.assignee.value, 
+          dueDate: f.dueDate.value, 
+          briefLink: f.briefLink.value,
+          
+          // ✅ ดึงค่าจาก ID ใหม่ (create-task-...) ส่งไปหลังบ้าน
+          pillar: document.getElementById('create-task-pillar').value,
+          mediaType: document.getElementById('create-task-media').value
       }; 
-      const file=document.getElementById('task-file-input').files[0]; 
+      
+      // ... (ส่วนจัดการไฟล์ เหมือนเดิม) ...
+      const file = document.getElementById('task-file-input').files[0]; 
       
       const btn = event.target; btn.innerHTML = 'บันทึก...'; btn.disabled = true;
 
-      const handler=(r)=>{ 
+      const handler = (r) => { 
           globalData.tasks.push(r); 
-          openProjectDetail(currentProjectId); // Re-render
+          openProjectDetail(currentProjectId); 
           bootstrap.Modal.getInstance(document.getElementById('addTaskModal')).hide(); 
           f.reset(); 
+          
+          // ✅ Reset ค่า Dropdown ด้วย
+          document.getElementById('create-task-pillar').value = "";
+          document.getElementById('create-task-media').value = "";
+          
           btn.innerHTML = 'บันทึก'; btn.disabled = false;
       }; 
       
       if(file){ 
-          const r=new FileReader(); 
-          r.onload=function(e){ 
-              d.fileData={name:file.name, mimeType:file.type, data:e.target.result.split(',')[1]}; 
+          const r = new FileReader(); 
+          r.onload = function(e){ 
+              d.fileData = {name:file.name, mimeType:file.type, data:e.target.result.split(',')[1]}; 
               google.script.run.withSuccessHandler(handler).createTask(d, d.fileData); 
           }; 
           r.readAsDataURL(file); 
       } else { 
           google.script.run.withSuccessHandler(handler).createTask(d, null); 
       } 
-  }
+}
 
   function filterAssignees(taskType) {
       const select = document.getElementById('assignee-select'); select.innerHTML = '<option value="Unassigned">-- เลือกผู้รับผิดชอบ --</option>';
