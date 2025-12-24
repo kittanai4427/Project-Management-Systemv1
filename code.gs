@@ -58,14 +58,26 @@ function fetchFromSheet() {
     systemData.currentUser.email = userEmail;
 
     // 1. Users
+    // 1. Users
     var usersSheet = ss.getSheetByName("DB_Users");
     if (usersSheet) {
       var uData = usersSheet.getDataRange().getValues();
-      uData.shift(); 
+      uData.shift(); // ตัดหัวตาราง (Header) ออก
+      
+      // ค้นหา Current User (ส่วนเดิม)
       var foundUser = uData.find(r => r[1] === userEmail);
-      if (foundUser) systemData.currentUser = { name: foundUser[0], email: foundUser[1], role: foundUser[2] };
+      if (foundUser) systemData.currentUser = { name: foundUser[0], email: foundUser[1], role: foundUser[2], photoUrl: foundUser[4] };
       else systemData.currentUser.name = userEmail;
-     systemData.allUsers = uData.map(r => ({ name: r[0], role: r[2] }));
+
+      // ✅ ส่วนที่แก้ไข: ดึงข้อมูลสมาชิกทั้งหมดแบบเต็มรูปแบบ (Full Format)
+      systemData.allUsers = uData.map(r => ({
+        name: r[0],          // Column A: ชื่อ
+        email: r[1],         // Column B: อีเมล
+        role: r[2],          // Column C: ตำแหน่ง (Admin/Manager/User)
+        team: r[3],          // Column D: ทีม
+        photoUrl: r[4] || "",// Column E: ลิงก์รูปภาพ
+        status: r[5] || "Active" // Column F: สถานะ (Active/Inactive)
+      }));
     }
 
     // 2. Projects
