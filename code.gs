@@ -58,26 +58,50 @@ function fetchFromSheet() {
     systemData.currentUser.email = userEmail;
 
     // 1. Users
-    // 1. Users
+
     var usersSheet = ss.getSheetByName("DB_Users");
     if (usersSheet) {
       var uData = usersSheet.getDataRange().getValues();
-      uData.shift(); // ตัดหัวตาราง (Header) ออก
-      
-      // ค้นหา Current User (ส่วนเดิม)
+      uData.shift(); // ตัดหัวตาราง
+
+      // 1.1 หา Current User (โค้ดเดิม)
       var foundUser = uData.find(r => r[1] === userEmail);
       if (foundUser) systemData.currentUser = { name: foundUser[0], email: foundUser[1], role: foundUser[2], photoUrl: foundUser[4] };
       else systemData.currentUser.name = userEmail;
 
-      // ✅ ส่วนที่แก้ไข: ดึงข้อมูลสมาชิกทั้งหมดแบบเต็มรูปแบบ (Full Format)
+      // 1.2 เตรียมข้อมูลดิบ (เผื่อใช้)
       systemData.allUsers = uData.map(r => ({
-        name: r[0],          // Column A: ชื่อ
-        email: r[1],         // Column B: อีเมล
-        role: r[2],          // Column C: ตำแหน่ง (Admin/Manager/User)
-        team: r[3],          // Column D: ทีม
-        photoUrl: r[4] || "",// Column E: ลิงก์รูปภาพ
-        status: r[5] || "Active" // Column F: สถานะ (Active/Inactive)
+        name: r[0], email: r[1], role: r[2], team: r[3], photoUrl: r[4], status: r[5]
       }));
+
+      // ✅ 1.3 สร้าง HTML ตารางเตรียมไว้เลย (เพิ่มส่วนนี้)
+      var html = "";
+      if (uData.length === 0) {
+        html = '<tr><td colspan="6" class="text-center py-4">ไม่พบรายชื่อพนักงาน</td></tr>';
+      } else {
+        uData.forEach(function(row, index) {
+          var name = row[0], email = row[1], role = row[2], team = row[3], photo = row[4], status = row[5] || 'Active';
+          var avatar = photo || ('https://ui-avatars.com/api/?name=' + encodeURIComponent(name) + '&background=random');
+          var statusBadge = (status === 'Inactive') ? '<span class="badge bg-secondary">Inactive</span>' : '<span class="badge bg-success">Active</span>';
+          
+          var userObj = { name: name, email: email, role: role, team: team, photoUrl: photo, status: status };
+          var userJson = encodeURIComponent(JSON.stringify(userObj));
+
+          html += '<tr>';
+          html += '  <td class="ps-4 text-muted">' + (index + 1) + '</td>';
+          html += '  <td><div class="d-flex align-items-center"><img src="' + avatar + '" class="rounded-circle me-3 border" width="40" height="40" style="object-fit: cover;"><div><div class="fw-bold text-dark">' + name + '</div><div class="small text-muted">' + email + '</div></div></div></td>';
+          html += '  <td><span class="badge bg-light text-dark border">' + role + '</span></td>';
+          html += '  <td><small class="text-secondary">' + team + '</small></td>';
+          html += '  <td>' + statusBadge + '</td>';
+          html += '  <td class="text-end pe-4">';
+          html += '    <button class="btn btn-sm btn-outline-primary me-1" onclick="openUserModal(\'' + userJson + '\')"><i class="fas fa-edit"></i></button>';
+          html += '    <button class="btn btn-sm btn-outline-danger" onclick="deleteUser(\'' + email + '\')"><i class="fas fa-trash"></i></button>';
+          html += '  </td>';
+          html += '</tr>';
+        });
+      }
+      // ส่ง HTML กลับไปพร้อมข้อมูลระบบเลย
+      systemData.userTableHtml = html;
     }
 
     // 2. Projects
@@ -158,16 +182,27 @@ function saveUserDB(data) {
   const values = ws.getDataRange().getValues();
   
   let rowIndex = -1;
+
+  // ✅ แก้ไขส่วนนี้: เปลี่ยนวิธีค้นหาให้รอบคอบขึ้น (Trim + LowerCase)
   if (data.originalEmail) {
-    rowIndex = values.findIndex(row => row[1] == data.originalEmail); 
+    const searchEmail = String(data.originalEmail).trim().toLowerCase();
+    
+    rowIndex = values.findIndex(row => 
+      String(row[1]).trim().toLowerCase() === searchEmail
+    );
   }
   
+  // ... (ส่วนตรวจสอบ Duplicates และการบันทึกด้านล่าง เหมือนเดิม) ...
+  
   if (rowIndex === -1) {
-     const dupIndex = values.findIndex(row => row[1] == data.email);
+     // กรณีหาไม่เจอจริงๆ หรือเป็นการเพิ่มใหม่ ให้เช็คซ้ำว่าอีเมลใหม่ซ้ำไหม
+     const newEmail = String(data.email).trim().toLowerCase();
+     const dupIndex = values.findIndex(row => String(row[1]).trim().toLowerCase() === newEmail);
+     
      if (dupIndex !== -1 && !data.originalEmail) {
        return { success: false, message: "อีเมลนี้มีอยู่ในระบบแล้ว" };
      }
-     if (rowIndex === -1) rowIndex = values.length; 
+     if (rowIndex === -1) rowIndex = values.length; // ต่อท้ายแถวใหม่
   }
 
   const rowNum = rowIndex + 1;
@@ -178,7 +213,7 @@ function saveUserDB(data) {
   if(data.photoUrl) ws.getRange(rowNum, 5).setValue(data.photoUrl);
   ws.getRange(rowNum, 6).setValue(data.status || 'Active');
 
-  clearCache(); // ✅ ล้าง Cache
+  clearCache(); 
   return { success: true };
 }
 
@@ -187,14 +222,23 @@ function deleteUserDB(email) {
   const ws = ss.getSheetByName("DB_Users");
   const values = ws.getDataRange().getValues();
   
+  // แปลงอีเมลที่รับมา ให้เป็นตัวเล็กและตัดช่องว่างซ้ายขวา
+  const targetEmail = String(email).trim().toLowerCase();
+  
   for (let i = 1; i < values.length; i++) {
-    if (values[i][1] == email) {
-      ws.getRange(i + 1, 6).setValue('Inactive'); 
-      clearCache(); // ✅ ล้าง Cache
+    // แปลงอีเมลในฐานข้อมูล ให้เป็นตัวเล็กและตัดช่องว่างเหมือนกัน
+    const dbEmail = String(values[i][1]).trim().toLowerCase();
+
+    // เปรียบเทียบ
+    if (dbEmail === targetEmail) {
+      ws.getRange(i + 1, 6).setValue('Inactive'); // เปลี่ยนสถานะเป็น Inactive
+      
+      clearCache(); // ✅ สั่งล้าง Cache (สำคัญมากสำหรับการโหลดแบบ Instant)
       return { success: true };
     }
   }
-  return { success: false, message: "ไม่พบผู้ใช้งาน" };
+  
+  return { success: false, message: "ไม่พบอีเมล: " + email + " ในระบบ" };
 }
 
 function updateUserProfile(data) {
@@ -217,30 +261,124 @@ function getCurrentUserEmail() {
   return Session.getActiveUser().getEmail();
 }
 
+
+// --- วางต่อท้ายไฟล์ code.gs ---
+
+function getUserTableHtml() {
+  // 1. ดึงข้อมูลจาก Sheet โดยตรง
+  var ss = SpreadsheetApp.openById(SHEET_ID);
+  var sheet = ss.getSheetByName("DB_Users");
+  var data = sheet.getDataRange().getValues();
+  data.shift(); // ตัดหัวตารางออก
+
+  var html = "";
+
+  // 2. สร้าง HTML ของตารางเตรียมไว้เลย
+  if (data.length === 0) {
+    return '<tr><td colspan="6" class="text-center py-4">ไม่พบรายชื่อพนักงาน</td></tr>';
+  }
+
+  data.forEach(function(row, index) {
+    var name = row[0];
+    var email = row[1];
+    var role = row[2];
+    var team = row[3];
+    var photo = row[4];
+    var status = row[5] || 'Active';
+
+    var avatar = photo || ('https://ui-avatars.com/api/?name=' + encodeURIComponent(name) + '&background=random');
+    var statusBadge = (status === 'Inactive') ? 
+        '<span class="badge bg-secondary">Inactive</span>' : 
+        '<span class="badge bg-success">Active</span>';
+    
+    // สร้าง Object ข้อมูลสำหรับปุ่มแก้ไข (ต้อง Encode เพื่อส่งผ่าน HTML)
+    var userObj = { name: name, email: email, role: role, team: team, photoUrl: photo, status: status };
+    var userJson = encodeURIComponent(JSON.stringify(userObj));
+
+    // ต่อ String HTML
+    html += '<tr>';
+    html += '  <td class="ps-4 text-muted">' + (index + 1) + '</td>';
+    html += '  <td><div class="d-flex align-items-center"><img src="' + avatar + '" class="rounded-circle me-3 border" width="40" height="40" style="object-fit: cover;"><div><div class="fw-bold text-dark">' + name + '</div><div class="small text-muted">' + email + '</div></div></div></td>';
+    html += '  <td><span class="badge bg-light text-dark border">' + role + '</span></td>';
+    html += '  <td><small class="text-secondary">' + team + '</small></td>';
+    html += '  <td>' + statusBadge + '</td>';
+    html += '  <td class="text-end pe-4">';
+    html += '    <button class="btn btn-sm btn-outline-primary me-1" onclick="openUserModal(\'' + userJson + '\')"><i class="fas fa-edit"></i></button>';
+    html += '    <button class="btn btn-sm btn-outline-danger" onclick="deleteUser(\'' + email + '\')"><i class="fas fa-trash"></i></button>';
+    html += '  </td>';
+    html += '</tr>';
+  });
+
+  return html; // ส่ง HTML กลับไปแปะหน้าเว็บได้เลย
+}
+
 // ==========================================
 // 🛠️ PROJECT FUNCTIONS
 // ==========================================
+/**
+ * ฟังก์ชันสร้างโปรเจกต์ใหม่
+ * รับข้อมูล object จากหน้าบ้าน และบันทึกลง Sheet
+ */
+/**
+ * ฟังก์ชันสร้างโปรเจกต์ใหม่ (แก้ไขให้ตรงกับ CSV DB_Projects)
+ */
 function createProject(data) {
-  var ss = SpreadsheetApp.openById(SHEET_ID);
-  var sheet = ss.getSheetByName("DB_Projects");
-  
-  var newId = "P-" + Math.floor(Math.random() * 10000).toString().padStart(4, '0');
-  var ids = sheet.getRange(2, 1, sheet.getLastRow(), 1).getValues().flat();
-  while (ids.includes(newId)) {
-    newId = "P-" + Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    // ⚠️ ตรวจสอบว่าชื่อ Sheet ในไฟล์ของคุณคือ "DB_Projects" หรือ "Projects" ให้แก้ตรงนี้ให้ตรงกับชื่อแท็บจริงครับ
+    const sheet = ss.getSheetByName('DB_Projects'); 
+    
+    if (!sheet) {
+      throw new Error('ไม่พบ Sheet ชื่อ "DB_Projects" กรุณาตรวจสอบชื่อแท็บ');
+    }
+
+    // 1. สร้าง Project ID (ตัวอย่าง: P- ตามด้วยเวลาปัจจุบัน)
+    const timestamp = new Date().getTime().toString().slice(-4); 
+    const random = Math.floor(Math.random() * 100);
+    const projectId = 'P-' + timestamp + random; // เช่น P-453299
+
+    // 2. จัดเตรียมข้อมูลลง Array (เรียงตามคอลัมน์ใน CSV เป๊ะๆ)
+    // [0]Project_ID, [1]Customer_Name, [2]Product, [3]AE_Owner, [4]Budget, 
+    // [5]Contract_Period, [6]Target_Content_Qty, [7]Target_VDO_Qty, [8]GoogleSheet_Link, 
+    // [9]Project_Status, [10]Billing_Status, [11]Target_Admin, [12]Target_Ads, 
+    // [13]Target_Web, [14]Remark, [15]Target_Graphic_Qty
+
+    const newRowData = [
+      projectId,                  // [0] Project_ID
+      data.customerName,          // [1] Customer_Name
+      data.product,               // [2] Product
+      data.aeOwner,               // [3] AE_Owner
+      data.budget,                // [4] Budget
+      data.period,                // [5] Contract_Period
+      data.targetContent || 0,    // [6] Target_Content_Qty
+      data.targetVDO || 0,        // [7] Target_VDO_Qty
+      data.sheetLink,             // [8] GoogleSheet_Link
+      'Active',                   // [9] Project_Status (Default = Active)
+      'Pending',                  // [10] Billing_Status (Default = Pending) ** แก้ไขจุดนี้ให้ตรง CSV
+      data.targetAdmin || 0,      // [11] Target_Admin
+      data.targetAds || 0,        // [12] Target_Ads
+      data.targetWeb || 0,        // [13] Target_Web
+      data.remark,                // [14] Remark
+      data.targetGraphic || 0     // [15] Target_Graphic_Qty
+    ];
+
+    // 3. บันทึกลง Sheet (ต่อท้ายแถวสุดท้าย)
+    sheet.appendRow(newRowData);
+
+    // 4. ส่งผลลัพธ์กลับไปหน้าเว็บ
+    return { 
+      success: true, 
+      data: newRowData,
+      message: "บันทึกโปรเจกต์สำเร็จ"
+    };
+
+  } catch (e) {
+    return { 
+      success: false, 
+      message: "เกิดข้อผิดพลาด: " + e.message 
+    };
   }
-
-  var rowData = [
-    newId, data.customerName, data.product, data.aeOwner, data.budget || "-", data.period || "-",
-    data.targetContent || "0", data.targetVDO || "0", data.sheetLink || "", "Active",  "Pending", 
-    data.targetAdmin || "0", data.targetAds || "0", data.targetWeb || "0", data.remark || "", data.targetGraphic || "0"
-  ];
-
-  sheet.appendRow(rowData);
-  clearCache(); 
-  return rowData;
 }
-
 function postProjectUpdate(projectId, message, userName, fileData) {
   var fileInfo = uploadFileToDrive(fileData);
   var newId = "U-" + new Date().getTime();
@@ -278,6 +416,8 @@ function updateProjectRemark(projectId, newRemark) {
 // ==========================================
 
 // ฟังก์ชันหลัก: บันทึก Content/Task (แก้ไขแล้ว)
+// ฟังก์ชันหลัก: บันทึก Content/Task (แก้ไขแล้ว: แก้บั๊กรูปหายตอน Edit)
+// ฟังก์ชันหลัก: บันทึก Content/Task (ปรับปรุง: ใส่ผู้รับผิดชอบลง Workflow อัตโนมัติ + ไม่ลบของเก่าทิ้ง)
 function saveContentTaskDB(data, fileData) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const ws = ss.getSheetByName("DB_Tasks");
@@ -285,6 +425,7 @@ function saveContentTaskDB(data, fileData) {
   let fileUrl = "";
   let fileName = "";
 
+  // 1. จัดการไฟล์แนบ
   if (fileData) {
     try {
       var fileInfo = uploadFileToDrive(fileData);
@@ -293,69 +434,165 @@ function saveContentTaskDB(data, fileData) {
     } catch(e) { }
   }
 
+  // 2. ฟังก์ชันช่วยสร้าง Workflow ใหม่ (พร้อมใส่ชื่อคนรับผิดชอบ)
+  const generateNewWorkflow = () => {
+      try {
+         var steps = getWorkflowTemplate(data.taskType || 'Content');
+         
+         // ✅ ไฮไลท์: ถ้ามีคนรับผิดชอบหลัก ให้ใส่ชื่อเขาลงไปในขั้นตอนเลย
+         if (steps && steps.length > 0 && data.assignee && data.assignee !== 'Unassigned') {
+             steps.forEach(step => {
+                 // ใส่เฉพาะขั้นตอนที่ยังว่างอยู่
+                 if (step.assignee === 'Unassigned') {
+                     step.assignee = data.assignee;
+                 }
+             });
+         }
+         return JSON.stringify(steps);
+      } catch(e) { return "[]"; }
+  };
+
   let workflowJson = "";
-  try {
-     var steps = getWorkflowTemplate(data.taskType || 'Content');
-     if (steps && steps.length > 0 && data.roleAssignments) {
-         steps.forEach(step => {
-             if (data.roleAssignments[step.role]) step.assignee = data.roleAssignments[step.role];
-         });
-     }
-     workflowJson = JSON.stringify(steps);
-  } catch(e) { workflowJson = "[]"; }
 
   if (taskId) {
-    // --- Edit Mode ---
+    // --- Edit Mode (แก้ไขงานเดิม) ---
     var dataRange = ws.getDataRange().getValues();
     for (var i = 1; i < dataRange.length; i++) {
       if (dataRange[i][0] == taskId) {
+        
+        // ⚠️ สำคัญ: เช็คก่อนว่ามี Workflow เดิมไหม? ถ้ามี "ห้ามสร้างทับ" (เดี๋ยวงานที่ทำไปแล้วหาย)
+        let existingWorkflow = dataRange[i][12]; // Col M
+        if (existingWorkflow && existingWorkflow.length > 5) { // เช็คคร่าวๆ ว่ามีข้อมูล
+            workflowJson = existingWorkflow; 
+        } else {
+            // ถ้าของเดิมว่างเปล่า ค่อยสร้างใหม่
+            workflowJson = generateNewWorkflow();
+        }
+
+        // อัปเดตข้อมูล
         ws.getRange(i + 1, 3).setValue(data.taskType);
         ws.getRange(i + 1, 4).setValue(data.taskName);
         ws.getRange(i + 1, 5).setValue(data.assignee); 
-        
-        // ✅ ปรับตำแหน่งการเขียนข้อมูล (ข้าม Col L ที่ว่างอยู่)
-        ws.getRange(i + 1, 13).setValue(workflowJson); // Col M
-        ws.getRange(i + 1, 14).setValue(data.pillar);  // Col N
-        ws.getRange(i + 1, 15).setValue(data.mediaType); // Col O
-        ws.getRange(i + 1, 16).setValue(data.remark);    // Col P
+        ws.getRange(i + 1, 13).setValue(workflowJson); // Col M (Workflow)
+        ws.getRange(i + 1, 14).setValue(data.pillar);  
+        ws.getRange(i + 1, 15).setValue(data.mediaType); 
+        ws.getRange(i + 1, 16).setValue(data.remark);    
         
         if (fileUrl) {
           ws.getRange(i + 1, 10).setValue(fileUrl);
           ws.getRange(i + 1, 11).setValue(fileName);
+        } else {
+          // ถ้าไม่ได้แนบใหม่ ให้ใช้ค่าเดิมส่งกลับไป
+          fileUrl = dataRange[i][9];   
+          fileName = dataRange[i][10]; 
         }
         break;
       }
     }
   } else {
-    // --- New Mode ---
+    // --- New Mode (สร้างงานใหม่) ---
     taskId = "T-" + Math.floor(Math.random() * 1000000).toString(16);
+    
+    // สร้าง Workflow ใหม่
+    workflowJson = generateNewWorkflow();
+
     const newRow = [
       taskId, data.projectId, data.taskType, data.taskName, data.assignee, 
       data.status, 0, data.dueDate, "", 
-      fileUrl,     
-      fileName,    
-      "",          // ✅ เว้นว่าง Col L (Index 11)
-      workflowJson,// [Index 12]
-      data.pillar, // [Index 13]
-      data.mediaType, // [Index 14]
-      data.remark  // [Index 15]
+      fileUrl, fileName, "",          
+      workflowJson, // [12] Workflow ที่ใส่ชื่อคนแล้ว
+      data.pillar, 
+      data.mediaType, 
+      data.remark  
     ];
     ws.appendRow(newRow);
   }
   
-  clearCache(); // ✅ ล้าง V7
+  clearCache(); 
   
-  // ✅ Return Array (Index ตรงกับ Sheet)
   return [
-      taskId, data.projectId, data.taskType, data.taskName, data.assignee, // [4]
+      taskId, data.projectId, data.taskType, data.taskName, data.assignee, 
       data.status, 0, data.dueDate, "", 
-      fileUrl, fileName, 
-      "",           // [11]
-      workflowJson, // [12]
-      data.pillar,  // [13]
-      data.mediaType, // [14]
-      data.remark   // [15]
+      fileUrl, fileName, "",           
+      workflowJson, 
+      data.pillar,  
+      data.mediaType, 
+      data.remark   
   ];
+}
+
+function saveContentTask() {
+    // ✅ 1. จำค่าปุ่มกดไว้ทันทีที่ฟังก์ชันเริ่มทำงาน
+    const btn = event.target; 
+
+    const taskId = document.getElementById('content-task-id').value;
+    const dateStr = document.getElementById('content-date').value;
+    
+    const data = {
+        taskId: taskId,
+        projectId: currentProjectId,
+        dueDate: dateStr,
+        taskName: document.getElementById('content-idea').value, 
+        assignee: document.getElementById('content-assignee').value,
+        pillar: document.getElementById('content-pillar').value,
+        mediaType: document.getElementById('content-media').value,
+        remark: document.getElementById('content-remark').value,
+        taskType: 'Content', 
+        status: 'To Do' 
+    };
+    
+    const fileInput = document.getElementById('content-file');
+    const file = fileInput.files[0];
+    
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            // ✅ 2. ส่งปุ่ม (btn) ไปด้วย
+            submitToBackend(data, { name: file.name, mimeType: file.type, data: e.target.result.split(',')[1] }, btn);
+        };
+        reader.readAsDataURL(file);
+    } else {
+        // ✅ 2. ส่งปุ่ม (btn) ไปด้วย
+        submitToBackend(data, null, btn);
+    }
+}
+
+function submitToBackend(data, filePayload, btn) {
+    // ใช้ btn ที่รับเข้ามาแทน event.target
+    const originalText = btn.innerHTML; // จำข้อความเดิมไว้เผื่อ error
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+    btn.disabled = true;
+
+    google.script.run.withSuccessHandler((res) => {
+        // อัปเดตข้อมูลในตัวแปร globalData
+        if (!data.taskId) {
+            globalData.tasks.push(res); 
+        } else {
+            const idx = globalData.tasks.findIndex(t => t[0] === res[0]);
+            if(idx !== -1) globalData.tasks[idx] = res;
+        }
+        
+        // วาดตารางและ List ใหม่
+        renderContentPlanView(); 
+        
+        if (currentProjectId) {
+            const currentProjectTasks = globalData.tasks.filter(t => t[1] === currentProjectId);
+            renderListView(currentProjectTasks);   
+            renderKanbanView(currentProjectTasks); 
+        }
+
+        bootstrap.Modal.getInstance(document.getElementById('contentTaskModal')).hide();
+        
+        // คืนค่าปุ่ม
+        btn.innerHTML = 'Save Content';
+        btn.disabled = false;
+        
+    }).withFailureHandler((err) => {
+        // กรณี Error ให้คืนค่าปุ่มด้วย
+        alert("เกิดข้อผิดพลาด: " + err.message);
+        btn.innerHTML = 'Save Content';
+        btn.disabled = false;
+    }).saveContentTaskDB(data, filePayload);
 }
 
 // function createTask(form, fileData) {
@@ -623,3 +860,106 @@ function getTaskById(taskId) {
 }
 
 function forceAuth() { DriveApp.getRootFolder(); }
+
+// ในไฟล์ code.gs (วางต่อท้ายสุดได้เลย)
+
+function deleteTaskDB(taskId) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ws = ss.getSheetByName("DB_Tasks");
+  const data = ws.getDataRange().getValues();
+  
+  // ค้นหาแถวที่มี Task ID ตรงกัน
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][0] == taskId) {
+      ws.deleteRow(i + 1); // ลบแถวนั้นทิ้ง
+      
+      clearCache(); // ล้าง Cache
+      return { success: true };
+    }
+  }
+  
+  return { success: false, message: "ไม่พบข้อมูลงานนี้ในระบบ" };
+}
+
+// ในไฟล์ code.gs
+
+function saveWorkflowDB(taskId, workflowJson) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ws = ss.getSheetByName("DB_Tasks");
+  const data = ws.getDataRange().getValues();
+  
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][0] == taskId) {
+      // Index 12 คือ Column M (Workflow JSON)
+      ws.getRange(i + 1, 13).setValue(workflowJson);
+      
+      clearCache();
+      return { success: true };
+    }
+  }
+  return { success: false, message: "Task not found" };
+}
+
+/**
+ * ฟังก์ชันแก้ไขข้อมูลโปรเจค (Update)
+ */
+function updateProjectDB(data) {
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const sheet = ss.getSheetByName('DB_Projects'); // ตรวจสอบชื่อ Sheet ให้ตรง
+    if (!sheet) throw new Error('ไม่พบ Sheet DB_Projects');
+
+    const dataRange = sheet.getDataRange();
+    const values = dataRange.getValues();
+    
+    // ค้นหาแถวที่ Project ID ตรงกัน (เริ่มหาจากแถวที่ 2)
+    let rowIndex = -1;
+    for (let i = 1; i < values.length; i++) {
+      if (values[i][0] == data.id) { // Column A is ID
+        rowIndex = i + 1; // +1 เพราะ Row ใน Sheet เริ่มที่ 1
+        break;
+      }
+    }
+
+    if (rowIndex === -1) throw new Error('ไม่พบรหัสโปรเจคนี้ในฐานข้อมูล');
+
+    // เตรียมข้อมูลใหม่ (ต้องระวังไม่ให้ทับ Status หรือ Billing Status ถ้าไม่ได้แก้)
+    // เราจะอัปเดตเฉพาะคอลัมน์ที่อยู่ในฟอร์มแก้ไข
+    
+    // เรียงลำดับ Column ตาม CSV:
+    // [1]Name, [2]Product, [3]AE, [4]Budget, [5]Period, [6]T.Content, [7]T.VDO, [8]Link
+    // ... [11]Admin, [12]Ads, [13]Web, [15]Graphic
+    
+    // อัปเดตทีละ Cell เพื่อความชัวร์ หรือ setValues เป็นกลุ่ม
+    const rowRange = sheet.getRange(rowIndex, 2, 1, 15); // เริ่ม Column 2 (B) ถึง 16 (P)
+    const currentValues = values[rowIndex-1]; // ค่าเดิมใน DB
+
+    // สร้าง Array ข้อมูลใหม่ผสมกับค่าเดิม (เผื่อบางค่าไม่ได้ส่งมา)
+    const updateValues = [
+      data.customerName,           // Col B [1]
+      data.product,                // Col C [2]
+      data.aeOwner,                // Col D [3]
+      data.budget,                 // Col E [4]
+      data.period,                 // Col F [5]
+      data.targetContent || 0,     // Col G [6]
+      data.targetVDO || 0,         // Col H [7]
+      data.sheetLink,              // Col I [8]
+      currentValues[9],            // Col J [9] Status (ไม่แก้จากฟอร์มนี้)
+      currentValues[10],           // Col K [10] Billing (ไม่แก้จากฟอร์มนี้)
+      data.targetAdmin || 0,       // Col L [11]
+      data.targetAds || 0,         // Col M [12]
+      data.targetWeb || 0,         // Col N [13]
+      currentValues[14],           // Col O [14] Remark (ใช้ Modal แยก)
+      data.targetGraphic || 0      // Col P [15]
+    ];
+
+    rowRange.setValues([updateValues]);
+
+    // ส่งข้อมูลใหม่กลับไปอัปเดตหน้าเว็บ
+    const updatedFullRow = [data.id, ...updateValues];
+    return { success: true, data: updatedFullRow };
+
+  } catch (e) {
+    return { success: false, message: e.message };
+  }
+}
