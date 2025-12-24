@@ -1,0 +1,337 @@
+<style>
+  /* --- TEAM SCHEDULE THEME --- */
+  :root {
+    --team-bg: #ffffff;
+    --team-border: #e2e8f0;
+    --team-header: #1e293b;
+    --team-text: #334155;
+    --team-accent: #3b82f6;
+  }
+
+  /* 1. Container */
+  .team-wrapper {
+      background: var(--team-bg);
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      height: calc(100vh - 110px);
+      overflow-y: auto;
+      border: 1px solid var(--team-border);
+      font-family: 'Sarabun', sans-serif;
+      position: relative;
+  }
+
+  /* 2. Table Structure */
+  .team-table {
+      width: 100%;
+      border-collapse: separate; 
+      border-spacing: 0;
+      table-layout: fixed;
+  }
+
+  .team-table th, .team-table td {
+      border-right: 1px solid var(--team-border);
+      border-bottom: 1px solid var(--team-border);
+      padding: 0;
+      vertical-align: top;
+      font-size: 0.75rem;
+      color: var(--team-text);
+  }
+
+  /* Sticky Header (หัวตาราง) */
+  .team-head th {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background-color: #f8fafc;
+      color: #64748b;
+      text-transform: uppercase;
+      font-weight: 800;
+      padding: 12px 0;
+      border-bottom: 2px solid #cbd5e1;
+  }
+  .team-head th:first-child {
+      background-color: var(--team-header);
+      color: white;
+      width: 130px;
+      z-index: 21; /* อยู่บนสุด */
+  }
+
+  /* Column Labels (ด้านซ้าย) */
+  .team-label {
+      background-color: #f8fafc;
+      font-weight: 700;
+      text-align: right;
+      padding: 10px 15px !important;
+      vertical-align: middle !important;
+      text-transform: uppercase;
+      border-right: 2px solid var(--team-border) !important;
+      position: sticky;
+      left: 0;
+      z-index: 10;
+      color: var(--team-header);
+  }
+
+  /* 3. Task Item (กล่องงานย่อย - รองรับหลายงาน) */
+  .team-item {
+      padding: 8px;
+      border-bottom: 1px dashed var(--team-border); /* เส้นประคั่นระหว่างงาน */
+      background-color: #fff;
+      transition: 0.2s;
+      cursor: pointer;
+      min-height: 45px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+  }
+  .team-item:last-child { border-bottom: none; }
+  .team-item:hover { background-color: #f0f9ff; }
+
+  /* Typography */
+  .tm-proj { font-weight: 700; color: #0f172a; display: block; line-height: 1.2; }
+  .tm-user { display: inline-block; background: #e2e8f0; color: #334155; padding: 2px 6px; border-radius: 4px; font-weight: 600; font-size: 0.65rem; }
+  .tm-time { color: #dc2626; font-weight: 700; }
+  .tm-loc { color: #475569; font-style: italic; }
+  .tm-proc { color: #15803d; font-weight: 600; }
+  
+  /* Date Row */
+  .team-date td { background-color: #f8fafc; text-align: right; font-weight: 800; font-size: 1rem; color: #94a3b8; height: 35px; padding: 5px 10px !important; }
+  .team-date td.today { color: var(--team-accent); background-color: #eff6ff; }
+  .team-divider td { background-color: #e2e8f0; height: 6px; border: none; padding: 0; }
+</style>
+
+<div class="row mb-3 align-items-center g-2">
+    <div class="col-md-6">
+        <h5 class="mb-0 fw-bold text-dark"><i class="fas fa-users me-2 text-primary"></i>ตารางงานทีม (Team Schedule)</h5>
+        <small class="text-muted" id="team_MonthTitle">กำลังโหลดข้อมูล...</small>
+    </div>
+    <div class="col-md-6 text-md-end">
+        <div class="d-inline-flex gap-2 p-1 bg-white border rounded-pill shadow-sm">
+            <button class="btn btn-light btn-sm rounded-circle" style="width:32px;" onclick="team_ChangeMonth(-1)"><i class="fas fa-chevron-left"></i></button>
+            <button class="btn btn-light btn-sm fw-bold px-3 rounded-pill" onclick="team_ResetToday()">Today</button>
+            <button class="btn btn-light btn-sm rounded-circle" style="width:32px;" onclick="team_ChangeMonth(1)"><i class="fas fa-chevron-right"></i></button>
+        </div>
+        <select id="team_FilterUser" class="form-select form-select-sm shadow-sm border-0 bg-white fw-bold text-secondary d-inline-block w-auto ms-2" style="border-radius: 20px;" onchange="team_RenderTable()">
+            <option value="All">👥 ทุกคน</option>
+        </select>
+    </div>
+</div>
+
+<div class="team-wrapper" id="team_ScheduleArea"></div>
+
+<div class="modal fade" id="teamTaskModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg" style="border-radius: 12px; overflow: hidden;">
+      <div class="modal-header text-white" style="background-color: var(--team-header);">
+        <h6 class="modal-title fw-bold mb-0"><i class="fas fa-calendar-check me-2"></i>รายละเอียดงาน</h6>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+          <div class="mb-3">
+              <label class="small text-muted fw-bold">Project</label>
+              <div class="fw-bold text-primary" id="team-modal-project">-</div>
+          </div>
+          <div class="mb-3">
+              <label class="small text-muted fw-bold">Task Name</label>
+              <div class="fw-bold text-dark fs-5" id="team-modal-title">-</div>
+          </div>
+          <div class="row mb-3">
+              <div class="col-6"><label class="small text-muted fw-bold">Assignee</label><div id="team-modal-assignee">-</div></div>
+              <div class="col-6"><label class="small text-muted fw-bold">Status</label><div id="team-modal-status">-</div></div>
+          </div>
+          <div class="alert alert-light border d-flex gap-3 align-items-center">
+              <div><i class="far fa-clock text-danger"></i> <span id="team-modal-time">-</span></div>
+              <div><i class="fas fa-map-marker-alt text-danger"></i> <span id="team-modal-loc">-</span></div>
+          </div>
+          <div>
+              <label class="small text-muted fw-bold">Remark</label>
+              <div class="small text-secondary bg-light p-2 rounded" id="team-modal-remark">-</div>
+          </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  let team_CurrentDate = new Date(); 
+  let team_InitTimer = null;
+
+  // 1. Auto Load: ตรวจสอบข้อมูลและเริ่มวาดตาราง
+  function team_InitPage() {
+      const area = document.getElementById('team_ScheduleArea');
+      area.innerHTML = '<div class="d-flex justify-content-center align-items-center h-100 text-muted"><i class="fas fa-spinner fa-spin me-2"></i> กำลังโหลดตารางงาน...</div>';
+
+      team_InitTimer = setInterval(() => {
+          // เช็คว่า globalData มาหรือยัง
+          if (typeof globalData !== 'undefined' && globalData.tasks && globalData.tasks.length > 0) {
+              clearInterval(team_InitTimer);
+              team_RenderTable(); // วาดตารางทันที
+          }
+      }, 500);
+
+      // หยุดเช็คถ้าผ่านไป 10 วิ
+      setTimeout(() => clearInterval(team_InitTimer), 10000);
+  }
+
+  // เรียกใช้ทันที
+  team_InitPage();
+
+  function team_ChangeMonth(offset) {
+      team_CurrentDate.setMonth(team_CurrentDate.getMonth() + offset);
+      team_RenderTable();
+  }
+
+  function team_ResetToday() {
+      team_CurrentDate = new Date();
+      team_RenderTable();
+  }
+
+  // --- ฟังก์ชันหลัก: วาดตาราง ---
+  function team_RenderTable() {
+      if (!globalData || !globalData.tasks) return;
+
+      const container = document.getElementById('team_ScheduleArea');
+      const filterUser = document.getElementById('team_FilterUser').value;
+      
+      const year = team_CurrentDate.getFullYear();
+      const month = team_CurrentDate.getMonth();
+      const mNames = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
+      
+      document.getElementById('team_MonthTitle').innerHTML = `<span class="badge bg-primary bg-opacity-10 text-primary border px-2">เดือน ${mNames[month]} ${year}</span>`;
+      
+      team_InitUserDropdown();
+
+      // 1. กรองงานของเดือนนี้
+      let monthTasks = globalData.tasks.filter(t => {
+          if(!t[7]) return false;
+          let d = new Date(t[7]);
+          return d.getMonth() === month && d.getFullYear() === year && (filterUser === 'All' || t[4] === filterUser);
+      });
+
+      // 2. เริ่มสร้าง HTML
+      let html = `<table class="team-table">`;
+      const daysHead = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
+      
+      html += `<thead class="team-head"><tr><th>WEEK</th>${daysHead.map(d => `<th>${d}</th>`).join('')}</tr></thead><tbody>`;
+
+      let firstDay = new Date(year, month, 1);
+      let lastDay = new Date(year, month + 1, 0);
+      let loopDay = new Date(firstDay);
+      
+      let dayOfWeek = loopDay.getDay(); 
+      if (dayOfWeek === 0) dayOfWeek = 7; 
+      loopDay.setDate(loopDay.getDate() - (dayOfWeek - 1));
+
+      // Loop สัปดาห์
+      while (loopDay <= lastDay || loopDay.getDay() !== 1) { 
+          let weekDates = [];
+          for (let i = 0; i < 7; i++) {
+              weekDates.push(new Date(loopDay));
+              loopDay.setDate(loopDay.getDate() + 1);
+          }
+          if (weekDates[0] > lastDay) break;
+
+          // Row 1: วันที่
+          html += `<tr class="team-date"><td class="team-label text-muted">Date</td>`;
+          weekDates.forEach(d => {
+              let isToday = d.toDateString() === new Date().toDateString();
+              let dateTxt = d.getMonth() === month ? d.getDate() : '';
+              html += `<td class="${isToday?'today':''}">${dateTxt}</td>`;
+          });
+          html += `</tr>`;
+
+          const getTasks = (d) => {
+              let str = d.toISOString().split('T')[0];
+              return monthTasks.filter(t => t[7] === str);
+          };
+
+          // สร้างแถวข้อมูลต่างๆ
+          html += team_CreateRow('Project', weekDates, getTasks, (t) => {
+              let p = globalData.projects.find(x => x[0] === t[1]);
+              return `<span class="tm-proj">${p ? p[1] : '-'}</span>`;
+          });
+
+          html += team_CreateRow('RESP.', weekDates, getTasks, (t) => `<span class="tm-user"><i class="fas fa-user-circle"></i> ${t[4].split(' ')[0]}</span>`);
+
+          html += team_CreateRow('TIME', weekDates, getTasks, (t) => {
+              let tm = team_ExtractTime(t[15]); return tm ? `<span class="tm-time">${tm}</span>` : '<span class="text-muted opacity-25">-</span>';
+          });
+
+          html += team_CreateRow('LOC.', weekDates, getTasks, (t) => {
+              let loc = team_ExtractLocation(t[15]); return loc ? `<span class="tm-loc">${loc}</span>` : '<span class="text-muted opacity-25">-</span>';
+          });
+
+          html += team_CreateRow('PROCESS', weekDates, getTasks, (t) => `<span class="tm-proc">${t[3]}</span> <small class="text-secondary">(${t[5]})</small>`);
+
+          html += `<tr class="team-divider"><td colspan="8"></td></tr>`;
+      }
+
+      html += `</tbody></table>`;
+      container.innerHTML = html;
+  }
+
+  // 3. Helper: สร้างแถวที่รองรับหลายงาน (Stacking)
+  function team_CreateRow(label, dates, getTasksFn, renderFn) {
+      let row = `<tr><td class="team-label">${label}</td>`;
+      dates.forEach(d => {
+          let tasks = getTasksFn(d);
+          
+          if (tasks.length > 0) {
+              // ✅ จุดสำคัญ: วนลูปสร้าง div ของแต่ละงาน แล้วเอามาต่อกัน
+              let innerHtml = tasks.map(t => `
+                  <div class="team-item" onclick="team_OpenModal('${t[0]}')">
+                      ${renderFn(t)}
+                  </div>
+              `).join('');
+              
+              row += `<td style="vertical-align:top; background:#fff;">${innerHtml}</td>`;
+          } else {
+              row += `<td style="background:#fafafa;"></td>`;
+          }
+      });
+      row += `</tr>`;
+      return row;
+  }
+
+  // 4. ฟังก์ชันเปิด Modal
+  function team_OpenModal(taskId) {
+      const t = globalData.tasks.find(x => x[0] === taskId);
+      if(!t) return;
+      const p = globalData.projects.find(x => x[0] === t[1]);
+
+      document.getElementById('team-modal-title').innerText = t[3];
+      document.getElementById('team-modal-project').innerText = p ? p[1] : '-';
+      document.getElementById('team-modal-assignee').innerText = t[4];
+      document.getElementById('team-modal-status').innerHTML = `<span class="badge bg-primary">${t[5]}</span>`;
+      document.getElementById('team-modal-remark').innerText = t[15] || '-';
+      
+      let tm = team_ExtractTime(t[15]);
+      let loc = team_ExtractLocation(t[15]);
+      document.getElementById('team-modal-time').innerText = tm || '-';
+      document.getElementById('team-modal-loc').innerText = loc || '-';
+
+      new bootstrap.Modal(document.getElementById('teamTaskModal')).show();
+  }
+
+  // Helper Functions
+  function team_ExtractTime(text) {
+      if(!text) return null;
+      const m = text.match(/(\d{1,2}[:.]\d{2}\s?[-to–]\s?\d{1,2}[:.]\d{2})|(\d{1,2}[:.]\d{2}\s?น\.?)/);
+      return m ? m[0] : null;
+  }
+  function team_ExtractLocation(text) {
+      if(!text) return null;
+      const k = ['Wis', 'Studio', 'สตูดิโอ', 'ออฟฟิศ', 'Office', 'Site', 'หน้างาน'];
+      for (let w of k) { if (text.toLowerCase().includes(w.toLowerCase())) return w; }
+      return null;
+  }
+  function team_InitUserDropdown() {
+      const sel = document.getElementById('team_FilterUser');
+      if (!sel || sel.options.length > 1) return;
+      if (globalData.allUsers) {
+          globalData.allUsers.forEach(u => {
+              const n = u.name || u;
+              sel.innerHTML += `<option value="${n}">${n}</option>`;
+          });
+      }
+  }
+</script>
