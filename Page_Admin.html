@@ -1,310 +1,401 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
-  .metric-card { transition: transform 0.2s; }
-  .metric-card:hover { transform: translateY(-5px); }
-  .clickable-row { cursor: pointer; transition: background-color 0.1s; }
-  .clickable-row:hover { background-color: #f1f8ff !important; }
+  :root {
+    --a-bg: #f8f9fa;
+    --a-card-bg: #ffffff;
+    --a-text: #333;
+    --a-primary: #0f172a; /* Navy */
+  }
+  body { background-color: var(--a-bg); font-family: 'Sarabun', sans-serif; }
+  
+  /* --- 1. จัดการการเลื่อนหน้าจอ (Scroll) --- */
+  .admin-view-container {
+      height: calc(100vh - 80px); /* ความสูงเต็มจอ ลบ Header หลักออก */
+      overflow-y: auto;           /* เปิดให้เลื่อนแนวตั้ง */
+      overflow-x: hidden;         /* ปิดการเลื่อนแนวนอน */
+      padding: 20px;              /* ระยะห่างภายใน */
+      padding-bottom: 120px;      /* ✅ เพิ่มพื้นที่ด้านล่างกันตกขอบ */
+  }
+
+  /* ปรับแต่ง Scrollbar */
+  .admin-view-container::-webkit-scrollbar { width: 8px; }
+  .admin-view-container::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 10px; }
+  .admin-view-container::-webkit-scrollbar-track { background-color: transparent; }
+
+  /* Cards */
+  .kpi-card { border: none; border-radius: 12px; background: white; box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: 0.2s; }
+  .kpi-card:hover { transform: translateY(-3px); box-shadow: 0 8px 16px rgba(0,0,0,0.08); }
+  .kpi-icon { width: 48px; height: 48px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
+
+  /* Table */
+  .table-custom th { background-color: #f1f5f9; color: #475569; font-weight: 600; text-transform: uppercase; font-size: 0.75rem; border-bottom: 2px solid #e2e8f0; }
+  .progress-thin { height: 6px; border-radius: 10px; background-color: #e2e8f0; }
+  
+  /* Utilities */
+  .text-xs { font-size: 0.7rem; }
+  .fw-medium { font-weight: 500; }
+  
+  /* Filter Tabs */
+  .filter-tab { cursor: pointer; padding: 6px 16px; border-radius: 50px; font-size: 0.85rem; font-weight: 600; color: #64748b; transition: 0.2s; border: 1px solid transparent; }
+  .filter-tab:hover { background-color: #e2e8f0; }
+  .filter-tab.active { background-color: var(--a-primary); color: white; box-shadow: 0 2px 4px rgba(15, 23, 42, 0.3); }
 </style>
 
-<div class="container-fluid p-0">
+<div class="admin-view-container">
   
-  <div class="row g-3 mb-4">
-    <div class="col-md-3">
-      <div class="card shadow-sm border-0 border-start border-4 border-primary h-100 metric-card">
-        <div class="card-body">
-          <div class="d-flex justify-content-between align-items-center">
-            <div><div class="small fw-bold text-muted text-uppercase">โปรเจค (Active)</div><h2 class="mb-0 fw-bold text-dark" id="kpi-project-active">0</h2></div>
-            <div class="text-primary bg-primary bg-opacity-10 p-3 rounded-circle"><i class="fas fa-layer-group fa-2x"></i></div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="col-md-3">
-      <div class="card shadow-sm border-0 border-start border-4 border-warning h-100 metric-card">
-        <div class="card-body">
-          <div class="d-flex justify-content-between align-items-center">
-            <div><div class="small fw-bold text-muted text-uppercase">รอวางบิล</div><h2 class="mb-0 fw-bold text-warning" id="kpi-billing-pending">0</h2></div>
-            <div class="text-warning bg-warning bg-opacity-10 p-3 rounded-circle"><i class="fas fa-file-invoice-dollar fa-2x"></i></div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="col-md-3">
-      <div class="card shadow-sm border-0 border-start border-4 border-info h-100 metric-card">
-        <div class="card-body">
-          <div class="d-flex justify-content-between align-items-center">
-            <div><div class="small fw-bold text-muted text-uppercase">งานค้าง (Tasks)</div><h2 class="mb-0 fw-bold text-info" id="kpi-task-pending">0</h2></div>
-            <div class="text-info bg-info bg-opacity-10 p-3 rounded-circle"><i class="fas fa-tasks fa-2x"></i></div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="col-md-3">
-      <div class="card shadow-sm border-0 border-start border-4 border-success h-100 metric-card">
-        <div class="card-body">
-          <div class="d-flex justify-content-between align-items-center">
-            <div><div class="small fw-bold text-muted text-uppercase">มูลค่างาน (Active)</div><h4 class="mb-0 fw-bold text-success" id="kpi-total-budget">0</h4></div>
-            <div class="text-success bg-success bg-opacity-10 p-3 rounded-circle"><i class="fas fa-coins fa-2x"></i></div>
-          </div>
-        </div>
-      </div>
-    </div>
+  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+     <div>
+        <h4 class="mb-0 fw-bold" style="color:var(--a-primary);"><i class="fas fa-chart-line me-2"></i>Dashboard ภาพรวม</h4>
+        <small class="text-muted">ติดตามสถานะงาน ประสิทธิภาพทีม และความคืบหน้าโครงการ</small>
+     </div>
+     <div class="bg-white p-1 rounded-pill shadow-sm d-flex border">
+        <div class="filter-tab active" onclick="setFilter('All', this)">ทั้งหมด</div>
+        <div class="filter-tab" onclick="setFilter('Month', this)">เดือนนี้</div>
+        <div class="filter-tab" onclick="setFilter('Week', this)">สัปดาห์นี้</div>
+        <div class="filter-tab" onclick="setFilter('Today', this)">วันนี้</div>
+     </div>
   </div>
 
   <div class="row g-3 mb-4">
-    <div class="col-md-4">
-      <div class="card shadow-sm border-0 h-100">
-        <div class="card-header bg-white py-3"><h6 class="mb-0 fw-bold"><i class="fas fa-chart-pie me-2"></i>สถานะโปรเจค</h6></div>
-        <div class="card-body"><canvas id="chartProjectStatus" style="max-height: 250px;"></canvas></div>
+    <div class="col-md-6 col-xl-3">
+      <div class="kpi-card p-3 h-100">
+        <div class="d-flex justify-content-between align-items-center">
+           <div><div class="text-xs text-muted fw-bold text-uppercase mb-1">งานทั้งหมด (Total)</div><h3 class="mb-0 fw-bold text-dark" id="kpi-total">0</h3></div>
+           <div class="kpi-icon bg-primary bg-opacity-10 text-primary"><i class="fas fa-layer-group"></i></div>
+        </div>
+        <div class="mt-3 text-xs text-muted">ในช่วงเวลาที่เลือก</div>
       </div>
     </div>
-    <div class="col-md-8">
-      <div class="card shadow-sm border-0 h-100">
-        <div class="card-header bg-white py-3"><h6 class="mb-0 fw-bold"><i class="fas fa-chart-bar me-2"></i>ประเภทงาน (Overview)</h6></div>
-        <div class="card-body"><canvas id="chartTaskType" style="max-height: 250px;"></canvas></div>
+    <div class="col-md-6 col-xl-3">
+      <div class="kpi-card p-3 h-100">
+        <div class="d-flex justify-content-between align-items-center">
+           <div><div class="text-xs text-muted fw-bold text-uppercase mb-1">เสร็จสิ้น (Done)</div><h3 class="mb-0 fw-bold text-success" id="kpi-done">0</h3></div>
+           <div class="kpi-icon bg-success bg-opacity-10 text-success"><i class="fas fa-check-circle"></i></div>
+        </div>
+        <div class="mt-3 text-xs text-muted">Success Rate: <span id="kpi-success-rate" class="fw-bold text-success">0%</span></div>
       </div>
     </div>
-  </div>
-
-  <div class="row mb-4">
-    <div class="col-12">
-      <div class="card shadow-sm border-0">
-        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-          <h6 class="mb-0 fw-bold text-primary"><i class="fas fa-calendar-day me-2"></i>ตารางงานรายวัน (Daily Schedule)</h6>
-          <span class="badge bg-light text-muted border"><i class="fas fa-info-circle me-1"></i> คลิกที่วันที่เพื่อดูรายชื่อโพรเจกต์</span>
+    <div class="col-md-6 col-xl-3">
+      <div class="kpi-card p-3 h-100">
+        <div class="d-flex justify-content-between align-items-center">
+           <div><div class="text-xs text-muted fw-bold text-uppercase mb-1">ต้องแก้ไข (Revise)</div><h3 class="mb-0 fw-bold text-danger" id="kpi-revise">0</h3></div>
+           <div class="kpi-icon bg-danger bg-opacity-10 text-danger"><i class="fas fa-undo"></i></div>
         </div>
-        <div class="card-body p-0">
-           <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
-             <table class="table table-hover mb-0 align-middle">
-               <thead class="table-light sticky-top">
-                 <tr>
-                   <th class="ps-4">วันที่ (Date)</th>
-                   <th class="text-center">งานทั้งหมด</th>
-                   <th class="text-center text-success">เสร็จ (Done)</th>
-                   <th class="text-center text-danger">ค้าง (Pending)</th>
-                   <th style="width: 25%;">Progress</th>
-                   <th class="text-end pe-4">Action</th>
-                 </tr>
-               </thead>
-               <tbody id="daily-schedule-tbody"></tbody>
-             </table>
-           </div>
+        <div class="mt-3 text-xs text-muted">งานที่มีปัญหา/ตีกลับ</div>
+      </div>
+    </div>
+    <div class="col-md-6 col-xl-3">
+      <div class="kpi-card p-3 h-100">
+        <div class="d-flex justify-content-between align-items-center">
+           <div><div class="text-xs text-muted fw-bold text-uppercase mb-1">เกินกำหนด (Overdue)</div><h3 class="mb-0 fw-bold text-warning" id="kpi-overdue">0</h3></div>
+           <div class="kpi-icon bg-warning bg-opacity-10 text-warning"><i class="fas fa-clock"></i></div>
         </div>
+        <div class="mt-3 text-xs text-muted">งานที่ล่าช้ากว่าแผน</div>
       </div>
     </div>
   </div>
 
-  <div class="row">
-    <div class="col-12">
-      <div class="card shadow-sm border-0">
-        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-          <h6 class="mb-0 fw-bold text-dark"><i class="fas fa-users-cog me-2"></i>ประสิทธิภาพทีมงาน</h6>
-          <button class="btn btn-sm btn-outline-secondary" onclick="renderAdminPage()"><i class="fas fa-sync-alt"></i></button>
-        </div>
-        <div class="card-body p-0">
-          <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-              <thead class="bg-light text-secondary">
-                <tr>
-                  <th class="ps-4">พนักงาน</th>
-                  <th class="text-center">ทั้งหมด</th>
-                  <th class="text-center">เสร็จ</th>
-                  <th class="text-center">กำลังทำ</th>
-                  <th class="text-center">แก้ (Revise)</th>
-                  <th style="width: 25%;">Success Rate</th>
-                </tr>
-              </thead>
-              <tbody id="admin-workload-tbody"></tbody>
-            </table>
+  <div class="row g-3 mb-4">
+    <div class="col-lg-8">
+       <div class="card border-0 shadow-sm h-100">
+          <div class="card-header bg-white py-3 border-0">
+             <h6 class="mb-0 fw-bold text-secondary"><i class="fas fa-chart-bar me-2"></i>ปริมาณงานแยกตามแผนก (Department Workload)</h6>
           </div>
-        </div>
-      </div>
+          <div class="card-body">
+             <canvas id="chartWorkload" style="max-height: 280px;"></canvas>
+          </div>
+       </div>
+    </div>
+    <div class="col-lg-4">
+       <div class="card border-0 shadow-sm h-100">
+          <div class="card-header bg-white py-3 border-0">
+             <h6 class="mb-0 fw-bold text-secondary"><i class="fas fa-chart-pie me-2"></i>สัดส่วนสถานะงาน</h6>
+          </div>
+          <div class="card-body position-relative">
+             <canvas id="chartStatus" style="max-height: 240px;"></canvas>
+             <div class="text-center mt-3 text-xs text-muted">*คำนวณจากงานทั้งหมดในช่วงเวลา</div>
+          </div>
+       </div>
     </div>
   </div>
 
-</div>
+  <div class="row g-3">
+    <div class="col-lg-6">
+       <div class="card border-0 shadow-sm h-100">
+          <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+             <h6 class="mb-0 fw-bold text-primary"><i class="fas fa-tasks me-2"></i>ความคืบหน้าโครงการ (Project Progress)</h6>
+          </div>
+          <div class="card-body p-0">
+             <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
+                <table class="table table-hover align-middle mb-0 table-custom">
+                   <thead class="sticky-top bg-white" style="z-index: 10;">
+                      <tr>
+                         <th class="ps-3">Project Name</th>
+                         <th class="text-center">Total</th>
+                         <th class="text-center">Done</th>
+                         <th style="width: 35%;" class="pe-3">Progress</th>
+                      </tr>
+                   </thead>
+                   <tbody id="project-progress-tbody"></tbody>
+                </table>
+             </div>
+          </div>
+       </div>
+    </div>
 
-<div class="modal fade" id="dailyDetailModal" tabindex="-1">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <div class="modal-header bg-primary text-white">
-        <h5 class="modal-title"><i class="fas fa-calendar-alt me-2"></i>งานประจำวันที่ <span id="modal-daily-date" class="fw-bold"></span></h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body p-0">
-        <div class="table-responsive">
-          <table class="table table-striped mb-0">
-            <thead class="table-light">
-              <tr>
-                <th class="ps-4">ชื่องาน</th>
-                <th>ประเภท</th>
-                <th>ผู้รับผิดชอบ</th>
-                <th>สถานะ</th>
-              </tr>
-            </thead>
-            <tbody id="modal-daily-tbody"></tbody>
-          </table>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">ปิด</button>
-      </div>
+    <div class="col-lg-6">
+       <div class="card border-0 shadow-sm h-100">
+          <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+             <h6 class="mb-0 fw-bold text-dark"><i class="fas fa-users-cog me-2"></i>ประสิทธิภาพรายบุคคล (Individual Stats)</h6>
+          </div>
+          <div class="card-body p-0">
+             <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
+                <table class="table table-hover align-middle mb-0 table-custom">
+                   <thead class="sticky-top bg-white" style="z-index: 10;">
+                      <tr>
+                         <th class="ps-3">Employee</th>
+                         <th class="text-center">Load</th>
+                         <th class="text-center text-success">Done</th>
+                         <th class="text-center text-danger">Revise</th>
+                         <th class="text-center text-warning">Late</th>
+                         <th class="pe-3 text-end">Score</th>
+                      </tr>
+                   </thead>
+                   <tbody id="team-stats-tbody"></tbody>
+                </table>
+             </div>
+          </div>
+       </div>
     </div>
   </div>
-</div>
 
-<script>
-  let chartProjectInstance = null;
-  let chartTaskInstance = null;
+</div> <script>
+  let chartWorkloadInstance = null;
+  let chartStatusInstance = null;
+  let currentFilter = 'All';
+
+  // Trigger when tab clicked
+  function setFilter(filterType, el) {
+      currentFilter = filterType;
+      document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+      el.classList.add('active');
+      renderAdminPage(); // Re-render everything
+  }
 
   function renderAdminPage() {
-    if (!globalData) return;
+      if (!globalData || !globalData.tasks) return;
 
-    // 1. KPI
-    const activeProjects = globalData.projects.filter(p => p[9] === 'Active');
-    const pendingBilling = globalData.projects.filter(p => p[10] === 'Pending');
-    const pendingTasks = globalData.tasks.filter(t => t[5] !== 'Done');
-    let totalBudget = 0;
-    activeProjects.forEach(p => {
-       let amount = parseFloat((p[4] || "0").toString().replace(/,/g, '').replace(/[^\d.-]/g, ''));
-       if (!isNaN(amount)) totalBudget += amount;
-    });
+      // 1. Filter Tasks based on Time Range
+      const filteredTasks = filterTasksByTime(globalData.tasks, currentFilter);
+      
+      // 2. Calculate KPI
+      calculateKPI(filteredTasks);
 
-    document.getElementById('kpi-project-active').innerText = activeProjects.length;
-    document.getElementById('kpi-billing-pending').innerText = pendingBilling.length;
-    document.getElementById('kpi-task-pending').innerText = pendingTasks.length;
-    document.getElementById('kpi-total-budget').innerText = totalBudget.toLocaleString('en-US');
+      // 3. Render Charts
+      renderAdvancedCharts(filteredTasks);
 
-    // 2. Charts
-    const statusCounts = { Active: 0, Hold: 0, Completed: 0 };
-    globalData.projects.forEach(p => { statusCounts[p[9]] = (statusCounts[p[9]]||0) + 1; });
-    const taskTypes = {}; 
-    globalData.tasks.forEach(t => { let type = t[2]||'Other'; taskTypes[type] = (taskTypes[type]||0) + 1; });
-    renderCharts(statusCounts, taskTypes);
-
-    // 3. Daily Table & Workload
-    renderDailyTable();
-    renderWorkloadTable();
+      // 4. Render Tables
+      renderProjectProgress(filteredTasks);
+      renderTeamStats(filteredTasks);
   }
 
-  // ✅ ฟังก์ชันสร้างตารางรายวัน (อัปเกรด)
-  function renderDailyTable() {
-    const tbody = document.getElementById('daily-schedule-tbody');
-    let dailyStats = {};
-
-    globalData.tasks.forEach(t => {
-      // t[7] = Due Date
-      let dateKey = (t[7] && t[7].trim() !== "") ? t[7] : "ไม่ระบุวัน";
-      if (!dailyStats[dateKey]) dailyStats[dateKey] = { total: 0, done: 0, pending: 0 };
+  // --- Helper: Time Filtering Logic ---
+  function filterTasksByTime(tasks, filter) {
+      if (filter === 'All') return tasks;
       
-      dailyStats[dateKey].total++;
-      if (t[5] === 'Done') dailyStats[dateKey].done++;
-      else dailyStats[dateKey].pending++;
-    });
-
-    // เรียงวันที่ (เอา "ไม่ระบุวัน" ไว้ท้ายสุด)
-    let sortedDates = Object.keys(dailyStats).sort((a, b) => {
-      if(a === "ไม่ระบุวัน") return 1; if(b === "ไม่ระบุวัน") return -1;
-      return new Date(a) - new Date(b);
-    });
-
-    let html = '';
-    const todayStr = new Date().toISOString().split('T')[0];
-
-    sortedDates.forEach(date => {
-      let stats = dailyStats[date];
-      let pct = Math.round((stats.done / stats.total) * 100) || 0;
-      let barColor = pct === 100 ? 'bg-success' : (pct >= 50 ? 'bg-info' : 'bg-warning');
+      const now = new Date();
+      const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
       
-      // Highlight วัน
-      let rowClass = (date === todayStr) ? 'table-warning fw-bold' : '';
-      let dateLabel = (date === todayStr) ? `<i class="fas fa-star text-warning me-1"></i> ${date} (วันนี้)` : date;
-      if (date === "ไม่ระบุวัน") dateLabel = `<span class="text-muted fst-italic">${date}</span>`;
+      // Calculate Start of Week (Sunday)
+      const startOfWeek = new Date(now);
+      startOfWeek.setDate(now.getDate() - now.getDay());
+      startOfWeek.setHours(0,0,0,0);
+      
+      const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
 
-      html += `
-        <tr class="${rowClass} clickable-row" onclick="openDailyDetail('${date}')" title="คลิกเพื่อดูรายละเอียด">
-          <td class="ps-4">${dateLabel}</td>
-          <td class="text-center fw-bold">${stats.total}</td>
-          <td class="text-center text-success">${stats.done}</td>
-          <td class="text-center text-danger fw-bold">${stats.pending}</td>
-          <td>
-             <div class="progress" style="height: 8px;">
-               <div class="progress-bar ${barColor}" style="width: ${pct}%"></div>
-             </div>
-          </td>
-          <td class="text-end pe-4"><button class="btn btn-sm btn-outline-primary"><i class="fas fa-search"></i> ดู</button></td>
-        </tr>
-      `;
-    });
+      return tasks.filter(t => {
+          if (!t[7]) return false; // No Due Date = Exclude from time filter
+          const d = new Date(t[7]);
+          d.setHours(0,0,0,0); // Compare dates only
 
-    tbody.innerHTML = html || '<tr><td colspan="6" class="text-center py-4 text-muted">ไม่มีข้อมูลงาน</td></tr>';
+          if (filter === 'Today') return d.getTime() === startOfDay.getTime();
+          if (filter === 'Week') return d >= startOfWeek;
+          if (filter === 'Month') return d >= startOfMonth;
+          return true;
+      });
   }
 
-  // ✅ ฟังก์ชันเปิด Modal ดูรายละเอียดรายวัน
-  function openDailyDetail(dateKey) {
-    const tbody = document.getElementById('modal-daily-tbody');
-    document.getElementById('modal-daily-date').innerText = dateKey;
-    tbody.innerHTML = '';
+  // --- 1. KPI Calculation ---
+  function calculateKPI(tasks) {
+      const total = tasks.length;
+      const done = tasks.filter(t => t[5] === 'Done').length;
+      const revise = tasks.filter(t => t[5] === 'Revise').length;
+      
+      // Overdue Logic: (Not Done) AND (DueDate < Today)
+      const today = new Date(); today.setHours(0,0,0,0);
+      const overdue = tasks.filter(t => {
+          return t[5] !== 'Done' && t[7] && new Date(t[7]) < today;
+      }).length;
 
-    // กรองงานของวันนั้น
-    let tasks = globalData.tasks.filter(t => {
-       let d = (t[7] && t[7].trim() !== "") ? t[7] : "ไม่ระบุวัน";
-       return d === dateKey;
-    });
+      const rate = total > 0 ? Math.round((done / total) * 100) : 0;
 
-    if(tasks.length === 0) {
-       tbody.innerHTML = '<tr><td colspan="4" class="text-center">ไม่พบข้อมูล</td></tr>';
-    } else {
-       tasks.forEach(t => {
-          let statusBadge = t[5]==='Done' ? 'bg-success' : (t[5]==='Revise'?'bg-warning text-dark':'bg-secondary');
-          let assignee = t[4] || '-';
-          // หาชื่อโปรเจค (ถ้ามี)
-          let project = globalData.projects.find(p => p[0] === t[1]);
-          let projName = project ? `<br><small class="text-muted">${project[1]}</small>` : '';
+      // Animate Numbers (Simple)
+      document.getElementById('kpi-total').innerText = total;
+      document.getElementById('kpi-done').innerText = done;
+      document.getElementById('kpi-revise').innerText = revise;
+      document.getElementById('kpi-overdue').innerText = overdue;
+      document.getElementById('kpi-success-rate').innerText = rate + '%';
+  }
 
-          tbody.innerHTML += `
+  // --- 2. Advanced Charts ---
+  function renderAdvancedCharts(tasks) {
+      // Data Prep for Workload (Group by Type -> Status)
+      const types = ['Content', 'Graphic', 'VDO', 'Ads', 'Admin', 'Web'];
+      const dataDone = [];
+      const dataPending = [];
+      
+      types.forEach(type => {
+          const typeTasks = tasks.filter(t => (t[2] || 'Other') === type);
+          const d = typeTasks.filter(t => t[5] === 'Done').length;
+          dataDone.push(d);
+          dataPending.push(typeTasks.length - d);
+      });
+
+      // Data Prep for Status Pie
+      const statusCounts = { Done: 0, Revise: 0, Doing: 0, Pending: 0 };
+      tasks.forEach(t => {
+          let s = t[5];
+          if(s === 'Done') statusCounts.Done++;
+          else if(s === 'Revise') statusCounts.Revise++;
+          else if(s === 'In Progress' || s === 'Doing') statusCounts.Doing++;
+          else statusCounts.Pending++;
+      });
+
+      // --- Chart 1: Workload Stacked Bar ---
+      const ctx1 = document.getElementById('chartWorkload').getContext('2d');
+      if (chartWorkloadInstance) chartWorkloadInstance.destroy();
+      chartWorkloadInstance = new Chart(ctx1, {
+          type: 'bar',
+          data: {
+              labels: types,
+              datasets: [
+                  { label: 'เสร็จสิ้น (Done)', data: dataDone, backgroundColor: '#10b981', borderRadius: 4 },
+                  { label: 'ค้าง/กำลังทำ (Pending)', data: dataPending, backgroundColor: '#e2e8f0', borderRadius: 4 }
+              ]
+          },
+          options: {
+              responsive: true, maintainAspectRatio: false,
+              plugins: { legend: { position: 'bottom' } },
+              scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true } }
+          }
+      });
+
+      // --- Chart 2: Status Doughnut ---
+      const ctx2 = document.getElementById('chartStatus').getContext('2d');
+      if (chartStatusInstance) chartStatusInstance.destroy();
+      chartStatusInstance = new Chart(ctx2, {
+          type: 'doughnut',
+          data: {
+              labels: ['Done', 'Doing', 'Revise', 'Pending'],
+              datasets: [{
+                  data: [statusCounts.Done, statusCounts.Doing, statusCounts.Revise, statusCounts.Pending],
+                  backgroundColor: ['#10b981', '#0d6efd', '#ef4444', '#cbd5e1'],
+                  borderWidth: 0, hoverOffset: 4
+              }]
+          },
+          options: {
+              responsive: true, maintainAspectRatio: false,
+              cutout: '70%',
+              plugins: { legend: { position: 'right', labels: { boxWidth: 12, font: { size: 11 } } } }
+          }
+      });
+  }
+
+  // --- 3. Project Progress Table ---
+  function renderProjectProgress(tasks) {
+      const tbody = document.getElementById('project-progress-tbody');
+      let html = '';
+      
+      // Group tasks by Project
+      const projMap = {};
+      globalData.projects.forEach(p => {
+           // Only Active Projects
+           if (p[9] === 'Active') projMap[p[0]] = { name: p[1], total: 0, done: 0 };
+      });
+
+      tasks.forEach(t => {
+          if (projMap[t[1]]) {
+              projMap[t[1]].total++;
+              if (t[5] === 'Done') projMap[t[1]].done++;
+          }
+      });
+
+      // Generate Rows
+      Object.values(projMap).forEach(p => {
+          if(p.total === 0) return; // Skip if no tasks in this filter range
+          const pct = Math.round((p.done / p.total) * 100);
+          let color = pct === 100 ? 'bg-success' : (pct > 50 ? 'bg-primary' : 'bg-warning');
+          
+          html += `
             <tr>
-              <td class="ps-4 fw-bold">${t[3]} ${projName}</td>
-              <td><span class="badge bg-light text-dark border">${t[2]}</span></td>
-              <td><i class="fas fa-user-circle text-muted me-1"></i>${assignee}</td>
-              <td><span class="badge ${statusBadge}">${t[5]}</span></td>
+               <td class="ps-3 fw-bold text-dark text-truncate" style="max-width: 150px;">${p.name}</td>
+               <td class="text-center small">${p.total}</td>
+               <td class="text-center small fw-bold text-success">${p.done}</td>
+               <td class="pe-3">
+                  <div class="d-flex align-items-center">
+                     <div class="progress progress-thin w-100 me-2"><div class="progress-bar ${color}" style="width:${pct}%"></div></div>
+                     <span class="text-xs fw-bold text-muted">${pct}%</span>
+                  </div>
+               </td>
             </tr>
           `;
-       });
-    }
-
-    new bootstrap.Modal(document.getElementById('dailyDetailModal')).show();
+      });
+      
+      tbody.innerHTML = html || '<tr><td colspan="4" class="text-center py-3 text-muted small">ไม่มีข้อมูลในช่วงเวลานี้</td></tr>';
   }
 
-  // ... (ฟังก์ชัน renderWorkloadTable และ renderCharts คงเดิม) ...
-  function renderWorkloadTable() {
-    let workload = {};
-    globalData.tasks.forEach(t => {
-       let assignee = t[4]; if(!assignee || assignee === 'Unassigned') return;
-       if(!workload[assignee]) workload[assignee] = { total: 0, done: 0, active: 0, revise: 0 };
-       workload[assignee].total++;
-       if(t[5] === 'Done') workload[assignee].done++;
-       else if(t[5] === 'Revise') workload[assignee].revise++;
-       else workload[assignee].active++;
-    });
-    let html = '';
-    Object.keys(workload).sort((a,b) => workload[b].total - workload[a].total).forEach(name => {
-       let stats = workload[name];
-       let pct = Math.round((stats.done / stats.total) * 100) || 0;
-       let barColor = pct >= 80 ? 'bg-success' : pct >= 50 ? 'bg-info' : 'bg-warning';
-       html += `<tr><td class="ps-4 fw-bold">${name}</td><td class="text-center">${stats.total}</td><td class="text-center text-success">${stats.done}</td><td class="text-center text-primary">${stats.active}</td><td class="text-center text-danger">${stats.revise||'-'}</td><td class="pe-3"><div class="progress" style="height:10px;"><div class="progress-bar ${barColor}" style="width:${pct}%"></div></div></td></tr>`;
-    });
-    document.getElementById('admin-workload-tbody').innerHTML = html||'<tr><td colspan="6" class="text-center py-4">ไม่มีข้อมูล</td></tr>';
-  }
+  // --- 4. Team Stats Table (With Overdue) ---
+  function renderTeamStats(tasks) {
+      const tbody = document.getElementById('team-stats-tbody');
+      const stats = {};
+      const today = new Date(); today.setHours(0,0,0,0);
 
-  function renderCharts(statusData, typeData) {
-    const ctx1 = document.getElementById('chartProjectStatus').getContext('2d');
-    if (chartProjectInstance) chartProjectInstance.destroy();
-    chartProjectInstance = new Chart(ctx1, { type: 'doughnut', data: { labels: ['Active', 'Hold', 'Completed'], datasets: [{ data: [statusData.Active, statusData.Hold, statusData.Completed], backgroundColor: ['#0d6efd', '#ffc107', '#6c757d'], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } } });
+      tasks.forEach(t => {
+          let u = t[4];
+          if(!u || u === 'Unassigned') return;
+          if(!stats[u]) stats[u] = { total:0, done:0, revise:0, late:0 };
+          
+          stats[u].total++;
+          if(t[5] === 'Done') stats[u].done++;
+          if(t[5] === 'Revise') stats[u].revise++;
+          if(t[5] !== 'Done' && t[7] && new Date(t[7]) < today) stats[u].late++;
+      });
 
-    const ctx2 = document.getElementById('chartTaskType').getContext('2d');
-    if (chartTaskInstance) chartTaskInstance.destroy();
-    chartTaskInstance = new Chart(ctx2, { type: 'bar', data: { labels: Object.keys(typeData), datasets: [{ label: 'จำนวนงาน', data: Object.values(typeData), backgroundColor: '#0dcaf0', borderRadius: 4 }] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } } });
+      let html = '';
+      // Sort by Total Load desc
+      Object.keys(stats).sort((a,b) => stats[b].total - stats[a].total).forEach(user => {
+           let s = stats[user];
+           let score = Math.round((s.done / s.total) * 100);
+           let scoreColor = score >= 80 ? 'text-success' : (score >= 50 ? 'text-primary' : 'text-danger');
+
+           html += `
+             <tr>
+                <td class="ps-3">
+                    <div class="d-flex align-items-center">
+                        <div class="bg-light rounded-circle text-center me-2" style="width:28px;height:28px;line-height:28px;font-size:0.75rem;">${user.charAt(0)}</div>
+                        <span class="fw-bold text-dark small">${user}</span>
+                    </div>
+                </td>
+                <td class="text-center fw-bold">${s.total}</td>
+                <td class="text-center text-success small">${s.done}</td>
+                <td class="text-center text-danger small">${s.revise > 0 ? s.revise : '-'}</td>
+                <td class="text-center text-warning fw-bold small">${s.late > 0 ? s.late : '-'}</td>
+                <td class="pe-3 text-end fw-bold ${scoreColor}">${score}%</td>
+             </tr>
+           `;
+      });
+
+      tbody.innerHTML = html || '<tr><td colspan="6" class="text-center py-3 text-muted small">ไม่มีข้อมูล</td></tr>';
   }
 </script>
