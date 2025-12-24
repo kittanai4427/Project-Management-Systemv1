@@ -148,29 +148,35 @@
         </button>
 
         <div class="collapse navbar-collapse" id="navbarNav">
-          <ul class="navbar-nav ms-4 me-auto">
-            <li class="nav-item">
-              <a class="nav-link active" style="cursor: pointer;" onclick="showPage('page-dashboard', this)">
-                <i class="fas fa-chart-pie me-1"></i> ภาพรวม
-              </a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" style="cursor: pointer;" onclick="showPage('page-mytasks', this)">
-                <i class="fas fa-list-check me-1"></i> งานของฉัน
-              </a>
-            </li>
-            <li class="nav-item" id="menu-admin" style="display:none;">
-              <a class="nav-link" style="cursor: pointer;" onclick="showPage('page-admin', this)">
-                <i class="fas fa-user-shield me-1"></i> ผู้บริหาร
-              </a>
-            </li>
+         <ul class="navbar-nav ms-4 me-auto">
+    <li class="nav-item">
+      <a class="nav-link active" style="cursor: pointer;" onclick="showPage('page-dashboard', this)">
+        <i class="fas fa-chart-pie me-1"></i> ภาพรวม
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" style="cursor: pointer;" onclick="showPage('page-mytasks', this)">
+        <i class="fas fa-list-check me-1"></i> งานของฉัน
+      </a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-link" style="cursor: pointer;" onclick="showPage('page-schedule', this)">
+        <i class="fas fa-calendar-alt me-1"></i> ตารางงานทีม
+      </a>
+    </li>
 
-            <li class="nav-item" id="menu-users" style="display:none;">
-  <a class="nav-link" style="cursor: pointer;" onclick="showPage('page-users', this)">
-    <i class="fas fa-users-cog me-1"></i> จัดการสมาชิก
-  </a>
-</li>
-          </ul>
+    <li class="nav-item" id="menu-admin" style="display:none;">
+      <a class="nav-link" style="cursor: pointer;" onclick="showPage('page-admin', this)">
+        <i class="fas fa-user-shield me-1"></i> ผู้บริหาร
+      </a>
+    </li>
+    <li class="nav-item" id="menu-users" style="display:none;">
+      <a class="nav-link" style="cursor: pointer;" onclick="showPage('page-users', this)">
+        <i class="fas fa-users-cog me-1"></i> จัดการสมาชิก
+      </a>
+    </li>
+</ul>
 
           <div class="dropdown">
             <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle hide-arrow" 
@@ -233,6 +239,7 @@
     <div class="container-fluid px-4 mt-4 pb-5 main-container" id="main-content">
       <div id="page-dashboard" class="page-section"><?!= include('Page_Projects'); ?></div>
       <div id="page-mytasks" class="page-section" style="display:none;"><?!= include('Page_MyTasks'); ?></div>
+      <div id="page-schedule" class="page-section" style="display:none;"><?!= include('Page_Schedule'); ?></div>
       <div id="page-admin" class="page-section" style="display:none;"><?!= include('Page_Admin'); ?></div>
     <div id="page-users" class="page-section" style="display:none;">
     <?!= include('Page_adduser'); ?>
@@ -493,26 +500,7 @@
          alert('ระบบจะพยายามดึงรูปจาก Google Account ของคุณในการเข้าสู่ระบบครั้งถัดไป');
        }
        // ฟังก์ชันอัปเดตข้อมูลผู้ใช้ลง Sheet
-function updateUserProfile(data) {
-  var ss = SpreadsheetApp.openById(SHEET_ID); // หรือ SpreadsheetApp.getActiveSpreadsheet();
-  var sheet = ss.getSheetByName("DB_Users");
-  var values = sheet.getDataRange().getValues();
-  
-  // ค้นหาแถวของผู้ใช้จาก Email (Column B -> Index 1)
-  for (var i = 1; i < values.length; i++) {
-    if (values[i][1].toString().toLowerCase() === data.email.toLowerCase()) {
-      // อัปเดตชื่อ (Column A -> แถว i+1, คอลัมน์ 1)
-      sheet.getRange(i + 1, 1).setValue(data.name);
-      
-      // อัปเดตรูปภาพ (Column E -> แถว i+1, คอลัมน์ 5)
-      // *ต้องมั่นใจว่าสร้างคอลัมน์ E ไว้แล้ว*
-      sheet.getRange(i + 1, 5).setValue(data.photoUrl);
-      
-      return true; // สำเร็จ
-    }
-  }
-  return false; // ไม่พบผู้ใช้
-}
+
 
        function saveProfile() {
          const newName = document.getElementById('edit-profile-name').value;
@@ -550,6 +538,71 @@ function updateUserProfile(data) {
              btn.disabled = false;
              
          }).updateUserProfile(updateData);
+       }
+
+
+       function openProjectDetail(pid) {
+           // 1. บันทึก ID โปรเจกต์ปัจจุบัน
+           if(typeof currentProjectId !== 'undefined') {
+               currentProjectId = pid;
+           } else {
+               window.currentProjectId = pid;
+           }
+
+           // 2. ค้นหาข้อมูลโปรเจกต์
+           const p = globalData.projects.find(x => x[0] === pid);
+           if (!p) return alert("ไม่พบข้อมูลโปรเจกต์");
+
+           // 3. สลับหน้าจอไปที่ Page Detail
+           showPage('page-detail');
+
+           // 4. อัปเดตข้อมูลส่วนหัว (Header) ของหน้า Detail
+           if (document.getElementById('detail-title')) document.getElementById('detail-title').innerText = p[1];
+           if (document.getElementById('detail-subtitle')) document.getElementById('detail-subtitle').innerText = p[2];
+           
+           // Update Status Badge
+           const badge = document.getElementById('detail-status-badge');
+           if (badge) {
+               badge.innerText = p[9];
+               badge.className = `badge ${p[9]==='Active'?'bg-success':(p[9]==='Hold'?'bg-warning text-dark':'bg-secondary')}`;
+           }
+
+           // Update Metrics Info
+           if (document.getElementById('info-budget')) document.getElementById('info-budget').innerText = p[4] || '-';
+           if (document.getElementById('info-period')) document.getElementById('info-period').innerText = p[5] || '-';
+           if (document.getElementById('info-ae')) document.getElementById('info-ae').innerText = p[3] || '-';
+           if (document.getElementById('info-product')) document.getElementById('info-product').innerText = p[2] || '-';
+
+           // Update Remark
+           const remarkDiv = document.getElementById('remark-box');
+           if (remarkDiv) {
+               if (p[14] && p[14].trim() !== '') {
+                   remarkDiv.style.display = 'flex';
+                   if(document.getElementById('remark-text-content')) document.getElementById('remark-text-content').innerText = p[14];
+                   // ใส่ onclick สำหรับแก้ไข remark ถ้ามีฟังก์ชันรองรับ
+                   if(typeof openUpdateRemark === 'function') {
+                        remarkDiv.onclick = function() { openUpdateRemark(p[0], p[14]); };
+                   }
+               } else {
+                   remarkDiv.style.display = 'none';
+               }
+           }
+
+           // 5. โหลดข้อมูลงาน (Tasks) ของโปรเจกต์นี้
+           const tasks = globalData.tasks.filter(x => x[1] === pid);
+
+           // 6. เรียกฟังก์ชัน Render ของหน้า Detail (ตรวจสอบก่อนว่ามีฟังก์ชันไหม)
+           if (typeof renderListView === 'function') renderListView(tasks);
+           if (typeof renderKanbanView === 'function') renderKanbanView(tasks);
+           if (typeof renderSummaryView === 'function') renderSummaryView(tasks);
+           if (typeof renderTimeline === 'function') renderTimeline(pid);
+           if (typeof renderCalendarView === 'function') {
+               // รอแป๊บหนึงให้หน้าจอแสดงผลก่อนค่อยวาดปฏิทิน
+               setTimeout(() => renderCalendarView(tasks), 100); 
+           }
+
+           // 7. รีเซ็ต Tab ให้เป็นหน้าแรก (Summary หรือ List)
+           if (typeof switchDetailTab === 'function') switchDetailTab('summary');
        }
     </script>
   </body>
