@@ -1,0 +1,235 @@
+<div class="container-fluid py-3">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h5 class="fw-bold text-dark mb-1">
+                <i class="fas fa-users-cog me-2 text-primary"></i>จัดการผู้ใช้งาน (User Management)
+            </h5>
+            <small class="text-muted">เพิ่ม ลบ หรือแก้ไขสิทธิ์การใช้งานของพนักงาน</small>
+        </div>
+        <button class="btn btn-primary rounded-pill shadow-sm fw-bold px-4" onclick="openUserModal()">
+            <i class="fas fa-user-plus me-2"></i> เพิ่มพนักงานใหม่
+        </button>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="ps-4 py-3 text-secondary" width="5%">#</th>
+                        <th class="py-3 text-secondary" width="30%">User Profile</th>
+                        <th class="py-3 text-secondary" width="10%">Role</th>
+                        <th class="py-3 text-secondary" width="15%">Team</th>
+                        <th class="py-3 text-secondary" width="15%">Status</th>
+                        <th class="py-3 text-secondary text-end pe-4" width="25%">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="user-table-body">
+                    <tr><td colspan="6" class="text-center py-5 text-muted"><i class="fas fa-spinner fa-spin me-2"></i> กำลังโหลดข้อมูล...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="userModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header border-0 pb-0">
+                <h6 class="modal-title fw-bold" id="userModalTitle">เพิ่มพนักงานใหม่</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body pt-3">
+                <form id="userForm">
+                    <input type="hidden" id="original-email">
+                    
+                    <div class="mb-3">
+                        <label class="small fw-bold text-muted">ชื่อ-นามสกุล</label>
+                        <input type="text" class="form-control" id="u-name" required placeholder="เช่น สมชาย ใจดี">
+                    </div>
+                    <div class="mb-3">
+                        <label class="small fw-bold text-muted">อีเมล (Email)</label>
+                        <input type="email" class="form-control" id="u-email" required placeholder="email@company.com">
+                    </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-6">
+                            <label class="small fw-bold text-muted">ตำแหน่ง (Role)</label>
+                            <select class="form-select" id="u-role">
+                                <option value="User">User</option>
+                                <option value="Manager">Manager</option>
+                                <option value="Admin">Admin</option>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label class="small fw-bold text-muted">ทีม (Team)</label>
+                            <select class="form-select" id="u-team">
+                                <option value="General">General</option>
+                                <option value="Content">Content</option>
+                                <option value="Graphic">Graphic</option>
+                                <option value="VDO">VDO</option>
+                                <option value="Ads">Ads</option>
+                                <option value="Web">Web</option>
+                                <option value="Management">Management</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="small fw-bold text-muted">สถานะ</label>
+                        <select class="form-select" id="u-status">
+                            <option value="Active">Active (ใช้งานปกติ)</option>
+                            <option value="Inactive">Inactive (ระงับสิทธิ์)</option>
+                        </select>
+                    </div>
+                    <div class="mb-2">
+                        <label class="small fw-bold text-muted">รูปโปรไฟล์ (URL)</label>
+                        <input type="text" class="form-control form-control-sm" id="u-photo" placeholder="https://...">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-light rounded-pill" data-bs-dismiss="modal">ยกเลิก</button>
+                <button type="button" class="btn btn-primary rounded-pill px-4" onclick="submitUser()" id="btn-save-user">บันทึก</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 1. ฟังก์ชันโหลดข้อมูล User มาแสดงในตาราง
+    function loadUsers() {
+        const tbody = document.getElementById('user-table-body');
+        
+        // เช็คว่ามีข้อมูล globalData หรือยัง
+        if (!globalData || !globalData.allUsers) {
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4">ไม่พบข้อมูล (กรุณา Refresh หน้าจอ)</td></tr>';
+            return;
+        }
+
+        const users = globalData.allUsers;
+        tbody.innerHTML = '';
+
+        if (users.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4">ไม่มีรายชื่อพนักงาน</td></tr>';
+            return;
+        }
+
+        users.forEach((u, index) => {
+            let avatar = u.photoUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(u.name)}&background=random`;
+            let statusBadge = u.status === 'Inactive' 
+                ? '<span class="badge bg-secondary">Inactive</span>' 
+                : '<span class="badge bg-success">Active</span>';
+            
+            // ข้อมูลสำหรับปุ่ม Edit (Encode ไว้ใน attribute)
+            let userJson = encodeURIComponent(JSON.stringify(u));
+
+            let html = `
+                <tr>
+                    <td class="ps-4 text-muted">${index + 1}</td>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <img src="${avatar}" class="rounded-circle me-3 border" width="40" height="40" style="object-fit: cover;">
+                            <div>
+                                <div class="fw-bold text-dark">${u.name}</div>
+                                <div class="small text-muted">${u.email}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td><span class="badge bg-light text-dark border">${u.role}</span></td>
+                    <td><small class="text-secondary">${u.team}</small></td>
+                    <td>${statusBadge}</td>
+                    <td class="text-end pe-4">
+                        <button class="btn btn-sm btn-outline-primary me-1" onclick="openUserModal('${userJson}')">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteUser('${u.email}')">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `;
+            tbody.innerHTML += html;
+        });
+    }
+
+    // 2. ฟังก์ชันเปิด Modal (ใช้ได้ทั้งเพิ่มใหม่ และ แก้ไข)
+    function openUserModal(userEncoded = null) {
+        // Reset Form
+        document.getElementById('userForm').reset();
+        document.getElementById('original-email').value = "";
+        
+        if (userEncoded) {
+            // โหมดแก้ไข (Edit)
+            const user = JSON.parse(decodeURIComponent(userEncoded));
+            document.getElementById('userModalTitle').innerText = "แก้ไขข้อมูลพนักงาน";
+            document.getElementById('original-email').value = user.email; // เก็บ Email เดิมไว้อ้างอิง
+            
+            document.getElementById('u-name').value = user.name;
+            document.getElementById('u-email').value = user.email;
+            document.getElementById('u-role').value = user.role;
+            document.getElementById('u-team').value = user.team;
+            document.getElementById('u-photo').value = user.photoUrl || "";
+            document.getElementById('u-status').value = user.status || "Active";
+        } else {
+            // โหมดเพิ่มใหม่ (Add)
+            document.getElementById('userModalTitle').innerText = "เพิ่มพนักงานใหม่";
+            document.getElementById('u-status').value = "Active";
+        }
+
+        new bootstrap.Modal(document.getElementById('userModal')).show();
+    }
+
+    // 3. ฟังก์ชันบันทึกข้อมูล (Save)
+    function submitUser() {
+        const btn = document.getElementById('btn-save-user');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> บันทึก...';
+        btn.disabled = true;
+
+        const formData = {
+            originalEmail: document.getElementById('original-email').value, // ถ้ามีค่า = แก้ไข
+            name: document.getElementById('u-name').value,
+            email: document.getElementById('u-email').value,
+            role: document.getElementById('u-role').value,
+            team: document.getElementById('u-team').value,
+            photoUrl: document.getElementById('u-photo').value,
+            status: document.getElementById('u-status').value
+        };
+
+        if(!formData.name || !formData.email) {
+            alert("กรุณากรอกชื่อและอีเมล");
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+            return;
+        }
+
+        // ส่งข้อมูลไปที่ Google Script (code.gs -> saveUserDB)
+        google.script.run.withSuccessHandler(function(res) {
+            if(res.success) {
+                // ปิด Modal
+                bootstrap.Modal.getInstance(document.getElementById('userModal')).hide();
+                
+                // รีโหลดข้อมูลใหม่ทั้งระบบเพื่อให้ตารางอัปเดต
+                loadSystemData(); 
+            } else {
+                alert("เกิดข้อผิดพลาด: " + res.message);
+            }
+            
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+
+        }).saveUserDB(formData);
+    }
+
+    // 4. ฟังก์ชันลบผู้ใช้ (Delete)
+    function deleteUser(email) {
+        if(confirm("คุณต้องการลบผู้ใช้งาน " + email + " ใช่หรือไม่?\n(สถานะจะถูกเปลี่ยนเป็น Inactive)")) {
+            google.script.run.withSuccessHandler(function(res) {
+                if(res.success) {
+                    loadSystemData(); // รีโหลดข้อมูล
+                } else {
+                    alert("ไม่สามารถลบได้: " + res.message);
+                }
+            }).deleteUserDB(email);
+        }
+    }
+</script>
