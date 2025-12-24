@@ -401,13 +401,18 @@
   function changeMonth(step) { currentViewDate.setMonth(currentViewDate.getMonth() + step); renderCalendar(); }
 
   // Actions
-  function startMyStep(taskId, stepIndex) {
+ function startMyStep(taskId, stepIndex) {
       google.script.run.withSuccessHandler(res => {
-         const t = globalData.tasks.find(x => x[0] === taskId); if(t) t[12] = res.workflowJson;
+         const t = globalData.tasks.find(x => x[0] === taskId); 
+         if(t) {
+             t[12] = res.workflowJson; // อัปเดตขั้นตอน
+             
+             // ✅ เพิ่มบรรทัดนี้: เพื่ออัปเดตสถานะงานหลัก (Pending -> In Progress) ลงใน globalData
+             if (res.newMainStatus) t[5] = res.newMainStatus; 
+         }
          renderMyTasks();
       }).updateTaskWorkflowStatus(taskId, stepIndex);
   }
-
   function openSubmitWorkModal(taskId, projectId, stepIndex, stepName) {
       document.getElementById('submit-task-id').value = taskId;
       document.getElementById('submit-project-id').value = projectId;
@@ -434,12 +439,23 @@
       const me = globalData.currentUser.name;
       const filePayload = fileInput ? {name:fileInput.name, mimeType:fileInput.type} : null;
 
+    // ... (โค้ดส่วนบนของ confirmSubmit คงเดิม) ...
+
       const handler = (res) => {
-           const t = globalData.tasks.find(x => x[0] === tid); if(t) t[12] = res.workflowJson;
+           const t = globalData.tasks.find(x => x[0] === tid); 
+           if(t) {
+               t[12] = res.workflowJson; // อัปเดตขั้นตอน
+               
+               // ✅ เพิ่มบรรทัดนี้: เพื่ออัปเดตสถานะงานหลัก (In Progress -> Done) ลงใน globalData
+               if (res.newMainStatus) t[5] = res.newMainStatus;
+           }
+           
            bootstrap.Modal.getInstance(document.getElementById('submitWorkModal')).hide();
            renderMyTasks();
            btn.innerHTML = 'ยืนยันการส่งงาน'; btn.disabled = false;
       };
+
+      // ... (โค้ดส่วนล่างคงเดิม) ...
 
       if(fileInput) {
           const r = new FileReader();
