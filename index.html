@@ -164,11 +164,6 @@
                 <i class="fas fa-user-shield me-1"></i> ผู้บริหาร
               </a>
             </li>
-            <li class="nav-item" id="menu-adduser" style="display:none;">
-        <a class="nav-link" onclick="showPage('page-adduser', this)">
-            <i class="fas fa-user-plus me-1"></i> เพิ่มพนักงาน
-        </a>
-    </li>
           </ul>
 
           <div class="dropdown">
@@ -234,7 +229,7 @@
       <div id="page-mytasks" class="page-section" style="display:none;"><?!= include('Page_MyTasks'); ?></div>
       <div id="page-admin" class="page-section" style="display:none;"><?!= include('Page_Admin'); ?></div>
       <div id="page-detail" class="page-section" style="display:none;"><?!= include('Page_Detail'); ?></div>
-    <div id="page-adduser" class="page-section" style="display:none;"><?!= include('Page_adduser'); ?></div>
+      
     </div>
 
     <div class="modal fade" id="editProfileModal" tabindex="-1">
@@ -302,280 +297,219 @@
       © 2024 Project Management System. All rights reserved.
     </footer>
 
-  <script>
-    let globalData = {};
+    <script>
+       let globalData = {};
 
-    // เริ่มต้นการทำงาน (ไม่โหลดข้อมูลทันที รอ Login)
-    window.onload = function() {
-        console.log("App Started");
-    };
+       // เริ่มต้นการทำงาน
+       window.onload = function() {
+         // รอ Login ก่อนค่อยโหลดข้อมูล
+       };
 
-    function loadSystemData() {
-        google.script.run.withSuccessHandler(initApp).getSystemData();
+       function loadSystemData() {
+         google.script.run.withSuccessHandler(initApp).getSystemData();
+       }
+
+       function initApp(data) {
+         globalData = data;
+         updateNavbarProfile(data.currentUser);
+
+         if (data.currentUser.role === 'Admin' || data.currentUser.role === 'Manager' || data.currentUser.role === 'Management') {
+           let adminMenu = document.getElementById('menu-admin');
+           if(adminMenu) adminMenu.style.display = 'block';
+           if(typeof renderAdminPage === 'function') renderAdminPage();
+         }
+         
+         if(typeof renderProjects === 'function') renderProjects();
+         if(typeof renderMyTasks === 'function') renderMyTasks();
+       }
+
+       function updateNavbarProfile(user) {
+         document.getElementById('user-display').innerText = user.name;
+         document.getElementById('role-display').innerText = user.role || 'Team Member';
+         
+         document.getElementById('menu-user-name').innerText = user.name;
+         document.getElementById('menu-user-email').innerText = user.email || 'No Email';
+         
+         // ✅ แก้ไข: ใช้การต่อ String แบบธรรมดา ป้องกัน Error เรื่อง Backtick
+         let avatarUrl = user.photoUrl;
+         if (!avatarUrl) {
+            avatarUrl = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user.name) + '&background=0d6efd&color=fff';
+         }
+         
+         document.getElementById('nav-user-avatar').src = avatarUrl;
+         document.getElementById('menu-user-avatar').src = avatarUrl;
+       }
+
+       function showPage(pageId, element) {
+         document.querySelectorAll('.page-section').forEach(el => el.style.display = 'none');
+         let target = document.getElementById(pageId);
+         if(target) target.style.display = 'block';
+         
+         document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
+         if (element) {
+            element.classList.add('active');
+         } else {
+            if(pageId === 'page-dashboard') { let el = document.querySelector('a[onclick*="page-dashboard"]'); if(el) el.classList.add('active'); }
+            if(pageId === 'page-mytasks') { let el = document.querySelector('a[onclick*="page-mytasks"]'); if(el) el.classList.add('active'); }
+            if(pageId === 'page-admin') { let el = document.querySelector('a[onclick*="page-admin"]'); if(el) el.classList.add('active'); }
+         }
+         
+         if(pageId === 'page-mytasks' && typeof renderMyTasks === 'function') renderMyTasks();
+         if(pageId === 'page-dashboard' && typeof renderProjects === 'function') renderProjects();
+         if(pageId === 'page-admin' && typeof renderAdminPage === 'function') renderAdminPage();
+       }
+       
+       function getStatusColor(status) {
+         if(status === 'Done' || status === 'Completed') return 'success';
+         if(status === 'In Progress' || status === 'Active') return 'primary';
+         if(status === 'Review' || status === 'Hold') return 'warning';
+         if(status === 'Revise') return 'danger';
+         return 'secondary';
+       }
+
+       // --- Login Functions ---
+       function handleAutoLogin() {
+         var btn = event.target;
+         // ป้องกันการกดซ้ำ และหาปุ่มให้เจอแม้จะกดโดน icon ข้างใน
+         if(btn.tagName !== 'BUTTON') btn = btn.closest('button');
+         
+         var errorMsg = document.getElementById('login-error');
+
+         errorMsg.style.display = 'none';
+         btn.disabled = true;
+         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Checking Google Account...';
+
+         google.script.run.withSuccessHandler(function(email) {
+           console.log("Detected Email: " + email);
+           if (!email) {
+             showError('ไม่พบอีเมล Google (กรุณาลอง Login Chrome หรือตรวจสอบสิทธิ์)');
+             btn.disabled = false;
+             btn.innerHTML = 'Sign in with Google';
+             return;
+           }
+           checkUserAccess(email, btn);
+         }).getCurrentUserEmail();
+       }
+
+       function checkUserAccess(email, btn) {
+         google.script.run.withSuccessHandler(function(res) {
+           if (res.status) {
+             document.getElementById('login-overlay').style.display = 'none';
+             if(typeof globalData !== 'undefined') globalData.currentUser = res.user;
+             loadSystemData(); 
+           } else {
+             showError('อีเมลนี้ (' + email + ') ไม่มีสิทธิ์เข้าใช้งานในระบบ');
+             btn.disabled = false;
+             btn.innerHTML = 'Sign in with Google';
+           }
+         }).checkLoginUser(email);
+       }
+
+       function showError(msg) {
+         var el = document.getElementById('login-error');
+         el.innerText = msg;
+         el.style.display = 'block';
+       }
+
+       // --- Profile Functions ---
+       function handleLogout() {
+         if(confirm('คุณต้องการออกจากระบบใช่หรือไม่?')) {
+             globalData = {};
+             document.querySelectorAll('.page-section').forEach(el => el.style.display = 'none');
+             document.getElementById('login-overlay').style.display = 'flex';
+             document.getElementById('login-error').style.display = 'none';
+             
+             // Reset ปุ่ม Login (ใช้ข้อความธรรมดาแทน SVG เพื่อป้องกัน Syntax Error ใน JS)
+             const loginBtn = document.querySelector('.btn-login-google');
+             if(loginBtn) {
+                 loginBtn.disabled = false;
+                 // ใช้ Text ธรรมดาก่อน เพื่อความชัวร์ หรือใช้ FontAwesome แทน SVG ที่ซับซ้อน
+                 loginBtn.innerHTML = '<i class="fab fa-google me-2"></i> Sign in with Google';
+             }
+         }
+       }
+
+       function openEditProfileModal() {
+         const user = globalData.currentUser;
+         document.getElementById('edit-profile-name').value = user.name;
+         document.getElementById('edit-profile-img').value = user.photoUrl || '';
+         updateAvatarPreview(user.photoUrl);
+         
+         new bootstrap.Modal(document.getElementById('editProfileModal')).show();
+       }
+
+       function updateAvatarPreview(url) {
+         const preview = document.getElementById('edit-avatar-preview');
+         if (url && url.trim() !== '') {
+             preview.src = url;
+         } else {
+             const name = document.getElementById('edit-profile-name').value || 'User';
+             preview.src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(name) + '&background=e9ecef&color=6c757d';
+         }
+       }
+
+       function setGoogleAvatar() {
+         alert('ระบบจะพยายามดึงรูปจาก Google Account ของคุณในการเข้าสู่ระบบครั้งถัดไป');
+       }
+       // ฟังก์ชันอัปเดตข้อมูลผู้ใช้ลง Sheet
+function updateUserProfile(data) {
+  var ss = SpreadsheetApp.openById(SHEET_ID); // หรือ SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName("DB_Users");
+  var values = sheet.getDataRange().getValues();
+  
+  // ค้นหาแถวของผู้ใช้จาก Email (Column B -> Index 1)
+  for (var i = 1; i < values.length; i++) {
+    if (values[i][1].toString().toLowerCase() === data.email.toLowerCase()) {
+      // อัปเดตชื่อ (Column A -> แถว i+1, คอลัมน์ 1)
+      sheet.getRange(i + 1, 1).setValue(data.name);
+      
+      // อัปเดตรูปภาพ (Column E -> แถว i+1, คอลัมน์ 5)
+      // *ต้องมั่นใจว่าสร้างคอลัมน์ E ไว้แล้ว*
+      sheet.getRange(i + 1, 5).setValue(data.photoUrl);
+      
+      return true; // สำเร็จ
     }
+  }
+  return false; // ไม่พบผู้ใช้
+}
 
-    function initApp(data) {
-        globalData = data;
-        updateNavbarProfile(data.currentUser);
+       function saveProfile() {
+         const newName = document.getElementById('edit-profile-name').value;
+         const newImg = document.getElementById('edit-profile-img').value;
+         
+         // 1. เปลี่ยนปุ่มเป็นสถานะกำลังบันทึก
+         const btn = event.target; // ปุ่ม Save
+         const originalText = btn.innerHTML;
+         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> บันทึก...';
+         btn.disabled = true;
 
-        // เช็คสิทธิ์เพื่อเปิดเมนู
-        if (data.currentUser.role === 'Admin' || data.currentUser.role === 'Manager' || data.currentUser.role === 'Management') {
-            document.getElementById('menu-admin').style.display = 'block';
-            document.getElementById('menu-adduser').style.display = 'block';
-            
-            // ถ้าอยู่ในหน้า Admin ให้วาดตาราง
-            if(typeof renderAdminPage === 'function') renderAdminPage();
-        }
-        
-        if(typeof renderProjects === 'function') renderProjects();
-        if(typeof renderMyTasks === 'function') renderMyTasks();
-    }
+         // 2. เตรียมข้อมูลส่งไป Server
+         const updateData = {
+            email: globalData.currentUser.email,
+            name: newName,
+            photoUrl: newImg
+         };
 
-    // --- User Management Functions (Global) ---
-    // ย้ายมาไว้ที่นี่เพื่อให้เรียกใช้ได้จากทุกที่
-
-    function renderUserTable() {
-        const tbody = document.getElementById('user-table-body');
-        if(!tbody) return;
-
-        if(!globalData.allUsers || globalData.allUsers.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="6" class="text-center py-5 text-muted">ไม่พบข้อมูลผู้ใช้งาน</td></tr>`;
-            return;
-        }
-
-        let html = '';
-        globalData.allUsers.forEach((u, index) => {
-            let avatar = u.photoUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(u.name)}&background=random&color=fff`;
-            
-            let roleBadge = 'bg-light text-dark border';
-            if(u.role === 'Admin') roleBadge = 'bg-danger text-white border-0';
-            if(u.role === 'Manager') roleBadge = 'bg-primary text-white border-0';
-
-            let status = u.status || 'Active';
-            let statusBadge = status === 'Active' 
-                ? '<span class="badge bg-success bg-opacity-10 text-success border border-success px-2 rounded-pill">Active</span>'
-                : '<span class="badge bg-secondary bg-opacity-10 text-secondary border px-2 rounded-pill">Inactive</span>';
-            
-            // ✅ ใช้ชื่อตัวแปรปลอดภัย
-            let trClass = status === 'Inactive' ? 'table-light text-muted opacity-75' : '';
-
-            html += `
-            <tr class="${trClass}">
-                <td class="ps-4 text-muted">${index + 1}</td>
-                <td>
-                    <div class="d-flex align-items-center">
-                        <img src="${avatar}" class="rounded-circle me-3 border shadow-sm" width="40" height="40" style="object-fit: cover;">
-                        <div>
-                            <div class="fw-bold ${status === 'Inactive' ? 'text-secondary' : 'text-dark'}">${u.name}</div>
-                            <small class="text-muted" style="font-size:0.8rem;">${u.email || '<span class="text-danger">*No Email</span>'}</small>
-                        </div>
-                    </div>
-                </td>
-                <td><span class="badge ${roleBadge} rounded-pill fw-normal px-3 shadow-sm">${u.role}</span></td>
-                <td><span class="small"><i class="fas fa-users me-1 text-muted"></i>${u.team}</span></td>
-                <td>${statusBadge}</td>
-                <td class="text-end pe-4">
-                    <button class="btn btn-white btn-sm border me-1 shadow-sm text-primary rounded-circle" style="width:32px; height:32px;" onclick="openUserModal('${u.email}')">
-                        <i class="fas fa-pen" style="font-size:0.8rem;"></i>
-                    </button>
-                    ${u.role !== 'Admin' ? `
-                    <button class="btn btn-white btn-sm border shadow-sm text-danger rounded-circle" style="width:32px; height:32px;" onclick="deleteUser('${u.email}', '${u.name}')">
-                        <i class="fas fa-ban" style="font-size:0.8rem;"></i>
-                    </button>` : ''} 
-                </td>
-            </tr>`;
-        });
-        tbody.innerHTML = html;
-    }
-
-    function openUserModal(email = null) {
-        document.getElementById('userForm').reset();
-        document.getElementById('original-email').value = '';
-        
-        var modalEl = document.getElementById('userModal');
-        if(!modalEl) return;
-
-        if(email) {
-            const user = globalData.allUsers.find(u => u.email === email);
-            if(user) {
-                document.getElementById('userModalTitle').innerText = 'แก้ไขข้อมูลพนักงาน';
-                document.getElementById('original-email').value = user.email;
-                document.getElementById('u-name').value = user.name;
-                document.getElementById('u-email').value = user.email;
-                document.getElementById('u-role').value = user.role;
-                document.getElementById('u-team').value = user.team;
-                if(document.getElementById('u-status')) document.getElementById('u-status').value = user.status || 'Active';
-                document.getElementById('u-photo').value = user.photoUrl || '';
-            }
-        } else {
-            document.getElementById('userModalTitle').innerText = 'เพิ่มพนักงานใหม่';
-            if(document.getElementById('u-role')) document.getElementById('u-role').value = 'User'; 
-            if(document.getElementById('u-status')) document.getElementById('u-status').value = 'Active'; 
-        }
-        new bootstrap.Modal(modalEl).show();
-    }
-
-    function submitUser() {
-        const name = document.getElementById('u-name').value;
-        const email = document.getElementById('u-email').value;
-        const role = document.getElementById('u-role').value;
-        const team = document.getElementById('u-team').value;
-        const photo = document.getElementById('u-photo').value;
-        const originalEmail = document.getElementById('original-email').value;
-        const status = document.getElementById('u-status') ? document.getElementById('u-status').value : 'Active';
-
-        if(!name || !email) return alert('กรุณากรอกชื่อและอีเมล');
-
-        const btn = event.target;
-        const originalText = btn.innerHTML;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ...';
-        btn.disabled = true;
-
-        const userData = {
-            originalEmail: originalEmail,
-            name: name,
-            email: email,
-            role: role,
-            team: team,
-            status: status,
-            photoUrl: photo
-        };
-
-        google.script.run.withSuccessHandler((res) => {
-            if(res.success) {
-                loadSystemData(); 
-                bootstrap.Modal.getInstance(document.getElementById('userModal')).hide();
-            } else {
-                alert('Error: ' + res.message);
-            }
-            btn.innerHTML = originalText;
-            btn.disabled = false;
-        }).saveUserDB(userData);
-    }
-
-    function deleteUser(email, name) {
-        if(confirm(`ระงับการใช้งาน "${name}" ใช่หรือไม่?`)) {
-            google.script.run.withSuccessHandler((res) => {
-                if(res.success) loadSystemData();
-                else alert('Error: ' + res.message);
-            }).deleteUserDB(email);
-        }
-    }
-
-    // --- General Functions ---
-
-    function updateNavbarProfile(user) {
-        document.getElementById('user-display').innerText = user.name;
-        document.getElementById('role-display').innerText = user.role || 'Team Member';
-        document.getElementById('menu-user-name').innerText = user.name;
-        document.getElementById('menu-user-email').innerText = user.email || 'No Email';
-        
-        let avatarUrl = user.photoUrl;
-        if (!avatarUrl) {
-           avatarUrl = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user.name) + '&background=0d6efd&color=fff';
-        }
-        document.getElementById('nav-user-avatar').src = avatarUrl;
-        document.getElementById('menu-user-avatar').src = avatarUrl;
-    }
-
-    function showPage(pageId, element) {
-        document.querySelectorAll('.page-section').forEach(el => el.style.display = 'none');
-        let target = document.getElementById(pageId);
-        if(target) target.style.display = 'block';
-        
-        document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
-        if (element) {
-           element.classList.add('active');
-        } 
-        
-        // ถ้าเข้าหน้า Add User ให้วาดตาราง
-        if(pageId === 'page-adduser') renderUserTable();
-    }
-
-    function handleAutoLogin() {
-        var btn = event.target;
-        if(btn.tagName !== 'BUTTON') btn = btn.closest('button');
-        
-        var errorMsg = document.getElementById('login-error');
-        errorMsg.style.display = 'none';
-        btn.disabled = true;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Checking...';
-
-        google.script.run.withSuccessHandler(function(email) {
-            console.log("Email:", email);
-            if (!email) {
-                showError('ไม่พบอีเมล Google');
-                btn.disabled = false;
-                btn.innerHTML = 'Sign in with Google';
-                return;
-            }
-            checkUserAccess(email, btn);
-        }).getCurrentUserEmail();
-    }
-
-    function checkUserAccess(email, btn) {
-        google.script.run.withSuccessHandler(function(res) {
-            if (res.status) {
-                document.getElementById('login-overlay').style.display = 'none';
-                if(typeof globalData !== 'undefined') globalData.currentUser = res.user;
-                loadSystemData(); 
-            } else {
-                showError('อีเมลนี้ไม่มีสิทธิ์เข้าใช้งาน');
-                btn.disabled = false;
-                btn.innerHTML = 'Sign in with Google';
-            }
-        }).checkLoginUser(email);
-    }
-
-    function showError(msg) {
-        var el = document.getElementById('login-error');
-        el.innerText = msg;
-        el.style.display = 'block';
-    }
-
-    function handleLogout() {
-        if(confirm('ยืนยันออกจากระบบ?')) {
-            globalData = {};
-            location.reload(); // รีโหลดหน้าเว็บเพื่อง่ายต่อการเคลียร์ค่า
-        }
-    }
-
-    function openEditProfileModal() {
-        const user = globalData.currentUser;
-        document.getElementById('edit-profile-name').value = user.name;
-        document.getElementById('edit-profile-img').value = user.photoUrl || '';
-        updateAvatarPreview(user.photoUrl);
-        new bootstrap.Modal(document.getElementById('editProfileModal')).show();
-    }
-
-    function updateAvatarPreview(url) {
-        const preview = document.getElementById('edit-avatar-preview');
-        if (url && url.trim() !== '') preview.src = url;
-        else preview.src = 'https://ui-avatars.com/api/?name=User';
-    }
-
-    function saveProfile() {
-        const newName = document.getElementById('edit-profile-name').value;
-        const newImg = document.getElementById('edit-profile-img').value;
-        const btn = event.target;
-        btn.disabled = true;
-        
-        const updateData = {
-           email: globalData.currentUser.email,
-           name: newName,
-           photoUrl: newImg
-        };
-
-        google.script.run.withSuccessHandler(function(success) {
-            if(success) {
-                globalData.currentUser.name = newName;
-                globalData.currentUser.photoUrl = newImg;
-                updateNavbarProfile(globalData.currentUser);
-                bootstrap.Modal.getInstance(document.getElementById('editProfileModal')).hide();
-            } else {
-                alert('บันทึกไม่สำเร็จ');
-            }
-            btn.disabled = false;
-        }).updateUserProfile(updateData);
-    }
-</script>
+         // 3. ส่งไปบันทึกที่ Google Sheet
+         google.script.run.withSuccessHandler(function(success) {
+             if(success) {
+                 // อัปเดตหน้าจอทันที
+                 globalData.currentUser.name = newName;
+                 globalData.currentUser.photoUrl = newImg;
+                 updateNavbarProfile(globalData.currentUser);
+                 
+                 // ปิด Modal
+                 bootstrap.Modal.getInstance(document.getElementById('editProfileModal')).hide();
+             } else {
+                 alert('บันทึกไม่สำเร็จ: ไม่พบข้อมูลผู้ใช้ในระบบ');
+             }
+             
+             // คืนค่าปุ่ม
+             btn.innerHTML = originalText;
+             btn.disabled = false;
+             
+         }).updateUserProfile(updateData);
+       }
+    </script>
+  </body>
+</html>
