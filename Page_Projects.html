@@ -37,16 +37,17 @@
   .metric-label { color: var(--text-muted); font-weight: 600; display: flex; align-items: center; gap: 8px; }
   .metric-val { font-weight: 700; color: var(--text-main); }
 
-  /* ✅ Remark Section (Interactive) */
+  /* ✅ Remark Section */
   .remark-section {
     background-color: #fffbeb; border: 1px solid #fef3c7; border-radius: 6px; 
     padding: 8px 12px; margin-top: 10px; font-size: 0.75rem; color: #92400e; line-height: 1.4;
     cursor: pointer; transition: 0.2s; position: relative;
+    white-space: pre-wrap; /* ให้แสดงการเว้นบรรทัด */
+    word-break: break-word; /* ตัดคำยาวๆ */
   }
   .remark-section:hover { background-color: #fef9c3; border-color: #fde68a; }
   .remark-edit-icon { position: absolute; top: 5px; right: 5px; opacity: 0; transition: 0.2s; color: #b45309; }
   .remark-section:hover .remark-edit-icon { opacity: 1; }
-  .remark-meta { display: block; font-size: 0.65rem; color: #b45309; margin-top: 4px; opacity: 0.7; }
 
   .project-footer { padding: 12px 20px; border-top: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; background: #fff; }
   .status-pill { font-size: 0.75rem; padding: 4px 12px; border-radius: 20px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; }
@@ -136,7 +137,7 @@
   </div>
 </div>
 
-<div class="modal fade" id="updateRemarkModal" tabindex="-1">
+<div class="modal fade" id="projectUpdateRemarkModal" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header bg-warning text-dark border-0">
@@ -144,15 +145,15 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
-        <input type="hidden" id="remark-project-id">
+        <input type="hidden" id="project-remark-id">
         <label class="form-label small text-muted">ข้อความเดิม</label>
-        <div id="old-remark-text" class="p-2 bg-light border rounded mb-3 text-muted small"></div>
+        <div id="project-old-remark" class="p-2 bg-light border rounded mb-3 text-muted small" style="white-space: pre-wrap; word-break: break-word;"></div>
         <label class="form-label fw-bold">ข้อความใหม่</label>
-        <textarea id="new-remark-text" class="form-control" rows="3" placeholder="ระบุความคืบหน้า หรือปัญหาที่พบ..."></textarea>
+        <textarea id="project-new-remark" class="form-control" rows="3" placeholder="ระบุความคืบหน้า หรือปัญหาที่พบ..."></textarea>
       </div>
       <div class="modal-footer border-0 pt-0">
         <button type="button" class="btn btn-light btn-sm" data-bs-dismiss="modal">ปิด</button>
-        <button type="button" class="btn btn-warning btn-sm fw-bold" onclick="saveRemark()">บันทึก</button>
+        <button type="button" class="btn btn-warning btn-sm fw-bold" onclick="saveProjectRemark()">บันทึก</button>
       </div>
     </div>
   </div>
@@ -198,9 +199,12 @@
       const adsStats = calculateWorkStats(p[0], 'Ads', p[12] || 0);     
       const webStats = calculateWorkStats(p[0], 'Web', p[13] || 0);     
 
-      const remarkText = p[14] || 'ยังไม่มีหมายเหตุ'; // Column O
-      const overall = calculateOverallProgress(p[0]);
+      // ✅ ใช้ innerText ที่ปลอดภัยจากอักขระพิเศษ (ไม่ต้อง replace แล้ว เพราะเราใช้ textContent ใน JS)
+      let rawRemark = p[14] || 'ยังไม่มีหมายเหตุ';
+      // แปลงอักขระพิเศษพื้นฐานสำหรับ HTML display เท่านั้น
+      let safeRemarkDisplay = rawRemark.replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
+      const overall = calculateOverallProgress(p[0]);
       let statusClass = 'active';
       if(p[9] === 'Pending') statusClass = 'pending';
       if(p[9] === 'Hold') statusClass = 'hold';
@@ -247,17 +251,15 @@
                   ${renderMetricRow('Admin', 'fa-comments text-success', adminStats)}
                   ${renderMetricRow('Ads', 'fa-ad text-warning', adsStats, true)}
                   ${renderMetricRow('Web', 'fa-globe text-info', webStats, true)}
-                  
-                  ${(contentStats.target==0 && graphicStats.target==0 && vdoStats.target==0 && adminStats.target==0 && adsStats.target==0 && webStats.target==0) ? 
-                    '<div class="text-center text-muted small py-2">ยังไม่ได้กำหนดเป้าหมาย</div>' : ''}
+                  ${(contentStats.target==0 && graphicStats.target==0 && vdoStats.target==0 && adminStats.target==0 && adsStats.target==0 && webStats.target==0) ? '<div class="text-center text-muted small py-2">ยังไม่ได้กำหนดเป้าหมาย</div>' : ''}
                </div>
 
-               <div class="remark-section" onclick="openUpdateRemark('${p[0]}', '${remarkText.replace(/'/g, "\\'")}')">
+               <div class="remark-section" onclick="openProjectRemarkModal('${p[0]}')">
                   <i class="fas fa-pen-square remark-edit-icon"></i>
                   <div>
                      <i class="fas fa-info-circle me-1"></i> 
-                     <span id="remark-text-${p[0]}">${remarkText}</span>
-                     </div>
+                     <span>${safeRemarkDisplay}</span>
+                  </div>
                </div>
             </div>
 
@@ -275,57 +277,69 @@
     container.innerHTML = html;
   }
 
-  // --- Logic Helpers ---
+  // ✅ เปลี่ยนชื่อฟังก์ชันใหม่ ไม่ให้ซ้ำกับ Page_Detail
+  function openProjectRemarkModal(projectId) {
+      const p = globalData.projects.find(x => x[0] === projectId);
+      const oldText = p ? (p[14] || '') : '';
+
+      // อ้างอิง ID ใหม่ที่เปลี่ยนแล้ว
+      document.getElementById('project-remark-id').value = projectId;
+      document.getElementById('project-old-remark').innerText = oldText || 'ไม่มีข้อความเดิม';
+      document.getElementById('project-new-remark').value = '';
+      
+      new bootstrap.Modal(document.getElementById('projectUpdateRemarkModal')).show();
+  }
+
+  // ✅ เปลี่ยนชื่อฟังก์ชันใหม่
+  function saveProjectRemark() {
+      const pid = document.getElementById('project-remark-id').value;
+      const newText = document.getElementById('project-new-remark').value;
+      if(!newText) return alert('กรุณาระบุข้อความ');
+
+      const btn = event.target;
+      btn.innerHTML = 'บันทึก...'; btn.disabled = true;
+
+      const user = globalData.currentUser.name || 'Admin';
+      const time = new Date().toLocaleString('th-TH', { month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit'});
+      const fullText = `${newText} (แก้ไขโดย ${user} ${time})`;
+
+      google.script.run.withSuccessHandler(() => {
+          const p = globalData.projects.find(x => x[0] === pid);
+          if(p) p[14] = fullText;
+          renderProjects();
+          bootstrap.Modal.getInstance(document.getElementById('projectUpdateRemarkModal')).hide();
+          btn.innerHTML = 'บันทึก'; btn.disabled = false;
+      }).updateProjectRemark(pid, fullText); 
+  }
+
+  // --- Helper Functions ---
   function calculateWorkStats(projectId, taskTypes, targetQty) {
     let target = 0;
     if (targetQty) target = parseInt(targetQty) || 0;
-    
-    // ถ้าเป้าหมายเป็น 0 ให้ return 0 เพื่อซ่อน (Logic คือถ้าไม่ได้ซื้อ ไม่ต้องโชว์)
     if (target === 0) return { target: 0, done: 0, percent: 0, total: 0 };
-    
     if(!globalData.tasks) return { target, done: 0, percent: 0, total: 0 };
-    
     const tasks = globalData.tasks.filter(t => t[1] === projectId && (Array.isArray(taskTypes) ? taskTypes.includes(t[2]) : t[2] === taskTypes));
     const done = tasks.filter(t => t[5] === 'Done').length;
     const total = tasks.length;
-    
-    // Calculate Percent (สำหรับ Web/Ads)
-    // สำหรับ Web/Ads เราจะใช้ Progress_Pct ของ Task มาเฉลี่ย
     let avgProgress = 0;
     if (total > 0) {
-       let sumPct = 0;
-       tasks.forEach(t => sumPct += (parseInt(t[6]) || 0));
+       let sumPct = 0; tasks.forEach(t => sumPct += (parseInt(t[6]) || 0));
        avgProgress = Math.round(sumPct / total);
     }
-
     return { target, done, total, percent: avgProgress };
   }
 
   function renderMetricRow(label, iconClass, stats, isWeb = false) {
-    // ✅ หัวใจสำคัญ: ถ้าเป้าหมาย (target) เป็น 0 ให้ซ่อนบรรทัดนี้ไปเลย
     if (!stats.target || stats.target === 0) return '';
-
     let valueHtml = '';
     if (isWeb) {
-        // Web/Ads แสดง Progress Bar
-        valueHtml = `
-          <div class="d-flex align-items-center">
-             <div class="mini-progress"><div class="mini-bar bg-info" style="width: ${stats.percent}%"></div></div>
-             <span class="small fw-bold text-dark">${stats.percent}%</span>
-          </div>`;
+        valueHtml = `<div class="d-flex align-items-center"><div class="mini-progress"><div class="mini-bar bg-info" style="width: ${stats.percent}%"></div></div><span class="small fw-bold text-dark">${stats.percent}%</span></div>`;
     } else {
-        // Content/VDO/Graphic แสดง Count
         const isComplete = stats.done >= stats.target;
         const colorClass = isComplete ? 'text-success' : 'text-dark';
         valueHtml = `<span class="${colorClass}">${stats.done}</span> <span class="text-muted fw-normal small">/ ${stats.target}</span>`;
     }
-
-    return `
-      <div class="metric-row">
-         <span class="metric-label"><i class="fas ${iconClass}" style="width:16px;"></i> ${label}</span>
-         <span class="metric-val">${valueHtml}</span>
-      </div>
-    `;
+    return `<div class="metric-row"><span class="metric-label"><i class="fas ${iconClass}" style="width:16px;"></i> ${label}</span><span class="metric-val">${valueHtml}</span></div>`;
   }
 
   function calculateOverallProgress(pid) {
@@ -335,44 +349,10 @@
     return { percent: t.length ? Math.round((d/t.length)*100) : 0, done:d, total:t.length };
   }
 
-  // --- Remark Update Logic ---
-  function openUpdateRemark(projectId, oldText) {
-      document.getElementById('remark-project-id').value = projectId;
-      document.getElementById('old-remark-text').innerText = oldText;
-      document.getElementById('new-remark-text').value = '';
-      new bootstrap.Modal(document.getElementById('updateRemarkModal')).show();
-  }
-
-  function saveRemark() {
-      const pid = document.getElementById('remark-project-id').value;
-      const newText = document.getElementById('new-remark-text').value;
-      if(!newText) return alert('กรุณาระบุข้อความ');
-
-      const btn = event.target;
-      btn.innerHTML = 'บันทึก...'; btn.disabled = true;
-
-      // สร้างข้อความพร้อม Timestamp
-      const user = globalData.currentUser.name || 'Admin';
-      const time = new Date().toLocaleString('th-TH', { month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit'});
-      const fullText = `${newText} (แก้ไขโดย ${user} ${time})`;
-
-      google.script.run.withSuccessHandler(() => {
-          // Update Local Data
-          const p = globalData.projects.find(x => x[0] === pid);
-          if(p) p[14] = fullText;
-          
-          // Re-render & Close Modal
-          renderProjects();
-          bootstrap.Modal.getInstance(document.getElementById('updateRemarkModal')).hide();
-          btn.innerHTML = 'บันทึก'; btn.disabled = false;
-      }).updateProjectRemark(pid, fullText); // ⚠️ ต้องไปสร้างฟังก์ชันนี้ใน Code.gs
-  }
-
-  // --- Modal & Submit ---
   function prepareProjectModal() {
     const select = document.getElementById('project-ae-select');
     select.innerHTML = '<option value="">-- เลือก AE --</option>';
-    if(globalData.allUsers) globalData.allUsers.forEach(u => select.innerHTML+=`<option value="${u}">${u}</option>`);
+    if(globalData.allUsers) globalData.allUsers.forEach(u => select.innerHTML+=`<option value="${u.name || u}">${u.name || u}</option>`);
   }
 
   function submitNewProject() {
@@ -385,7 +365,6 @@
         targetAds: f.targetAds.value, targetWeb: f.targetWeb.value,
         remark: f.remark.value
     };
-    
     google.script.run.withSuccessHandler(()=>{
         bootstrap.Modal.getInstance(document.getElementById('addProjectModal')).hide();
         renderProjects();
