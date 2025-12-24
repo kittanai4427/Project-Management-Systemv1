@@ -83,6 +83,7 @@
                     <div class="mb-2">
                         <label class="small fw-bold text-muted">รูปโปรไฟล์ (URL)</label>
                         <input type="text" class="form-control form-control-sm" id="u-photo" placeholder="https://...">
+                        <div class="form-text x-small">ถ้าเว้นว่าง ระบบจะสร้างรูปจากชื่อให้เอง</div>
                     </div>
                 </form>
             </div>
@@ -95,71 +96,40 @@
 </div>
 
 <script>
-    // 1. ฟังก์ชันโหลดข้อมูล User มาแสดงในตาราง
+    // 1. ฟังก์ชันโหลดข้อมูล (แบบใหม่: เรียก HTML จากหลังบ้านโดยตรง)
+   // ในไฟล์ Page_adduser (ส่วน Script)
+
     function loadUsers() {
         const tbody = document.getElementById('user-table-body');
-        
-        // เช็คว่ามีข้อมูล globalData หรือยัง
-        if (!globalData || !globalData.allUsers) {
-            tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4">ไม่พบข้อมูล (กรุณา Refresh หน้าจอ)</td></tr>';
-            return;
-        }
 
-        const users = globalData.allUsers;
-        tbody.innerHTML = '';
-
-        if (users.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4">ไม่มีรายชื่อพนักงาน</td></tr>';
-            return;
-        }
-
-        users.forEach((u, index) => {
-            let avatar = u.photoUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(u.name)}&background=random`;
-            let statusBadge = u.status === 'Inactive' 
-                ? '<span class="badge bg-secondary">Inactive</span>' 
-                : '<span class="badge bg-success">Active</span>';
+        // ✅ เช็คว่ามี HTML ที่เตรียมไว้แล้วหรือไม่
+        if (globalData && globalData.userTableHtml) {
+            // ถ้ามี: แปะลงไปเลย (เร็วมาก 0 วินาที)
+            tbody.innerHTML = globalData.userTableHtml;
+        } else {
+            // ถ้าไม่มี: ค่อยหมุนติ้วๆ หรือเรียก Server (กรณีกันเหนียว)
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center py-5 text-muted"><i class="fas fa-spinner fa-spin me-2"></i> กำลังโหลดข้อมูล...</td></tr>';
             
-            // ข้อมูลสำหรับปุ่ม Edit (Encode ไว้ใน attribute)
-            let userJson = encodeURIComponent(JSON.stringify(u));
-
-            let html = `
-                <tr>
-                    <td class="ps-4 text-muted">${index + 1}</td>
-                    <td>
-                        <div class="d-flex align-items-center">
-                            <img src="${avatar}" class="rounded-circle me-3 border" width="40" height="40" style="object-fit: cover;">
-                            <div>
-                                <div class="fw-bold text-dark">${u.name}</div>
-                                <div class="small text-muted">${u.email}</div>
-                            </div>
-                        </div>
-                    </td>
-                    <td><span class="badge bg-light text-dark border">${u.role}</span></td>
-                    <td><small class="text-secondary">${u.team}</small></td>
-                    <td>${statusBadge}</td>
-                    <td class="text-end pe-4">
-                        <button class="btn btn-sm btn-outline-primary me-1" onclick="openUserModal('${userJson}')">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="btn btn-sm btn-outline-danger" onclick="deleteUser('${u.email}')">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </td>
-                </tr>
-            `;
-            tbody.innerHTML += html;
-        });
+            // กรณีเผื่อโหลดข้อมูลไม่ทัน (Fallback)
+            if(typeof google !== 'undefined') {
+                 google.script.run.withSuccessHandler(html => {
+                     if(globalData) globalData.userTableHtml = html; // เก็บเข้า Cache
+                     tbody.innerHTML = html;
+                 }).getUserTableHtml();
+            }
+        }
     }
 
     // 2. ฟังก์ชันเปิด Modal (ใช้ได้ทั้งเพิ่มใหม่ และ แก้ไข)
     function openUserModal(userEncoded = null) {
-        // Reset Form
+        // เคลียร์ฟอร์มให้ว่างก่อน
         document.getElementById('userForm').reset();
         document.getElementById('original-email').value = "";
         
         if (userEncoded) {
-            // โหมดแก้ไข (Edit)
+            // โหมดแก้ไข (Edit): ถอดรหัสข้อมูล JSON ที่ส่งมาแล้วใส่ลงฟอร์ม
             const user = JSON.parse(decodeURIComponent(userEncoded));
+            
             document.getElementById('userModalTitle').innerText = "แก้ไขข้อมูลพนักงาน";
             document.getElementById('original-email').value = user.email; // เก็บ Email เดิมไว้อ้างอิง
             
@@ -175,6 +145,7 @@
             document.getElementById('u-status').value = "Active";
         }
 
+        // แสดง Modal
         new bootstrap.Modal(document.getElementById('userModal')).show();
     }
 
@@ -182,9 +153,12 @@
     function submitUser() {
         const btn = document.getElementById('btn-save-user');
         const originalText = btn.innerHTML;
+        
+        // เปลี่ยนปุ่มเป็นสถานะกำลังโหลด
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> บันทึก...';
         btn.disabled = true;
 
+        // รวบรวมข้อมูลจากฟอร์ม
         const formData = {
             originalEmail: document.getElementById('original-email').value, // ถ้ามีค่า = แก้ไข
             name: document.getElementById('u-name').value,
@@ -195,6 +169,7 @@
             status: document.getElementById('u-status').value
         };
 
+        // ตรวจสอบค่าว่าง (Validation)
         if(!formData.name || !formData.email) {
             alert("กรุณากรอกชื่อและอีเมล");
             btn.innerHTML = originalText;
@@ -202,32 +177,39 @@
             return;
         }
 
-        // ส่งข้อมูลไปที่ Google Script (code.gs -> saveUserDB)
+        // ส่งข้อมูลไปบันทึกที่ Server
         google.script.run.withSuccessHandler(function(res) {
             if(res.success) {
-                // ปิด Modal
+                // 1. ปิด Modal
                 bootstrap.Modal.getInstance(document.getElementById('userModal')).hide();
                 
-                // รีโหลดข้อมูลใหม่ทั้งระบบเพื่อให้ตารางอัปเดต
-                loadSystemData(); 
+                // ✅ 2. ล้างค่า HTML เก่าทิ้ง (สำคัญมาก! เพื่อให้ระบบรู้ว่าต้องโหลดใหม่)
+                if(globalData) globalData.userTableHtml = null; 
+
+                // 3. รีโหลดตารางใหม่ (ซึ่งรอบนี้จะวิ่งไปดึงข้อมูลจริงจาก Server)
+                loadUsers(); 
             } else {
                 alert("เกิดข้อผิดพลาด: " + res.message);
             }
             
+            // คืนค่าปุ่มให้กลับมาเหมือนเดิม
             btn.innerHTML = originalText;
             btn.disabled = false;
 
         }).saveUserDB(formData);
     }
-
     // 4. ฟังก์ชันลบผู้ใช้ (Delete)
-    function deleteUser(email) {
+function deleteUser(email) {
         if(confirm("คุณต้องการลบผู้ใช้งาน " + email + " ใช่หรือไม่?\n(สถานะจะถูกเปลี่ยนเป็น Inactive)")) {
             google.script.run.withSuccessHandler(function(res) {
                 if(res.success) {
-                    loadSystemData(); // รีโหลดข้อมูล
+                    // ✅ 1. ล้างค่า HTML เก่าทิ้ง (เพื่อให้ระบบรู้ว่าข้อมูลเปลี่ยนแล้ว)
+                    if(globalData) globalData.userTableHtml = null;
+
+                    // 2. รีโหลดตารางทันที (มันจะไปดึงข้อมูลใหม่จาก Server มาแสดง)
+                    loadUsers(); 
                 } else {
-                    alert("ไม่สามารถลบได้: " + res.message);
+                    alert("ลบไม่สำเร็จ: " + res.message);
                 }
             }).deleteUserDB(email);
         }
