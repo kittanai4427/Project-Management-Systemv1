@@ -1080,8 +1080,8 @@
   
 
         </ul>
-        <button class="btn btn-primary btn-sm px-3 rounded-pill shadow-sm" style="font-size:0.8rem;"
-          onclick="openAddTaskModal()"><i class="fas fa-plus"></i> เพิ่มงาน</button>
+        <!-- <button class="btn btn-primary btn-sm px-3 rounded-pill shadow-sm" style="font-size:0.8rem;"
+          onclick="openAddTaskModal()"><i class="fas fa-plus"></i> เพิ่มงาน</button> -->
 
 
       </div>
@@ -1282,36 +1282,97 @@
 <div class="modal fade" id="viewTaskModal" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content border-0 shadow-lg">
-      <div class="modal-header border-bottom-0 pb-0"><span class="badge bg-light text-muted border"
-          id="view-task-id">ID</span><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
-      <div class="modal-body pt-2">
-        <h4 class="fw-bold text-dark mb-2" id="view-task-name-full">Task Name</h4>
-        <div class="d-flex gap-2 mb-4"><span class="badge" id="view-task-status-badge">Status</span><span
-            class="badge bg-white text-secondary border fw-normal" id="view-task-type">Type</span></div>
-        <div class="row g-3 mb-4 p-3 bg-light rounded border">
-          <div class="col-6"><small class="text-muted d-block text-uppercase fw-bold"
-              style="font-size:0.65rem;">Assignee</small>
-            <div class="fw-bold text-dark mt-1" id="view-task-assignee">-</div>
-          </div>
-          <div class="col-6 border-start ps-3"><small class="text-muted d-block text-uppercase fw-bold"
-              style="font-size:0.65rem;">Due Date</small>
-            <div class="fw-bold text-dark mt-1" id="view-task-due">-</div>
-          </div>
-        </div>
-        <h6 class="fw-bold small text-muted text-uppercase mb-2">ขั้นตอนการทำงาน (Workflow)</h6>
-        <div id="view-task-workflow" class="workflow-container">
-          <div class="text-center small text-muted">Loading...</div>
-        </div>
-        <h6 class="fw-bold small text-muted text-uppercase mb-2 mt-4">Attachments</h6>
-        <div id="view-task-resources" class="d-flex flex-column gap-2 mb-3"></div>
+      
+      <div class="modal-header border-bottom-0 pb-0">
+          <span class="badge bg-light text-muted border" id="view-task-id">ID</span>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
-      <div class="modal-footer bg-light border-top-0 justify-content-between"><button type="button"
-          class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+      
+      <div class="modal-body pt-2">
+        <h5 class="fw-bold text-dark mb-2" id="view-task-name-full" style="line-height:1.4;">Task Name</h5>
+        
+        <div class="d-flex gap-2 mb-4 align-items-center">
+            <span class="badge" id="view-task-status-badge">Status</span>
+            <span class="badge bg-white text-secondary border fw-normal" id="view-task-type">Type</span>
+            <span class="badge bg-light text-dark border fw-normal" id="view-task-pillar" style="display:none;">Pillar</span>
+        </div>
+
+        <div class="row g-3 mb-4 p-3 bg-light rounded border mx-0">
+          <div class="col-6">
+              <small class="text-muted d-block text-uppercase fw-bold" style="font-size:0.65rem;">Assignee</small>
+              <div class="fw-bold text-dark mt-1" id="view-task-assignee">-</div>
+          </div>
+          <div class="col-6 border-start ps-3">
+              <small class="text-muted d-block text-uppercase fw-bold" style="font-size:0.65rem;">Due Date</small>
+              <div class="fw-bold text-dark mt-1" id="view-task-due">-</div>
+          </div>
+        </div>
+
+       
+
+     <div class="d-flex justify-content-between align-items-center mb-2">
+    <h6 class="fw-bold small text-muted text-uppercase mb-0">ขั้นตอนการทำงาน (Workflow)</h6>
+    
+    <!-- <button class="btn btn-outline-primary btn-sm py-0 px-2" style="font-size: 0.7rem;" onclick="event.stopPropagation(); openManageWorkflow()">
+        <i class="fas fa-cog me-1"></i> Edit / Add Steps
+    </button> -->
+</div>
+
+<div id="view-task-workflow" class="workflow-container mb-4"></div>
+        
+        <h6 class="fw-bold small text-muted text-uppercase mb-2 mt-2">Attachments / Files</h6>
+        <div id="view-task-resources" class="d-flex flex-column gap-2 mb-3">
+            <div class="text-muted small fst-italic ps-2">- No Attachments -</div>
+        </div>
+
+         <div id="view-task-remark-container" class="mb-4" style="display:none;">
+             <h6 class="fw-bold small text-muted text-uppercase mb-2"><i class="fas fa-sticky-note me-1"></i> Remark / Note</h6>
+             <div class="p-2 bg-light border rounded text-secondary small" id="view-task-remark" style="white-space: pre-wrap;"></div>
+        </div>
+
+      </div>
+      
+      <div class="modal-footer bg-light border-top-0 justify-content-between">
+        <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill" data-bs-dismiss="modal">Close</button>
         <div id="view-task-actions"></div>
       </div>
     </div>
   </div>
 </div>
+
+<div class="modal fade" id="manageWorkflowModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-light">
+                <h6 class="modal-title fw-bold"><i class="fas fa-stream me-2"></i>Manage Workflow</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body bg-light">
+                <input type="hidden" id="manage-wf-task-id">
+                
+                <div class="row px-2 mb-2 fw-bold small text-muted text-uppercase">
+                    <div class="col-4">Step Name</div>
+                    <div class="col-3">Assignee</div>
+                    <div class="col-3">Due Date</div>
+                    <div class="col-2 text-center">Action</div>
+                </div>
+
+                <div id="manage-wf-container" class="d-flex flex-column gap-2"></div>
+
+                <button class="btn btn-outline-primary w-100 mt-3 border-dashed" onclick="addWorkflowRow()">
+                    <i class="fas fa-plus me-1"></i> Add New Step
+                </button>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-light rounded-pill" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary rounded-pill px-4" onclick="saveWorkflowChanges()">Save Workflow</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
 
 <div class="modal fade" id="assignStepModal" tabindex="-1">
   <div class="modal-dialog modal-sm modal-dialog-centered">
@@ -1448,6 +1509,7 @@
         </h6>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
+      
       <div class="modal-body">
         <form id="content-form">
           <input type="hidden" id="content-task-id">
@@ -1459,11 +1521,11 @@
           </div>
 
           <div class="mb-3">
-  <label class="small fw-bold text-muted">Assignee (ผู้รับผิดชอบ)</label>
-  <select class="form-select form-select-sm" id="content-assignee">
-      <option value="Unassigned">-- Select Assignee --</option>
-  </select>
-</div>
+            <label class="small fw-bold text-muted">Assignee (ผู้รับผิดชอบ)</label>
+            <select class="form-select form-select-sm" id="content-assignee">
+                <option value="Unassigned">-- Select Assignee --</option>
+            </select>
+          </div>
 
           <div class="row g-2 mb-3">
             <div class="col-6">
@@ -1504,19 +1566,28 @@
           
           <div class="mb-3">
              <label class="small fw-bold text-muted">แนบรูปภาพ (Optional)</label>
+             
+             <div id="content-current-file" class="mb-2"></div>
+             
              <input type="file" id="content-file" class="form-control form-control-sm">
           </div>
 
         </form>
       </div>
-      <div class="modal-footer border-0 pt-0">
-        <button type="button" class="btn btn-light btn-sm" data-bs-dismiss="modal">Cancel</button>
-        <button type="button" class="btn btn-primary btn-sm px-4 rounded-pill" onclick="saveContentTask()">Save Content</button>
+
+      <div class="modal-footer border-0 pt-0 justify-content-between"> 
+          <button type="button" id="btn-delete-content" class="btn btn-outline-danger btn-sm rounded-pill" style="display:none;" onclick="deleteContentTask()">
+              <i class="fas fa-trash-alt me-1"></i> Delete
+          </button>
+
+          <div class="d-flex gap-2">
+              <button type="button" class="btn btn-light btn-sm" data-bs-dismiss="modal">Cancel</button>
+              <button type="button" class="btn btn-primary btn-sm px-4 rounded-pill" onclick="saveContentTask()">Save Content</button>
+          </div>
       </div>
     </div>
   </div>
 </div>
-
 
 
 
@@ -1531,6 +1602,10 @@
   let chartTypeInstance = null;
   let lastUpdateId = null; 
   let pollingInterval = null;
+  let currentContentDate = new Date(); 
+  
+  // ตัวแปรสำหรับ Workflow Manager
+  let tempWorkflow = [];
 
   const ROLE_MAP = {
       'Content': ['Content', 'Editor'], 
@@ -1559,54 +1634,186 @@
   // ==========================================
   // 2. MAIN NAVIGATION (OPEN PROJECT)
   // ==========================================
-  function openProjectDetail(pid) {
-    currentProjectId = pid;
-    const p = globalData.projects.find(x => x[0] === pid);
-    const tasks = globalData.tasks.filter(x => x[1] === pid);
-    if(!p) return;
+  // ==========================================
+// ✅ ฟังก์ชันเปิดหน้า Project Detail (ฉบับสมบูรณ์)
+// ==========================================
+function openProjectDetail(pid) {
+    console.log("Opening Project ID:", pid);
 
-    // Set Header Info
-    document.getElementById('detail-title').innerText = p[1];
-    document.getElementById('detail-status-badge').innerText = p[9];
-    document.getElementById('detail-status-badge').className = `badge ${p[9]==='Active'?'bg-success':(p[9]==='Hold'?'bg-warning text-dark':'bg-secondary')}`;
-    document.getElementById('detail-subtitle').innerText = p[2];
-    document.getElementById('detail-sheet-link').href = p[8] || '#';
+    // 1. บันทึก Project ID ปัจจุบัน
+    // (ใช้ window.currentProjectId เพื่อให้เป็น Global จริงๆ)
+    window.currentProjectId = pid;
     
-    // Set Metrics
-    document.getElementById('info-budget').innerText = p[4] || '-';
-    document.getElementById('info-period').innerText = p[5] || '-';
-    document.getElementById('info-ae').innerText = p[3] || '-';
-    document.getElementById('info-product').innerText = p[2] || '-';
+    // 2. ค้นหาข้อมูลโปรเจกต์จาก globalData
+    if (!globalData || !globalData.projects) return alert("ข้อมูลระบบยังไม่ถูกโหลด");
+    const p = globalData.projects.find(x => x[0] === pid);
+    
+    if (!p) return alert("ไม่พบข้อมูลโปรเจกต์ ID: " + pid);
 
-    // Set Target Badges
-    const targetDiv = document.getElementById('target-badges'); targetDiv.innerHTML = '';
-    const addTag = (icon, label, value, unit='') => { if(value && value != '0' && value != '-') targetDiv.innerHTML += `<div class="target-tag"><i class="fas ${icon} text-primary"></i> ${label}: <span class="fw-bold text-dark">${value}</span> ${unit}</div>`; }
-    addTag('fa-pen-nib','Content',p[6]); addTag('fa-palette','Graphic',p[15]); addTag('fa-video','VDO',p[7]); addTag('fa-comments','Admin',p[11]); addTag('fa-ad','Ads',p[12]); addTag('fa-globe','Web',p[13]);
+    // 3. กรองงาน (Tasks) ทั้งหมดของโปรเจกต์นี้รอไว้
+    const tasks = globalData.tasks.filter(x => x[1] === pid);
 
-    // Set Remark
-    const remarkDiv = document.getElementById('remark-box'); 
-    const remarkText = p[14] || 'ยังไม่มีหมายเหตุ';
-    if(p[14] && p[14].trim() !== '') { 
-        remarkDiv.style.display = 'flex'; 
-        document.getElementById('remark-text-content').innerText = remarkText; 
-        remarkDiv.onclick = function() { openUpdateRemark(p[0], remarkText); }; 
-    } else { 
-        remarkDiv.style.display = 'none'; 
+    // ==========================================
+    // 4. อัปเดตข้อมูลบนหน้าจอ (UI Updating)
+    // ==========================================
+    
+    // 4.1 Header & Status
+    if(document.getElementById('detail-title')) document.getElementById('detail-title').innerText = p[1]; // Project Name
+    if(document.getElementById('detail-subtitle')) document.getElementById('detail-subtitle').innerText = p[2]; // Product/Client
+    
+    const statusBadge = document.getElementById('detail-status-badge');
+    if(statusBadge) {
+        statusBadge.innerText = p[9];
+        statusBadge.className = `badge ${p[9]==='Active'?'bg-success':(p[9]==='Hold'?'bg-warning text-dark':(p[9]==='Completed'?'bg-secondary':'bg-light text-dark border'))}`;
     }
 
-    // Render All Views
-    renderListView(tasks); 
-    renderKanbanView(tasks); 
-    renderSummaryView(tasks); 
-    renderTimeline(pid); 
+    // 4.2 Link Google Sheet
+    const sheetLink = document.getElementById('detail-sheet-link');
+    if(sheetLink) {
+        if(p[8]) {
+            sheetLink.href = p[8];
+            sheetLink.classList.remove('disabled');
+        } else {
+            sheetLink.href = '#';
+            sheetLink.classList.add('disabled');
+        }
+    }
+
+    // 4.3 Metrics (งบประมาณ / ระยะเวลา / AE)
+    if(document.getElementById('info-budget')) document.getElementById('info-budget').innerText = p[4] || '-';
+    if(document.getElementById('info-period')) document.getElementById('info-period').innerText = p[5] || '-';
+    if(document.getElementById('info-ae')) document.getElementById('info-ae').innerText = p[3] || '-';
+    if(document.getElementById('info-product')) document.getElementById('info-product').innerText = p[2] || '-';
+
+    // 4.4 Target Badges (เป้าหมายงาน)
+    const targetDiv = document.getElementById('target-badges');
+    if(targetDiv) {
+        targetDiv.innerHTML = '';
+        // ฟังก์ชันย่อยสร้าง Badge
+        const createTag = (icon, label, value) => { 
+            if(value && value != '0' && value != '-') {
+                targetDiv.innerHTML += `
+                <div class="target-tag">
+                    <i class="fas ${icon} text-primary"></i> ${label}: 
+                    <span class="fw-bold text-dark ms-1">${value}</span>
+                </div>`; 
+            }
+        };
+        // เรียกสร้างตามลำดับ
+        createTag('fa-pen-nib', 'Content', p[6]); 
+        createTag('fa-palette', 'Graphic', p[15]); 
+        createTag('fa-video', 'VDO', p[7]); 
+        createTag('fa-comments', 'Admin', p[11]); 
+        createTag('fa-ad', 'Ads', p[12]); 
+        createTag('fa-globe', 'Web', p[13]);
+    }
+
+    // 4.5 Remark Section (แก้ไขให้กดได้แน่นอน)
+    // ... (ส่วนอื่นๆ ของ openProjectDetail) ...
+
+    // 4.5 Remark Section (แก้ไขให้กดได้แน่นอน)
+    const remarkDiv = document.getElementById('remark-box');
+    const remarkContent = document.getElementById('remark-text-content');
     
-    startPolling(); // Start Chat Polling
-    switchDetailTab('summary'); // Default Tab
-    showPage('page-detail');
+    if(remarkDiv && remarkContent) {
+        // แสดงกล่องเสมอ
+        remarkDiv.style.display = 'flex'; 
+        
+        // เตรียมข้อความ (ถ้าไม่มีใส่ข้อความ Default)
+        const remarkText = p[14] || '';
+        
+        if(remarkText.trim() === '') {
+            remarkContent.innerHTML = `<span class="text-muted fst-italic"><i class="fas fa-plus-circle me-1"></i> เพิ่มหมายเหตุ...</span>`;
+        } else {
+            // แปลง \n เป็น <br> เพื่อการแสดงผลที่สวยงาม
+            remarkContent.innerHTML = remarkText.replace(/\n/g, '<br>');
+        }
+
+        // ✅ แก้ไขตรงนี้: ล้าง Event เก่าก่อน แล้วใส่ Event ใหม่เข้าไป
+        // เพื่อป้องกันการกดซ้ำ หรือ Event หายไป
+        remarkDiv.onclick = null; 
+        remarkDiv.onclick = function() {
+            // เรียกใช้ฟังก์ชันที่มีอยู่แล้วในระบบ
+            if(typeof openUpdateRemark === 'function') {
+                openUpdateRemark(p[0], p[14] || '');
+            } else {
+                console.error("Function openUpdateRemark not found!");
+            }
+        };
+    }
+
+  
+    // ==========================================
+    // 5. Render Views (วาดกราฟและตาราง)
+    // ==========================================
+    
+    // ตรวจสอบว่าฟังก์ชันมีอยู่จริงไหมก่อนเรียกใช้ (กัน Error)
+    if(typeof renderListView === 'function') renderListView(tasks);
+    if(typeof renderKanbanView === 'function') renderKanbanView(tasks);
+    if(typeof renderSummaryView === 'function') renderSummaryView(tasks);
+    if(typeof renderTimeline === 'function') renderTimeline(pid); // Chat Log
+    
+    // Calendar ต้องรอนิดนึงให้ DOM พร้อม หรือเรียกตอนสลับ Tab
+    if(typeof renderCalendarView === 'function') {
+        setTimeout(() => renderCalendarView(tasks), 200); 
+    }
+
+    // ==========================================
+    // 6. เปลี่ยนหน้าจอ (Switch Page)
+    // ==========================================
+    
+    // รีเซ็ต Tab ไปที่หน้าแรก (Summary) เสมอเวลาเปิดโปรเจกต์ใหม่
+    if(typeof switchDetailTab === 'function') switchDetailTab('summary');
+
+    // เรียกฟังก์ชันสลับหน้าหลัก (ถ้ามี)
+    if(typeof showPage === 'function') {
+        showPage('page-detail'); 
+    } else {
+        // Fallback: สลับ CSS display เองถ้าไม่มี function showPage
+        document.querySelectorAll('.page-section').forEach(el => el.style.display = 'none');
+        const detailPage = document.getElementById('page-detail');
+        if(detailPage) detailPage.style.display = 'block';
+    }
+    
+    // เลื่อนหน้าจอไปบนสุด
+    window.scrollTo(0, 0);
+}
+
+  function switchDetailTab(tabName) {
+      // 1. จัดการ Active Class
+      document.querySelectorAll('#detail-tabs .nav-link').forEach(el => el.classList.remove('active'));
+      const targetLink = document.querySelector(`#detail-tabs .nav-link[onclick*="'${tabName}'"]`);
+      if(targetLink) targetLink.classList.add('active');
+
+      // 2. ซ่อนทุกหน้า
+      document.querySelectorAll('.view-content > div').forEach(el => el.style.display = 'none');
+      const targetView = document.getElementById(`detail-view-${tabName}`);
+      if(targetView) targetView.style.display = 'block';
+
+      // 3. ซ่อน Chat (Right Panel) สำหรับ List, Kanban, Calendar, Content
+      const rightPanel = document.querySelector('.right-panel');
+      const leftPanel = document.querySelector('.left-panel');
+
+      if (['content', 'list', 'kanban', 'calendar'].includes(tabName)) {
+          if(rightPanel) rightPanel.style.display = 'none';
+          if(leftPanel) leftPanel.style.width = '100%';
+      } else {
+          if(rightPanel) rightPanel.style.display = 'flex';
+          if(leftPanel) leftPanel.style.width = '65%';
+      }
+
+      // 4. Render เฉพาะหน้า
+      if(tabName === 'calendar') {
+          const tasks = globalData.tasks.filter(x => x[1] === currentProjectId);
+          setTimeout(() => renderCalendarView(tasks), 50);
+      }
+      else if (tabName === 'content') {
+          renderContentPlanView();
+      }
   }
 
   // ==========================================
-  // 3. TASK MANAGEMENT (ADD / VIEW / REVISE)
+  // 3. TASK & CONTENT ACTIONS
   // ==========================================
 
   function openAddTaskModal() {
@@ -1619,13 +1826,13 @@
       if(typeSelect.options.length === 0) ['Content','Graphic','VDO','Admin','Web','Ads'].forEach(t => { const opt = document.createElement('option'); opt.value = t; opt.text = t; typeSelect.appendChild(opt); });
       else { const opt = document.createElement('option'); opt.value = 'Other'; opt.text = 'Other'; typeSelect.appendChild(opt); }
 
-      typeSelect.onchange = function() { filterAssignees(this.value); };
-      if(typeSelect.value) filterAssignees(typeSelect.value);
+      // Filter Assignee (Optional implementation needed for filterAssignees)
+      // if(typeSelect.value) filterAssignees(typeSelect.value); 
+      
       new bootstrap.Modal(document.getElementById('addTaskModal')).show();
   }
 
-  // ในส่วน <script>
-function submitNewTask() { 
+  function submitNewTask() { 
       const f = document.getElementById('create-task-form'); 
       if(!f.taskName.value) return alert('กรุณาระบุชื่องาน'); 
       
@@ -1636,27 +1843,28 @@ function submitNewTask() {
           assignee: f.assignee.value, 
           dueDate: f.dueDate.value, 
           briefLink: f.briefLink.value,
-          
-          // ✅ ดึงค่าจาก ID ใหม่ (create-task-...) ส่งไปหลังบ้าน
           pillar: document.getElementById('create-task-pillar').value,
           mediaType: document.getElementById('create-task-media').value
       }; 
       
-      // ... (ส่วนจัดการไฟล์ เหมือนเดิม) ...
       const file = document.getElementById('task-file-input').files[0]; 
-      
       const btn = event.target; btn.innerHTML = 'บันทึก...'; btn.disabled = true;
 
       const handler = (r) => { 
           globalData.tasks.push(r); 
-          openProjectDetail(currentProjectId); 
+          
+          if (currentProjectId) {
+              const currentProjectTasks = globalData.tasks.filter(t => t[1] === currentProjectId);
+              renderListView(currentProjectTasks);
+              renderKanbanView(currentProjectTasks);
+              renderContentPlanView();
+              renderSummaryView(currentProjectTasks);
+          }
+
           bootstrap.Modal.getInstance(document.getElementById('addTaskModal')).hide(); 
           f.reset(); 
-          
-          // ✅ Reset ค่า Dropdown ด้วย
           document.getElementById('create-task-pillar').value = "";
           document.getElementById('create-task-media').value = "";
-          
           btn.innerHTML = 'บันทึก'; btn.disabled = false;
       }; 
       
@@ -1670,686 +1878,261 @@ function submitNewTask() {
       } else { 
           google.script.run.withSuccessHandler(handler).createTask(d, null); 
       } 
-}
-
-  function filterAssignees(taskType) {
-      const select = document.getElementById('assignee-select'); select.innerHTML = '<option value="Unassigned">-- เลือกผู้รับผิดชอบ --</option>';
-      if(globalData.allUsers) {
-          const allowedRoles = ROLE_MAP[taskType] || [];
-          globalData.allUsers.forEach(u => {
-              const userName = u.name || u; const userRole = u.role || ""; 
-              if (allowedRoles.length === 0 || allowedRoles.includes(userRole) || userRole === 'Admin' || userRole === 'Manager' || userRole === "") {
-                  const opt = document.createElement('option'); opt.value = userName; opt.text = userRole ? `${userName} (${userRole})` : userName; select.appendChild(opt);
-              }
-          });
-      }
   }
 
- // --- 1. ตัวแปรสำหรับจัดการเดือนปฏิทิน ---
-  let calendarViewDate = new Date();
-
-  // --- 2. ฟังก์ชันเปลี่ยนเดือน (Previous / Next) ---
-  function changeProjectCalendarMonth(step) {
-      calendarViewDate.setMonth(calendarViewDate.getMonth() + step);
-      // รีโหลดข้อมูลงานของโปรเจกต์ปัจจุบัน
-      if (currentProjectId) {
-          const tasks = globalData.tasks.filter(x => x[1] === currentProjectId);
-          renderCalendarView(tasks);
-      }
-  }
-
-  // --- 3. ฟังก์ชัน Render ปฏิทิน (Custom Grid) ---
-  // ฟังก์ชันวาดปฏิทินแบบ Limit Items (แก้ปัญหาตกขอบถาวร)
-  
-
-  // Helper: สร้าง Pill เล็กๆ ในปฏิทิน
-  function createMiniTaskPill(t, colors) {
-      const color = colors[t[2]] || '#666';
-      const statusIcon = t[5] === 'Done' ? '<i class="fas fa-check-circle ms-1"></i>' : '';
-      const opacity = t[5] === 'Done' ? 'opacity-50' : '';
-      return `
-      <div class="task-event-pill ${opacity}" style="background-color:${color}; font-size:0.7rem; padding:1px 4px;" onclick="openTaskView('${t[0]}'); event.stopPropagation();">
-          <div class="text-truncate">${t[3]}</div>
-      </div>`;
-  }
-
-  // ✅ ฟังก์ชันใหม่: เปิด Modal ดูงานรายวัน (เมื่อกด +More)
-  function openDailyTasksModal(dateStr) {
-      event.stopPropagation();
-      const tasks = globalData.tasks.filter(t => t[1] === currentProjectId && t[7] === dateStr);
-      
-      // แปลงวันที่เป็นไทย
-      const dateObj = new Date(dateStr);
-      const thDate = dateObj.toLocaleDateString('th-TH', { day: 'numeric', month: 'long', year: 'numeric' });
-      document.getElementById('dailyTasksTitle').innerHTML = `<i class="fas fa-calendar-day me-2"></i> งานวันที่ ${thDate}`;
-
-      const container = document.getElementById('dailyTasksBody');
-      if (tasks.length === 0) {
-          container.innerHTML = '<div class="text-center text-muted p-4">ไม่มีงานในวันนี้</div>';
-      } else {
-          container.innerHTML = tasks.map(t => createFullTaskCard(t)).join('');
-      }
-
-      new bootstrap.Modal(document.getElementById('dailyTasksModal')).show();
-  }
-
-  // Helper: สร้าง Card งานใน Modal (สวยงาม เต็มตา)
-  function createFullTaskCard(t) {
-      const typeColors = {
-          'Content': 'primary', 'Graphic': 'info', 'VDO': 'danger', 
-          'Web': 'success', 'Ads': 'warning', 'Admin': 'secondary'
-      };
-      const badgeColor = typeColors[t[2]] || 'secondary';
-      const statusBadge = t[5] === 'Done' ? '<span class="badge bg-success">Done</span>' : `<span class="badge bg-light text-dark border">${t[5]}</span>`;
-
-      return `
-      <div class="card mb-2 border shadow-sm" style="cursor:pointer;" onclick="bootstrap.Modal.getInstance(document.getElementById('dailyTasksModal')).hide(); openTaskView('${t[0]}');">
-          <div class="card-body p-2 d-flex justify-content-between align-items-center">
-              <div style="overflow:hidden;">
-                  <span class="badge bg-${badgeColor} mb-1">${t[2]}</span>
-                  <div class="fw-bold text-truncate text-dark">${t[3]}</div>
-                  <div class="small text-muted"><i class="fas fa-user-circle me-1"></i> ${t[4]}</div>
-              </div>
-              <div class="ps-2 text-end flex-shrink-0">
-                  ${statusBadge}
-              </div>
-          </div>
-      </div>`;
-  }
-
-  function openTaskView(taskId) {
-    const t = globalData.tasks.find(x => x[0] === taskId); if(!t) return;
+  // --- Content Plan Modal ---
+  function openContentModal(dateStr, taskId = null) {
+    if(!dateStr) return;
     
-    // Set Task Info
-    document.getElementById('view-task-id').innerText = t[0]; 
-    document.getElementById('view-task-name-full').innerText = t[3]; 
-    document.getElementById('view-task-type').innerText = t[2]; 
-    document.getElementById('view-task-assignee').innerText = t[4]; 
-    document.getElementById('view-task-due').innerText = t[7] || 'Not Set';
+    document.getElementById('content-form').reset();
+    document.getElementById('content-date').value = dateStr;
+    document.getElementById('content-task-id').value = taskId || '';
     
-    const s = t[5]; 
-    const badge = document.getElementById('view-task-status-badge');
-    badge.className = `badge ${s==='Done'?'bg-success':(s==='Revise'?'bg-warning text-dark':'bg-primary')}`; 
-    badge.innerText = s;
-    
-    // Set Attachments
-    const resDiv = document.getElementById('view-task-resources'); resDiv.innerHTML = '';
-    if(t[8]) resDiv.innerHTML += `<a href="${t[8]}" target="_blank" class="btn btn-light btn-sm border text-start w-100 mb-2"><i class="fas fa-link me-2 text-primary"></i> Link</a>`;
-    if(t[9]) resDiv.innerHTML += `<a href="${t[9]}" target="_blank" class="btn btn-light btn-sm border text-start w-100"><i class="fas fa-file-pdf me-2 text-danger"></i> File</a>`;
-    
-    // Render Workflow
-    renderWorkflow(t[0], t[2], t[12]); 
-    
-    // ✅ REVISE BUTTON LOGIC
-    const actionDiv = document.getElementById('view-task-actions'); actionDiv.innerHTML = '';
-    const userRole = globalData.currentUser.role;
-    // แสดงปุ่ม Revise เฉพาะ Admin/Manager และงานเสร็จแล้ว (Done)
-    if((userRole === 'Admin' || userRole === 'Manager') && s === 'Done') { 
-        actionDiv.innerHTML = `
-            <button class="btn btn-warning btn-sm fw-bold shadow-sm w-100" 
-                    onclick="bootstrap.Modal.getInstance(document.getElementById('viewTaskModal')).hide(); openReviseModal('${t[0]}', '${t[3].replace(/'/g, "\\'")}')">
-               <i class="fas fa-undo-alt me-2"></i> สั่งแก้ไขงาน (Revise)
-            </button>`; 
+    let d = new Date(dateStr);
+    document.getElementById('content-date-display').innerText = d.toLocaleDateString('th-TH', {day:'numeric', month:'long', year:'numeric'});
+
+    const currentFileDiv = document.getElementById('content-current-file');
+    if(currentFileDiv) currentFileDiv.innerHTML = ''; 
+
+    const btnDelete = document.getElementById('btn-delete-content');
+    if (btnDelete) {
+        btnDelete.style.display = taskId ? 'block' : 'none';
     }
+
+    const assigneeSelect = document.getElementById('content-assignee');
+    assigneeSelect.innerHTML = '<option value="Unassigned">-- Select Assignee --</option>';
     
-    new bootstrap.Modal(document.getElementById('viewTaskModal')).show();
+    if(globalData.allUsers) {
+         globalData.allUsers.forEach(u => {
+             if (u.status === 'Inactive') return;
+             const userName = u.name || u;
+             const userRole = u.role || "";
+             const fullText = userRole ? `${userName} (${userRole})` : userName; 
+             const opt = document.createElement('option');
+             opt.value = fullText; opt.text = fullText;  
+             assigneeSelect.appendChild(opt);
+         });
+    }
+
+    if(taskId) {
+        const ideaInput = document.getElementById('content-idea');
+        ideaInput.disabled = true; ideaInput.value = "กำลังโหลดข้อมูล...";
+
+        google.script.run.withSuccessHandler(function(task) {
+            ideaInput.disabled = false;
+            if(task) {
+                ideaInput.value = task[3] || ''; 
+                let currentAssignee = task[4]; 
+                if(currentAssignee && currentAssignee !== 'Unassigned') {
+                    let exists = Array.from(assigneeSelect.options).some(opt => opt.value === currentAssignee);
+                    if (!exists) {
+                        const opt = document.createElement('option');
+                        opt.value = currentAssignee; opt.text = currentAssignee; assigneeSelect.appendChild(opt);
+                    }
+                    assigneeSelect.value = currentAssignee; 
+                } else {
+                    assigneeSelect.value = "Unassigned";
+                }
+                
+                document.getElementById('content-pillar').value = task[13] || ''; 
+                document.getElementById('content-media').value = task[14] || ''; 
+                document.getElementById('content-remark').value = task[15] || ''; 
+
+                if (task[9] && currentFileDiv) {
+                    currentFileDiv.innerHTML = `<div class="d-flex align-items-center gap-2 p-2 border rounded bg-light small mt-2"><i class="fas fa-file-image text-danger fs-5"></i><div style="overflow:hidden;"><div class="text-muted" style="font-size:0.7rem;">ไฟล์ปัจจุบัน:</div><a href="${task[9]}" target="_blank" class="fw-bold text-decoration-none text-dark d-block text-truncate" style="max-width: 200px;">${task[10] || 'View File'}</a></div></div>`;
+                }
+            } else {
+                ideaInput.value = ""; alert("ไม่พบข้อมูลงานนี้");
+            }
+        }).getTaskById(taskId);
+    }
+    new bootstrap.Modal(document.getElementById('contentTaskModal')).show();
   }
 
-  function openReviseModal(taskId, taskName) { 
-      document.getElementById('revise-task-id').value = taskId; 
-      document.getElementById('revise-task-name').value = taskName; 
-      document.getElementById('revise-task-display-name').innerText = taskName;
-
-      // ✅ เพิ่มส่วนนี้: สร้างตัวเลือกขั้นตอน (Step) ลงใน Dropdown
-      const t = globalData.tasks.find(x => x[0] === taskId);
-      const stepSelect = document.getElementById('revise-step-select');
-      stepSelect.innerHTML = '';
-      
-      let steps = [];
-      try { steps = t[12] ? JSON.parse(t[12]) : []; } catch(e) {}
-      
-      if(steps.length > 0) {
-          steps.forEach((step, index) => {
-              const opt = document.createElement('option');
-              opt.value = index;
-              // แสดงชื่อขั้นตอน และ คนรับผิดชอบ
-              opt.text = `${index+1}. ${step.name} (${step.assignee || 'Unassigned'})`;
-              stepSelect.appendChild(opt);
-          });
-          // เลือกขั้นตอนล่าสุดที่ทำเสร็จไปแล้ว (optional)
-          const lastDone = steps.map(s => s.status).lastIndexOf('done');
-          if(lastDone !== -1) stepSelect.value = lastDone;
-      } else {
-          stepSelect.innerHTML = '<option value="-1">-- ไม่มีขั้นตอนระบุ --</option>';
-      }
-
-      // Reset Form
-      document.getElementById('revise-reason').value = '';
-      document.getElementById('revise-link').value = '';
-      document.getElementById('revise-file').value = '';
-
-      // Default Date = Tomorrow
-      const today = new Date(); today.setDate(today.getDate()+1); 
-      document.getElementById('revise-due-date').value = today.toISOString().split('T')[0]; 
-      
-      new bootstrap.Modal(document.getElementById('reviseModal')).show(); 
+  function saveContentTask() {
+    const btn = event.target; 
+    const taskId = document.getElementById('content-task-id').value;
+    const dateStr = document.getElementById('content-date').value;
+    
+    const data = {
+        taskId: taskId,
+        projectId: currentProjectId,
+        dueDate: dateStr,
+        taskName: document.getElementById('content-idea').value, 
+        assignee: document.getElementById('content-assignee').value,
+        pillar: document.getElementById('content-pillar').value,
+        mediaType: document.getElementById('content-media').value,
+        remark: document.getElementById('content-remark').value,
+        taskType: 'Content', 
+        status: 'To Do' 
+    };
+    
+    const fileInput = document.getElementById('content-file');
+    const file = fileInput.files[0];
+    
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            submitToBackend(data, { name: file.name, mimeType: file.type, data: e.target.result.split(',')[1] }, btn);
+        };
+        reader.readAsDataURL(file);
+    } else {
+        submitToBackend(data, null, btn);
+    }
   }
 
-  function submitRevise() { 
-      const tid = document.getElementById('revise-task-id').value; 
-      const tName = document.getElementById('revise-task-name').value; 
-      const stepIndex = document.getElementById('revise-step-select').value; // ✅ รับค่าขั้นตอนที่เลือก
-      const reason = document.getElementById('revise-reason').value; 
-      const link = document.getElementById('revise-link').value; 
-      const newDueDate = document.getElementById('revise-due-date').value; 
-      const fileInput = document.getElementById('revise-file').files[0]; 
-      
-      if(!reason) return alert('กรุณาระบุเหตุผลการแก้ไข'); 
-      
-      const btn = event.target; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> บันทึก...'; btn.disabled = true; 
-      
-      // Prepare Chat Message
-      let msg = `🔥 สั่งแก้: "${tName}"\n📌 ขั้นตอน: ${document.getElementById('revise-step-select').options[document.getElementById('revise-step-select').selectedIndex].text}\n📅 ส่งภายใน: ${newDueDate}\n📝 เหตุผล: ${reason}`; 
-      if(link) msg += `\n🔗 ลิงก์: ${link}`; 
-      
-      const me = globalData.currentUser.name; 
-      const fileData = fileInput ? {name:fileInput.name, mimeType:fileInput.type} : null; 
-      
-      const exec = (fData) => { 
-          // 1. Update Task Status -> Revise (ส่ง stepIndex ไปด้วย)
-          google.script.run.withSuccessHandler((res) => { 
-              if(res.fileUrl) msg += `\n📂 ไฟล์แนบ: ${res.fileName}`; 
-              
-              // 2. Post to Chat
-              google.script.run.withSuccessHandler(() => { 
-                  // Update Local Data (เพื่อให้หน้าเว็บแสดงผลทันทีโดยไม่ต้องโหลดใหม่)
-                  const t = globalData.tasks.find(x => x[0] === tid); 
-                  if(t){ 
-                      t[5] = 'Revise'; 
-                      if(newDueDate) t[7] = newDueDate; 
-                      if(link) t[8] = link;
-                      if(res.fileUrl){ t[9] = res.fileUrl; t[10] = res.fileName; } 
-                      // ✅ อัปเดต Workflow ในหน่วยความจำเครื่องด้วย
-                      if(res.updatedWorkflow) t[12] = res.updatedWorkflow;
-                      // ✅ อัปเดตผู้รับผิดชอบ (Assignee)
-                      if(res.newAssignee) t[4] = res.newAssignee;
-                  } 
-                  
-                  // Refresh UI
-                  const projectTasks = globalData.tasks.filter(x => x[1] === currentProjectId);
-                  renderListView(projectTasks); 
-                  renderKanbanView(projectTasks); 
-                  renderTimeline(currentProjectId); 
-                  
-                  bootstrap.Modal.getInstance(document.getElementById('reviseModal')).hide(); 
-                  alert('สั่งแก้ไขงานเรียบร้อยแล้ว'); 
-                  btn.innerHTML = 'ยืนยันสั่งแก้'; btn.disabled = false; 
-              }).postProjectUpdate(currentProjectId, msg, me, null); 
-          // ✅ ส่ง stepIndex ไปที่ฟังก์ชัน Backend
-          }).updateTaskRevision(tid, newDueDate, link, fData, stepIndex); 
-      }; 
-      
-      if(fileInput){ 
-          const r = new FileReader(); 
-          r.onload = (e) => { fileData.data = e.target.result.split(',')[1]; exec(fileData); }; 
-          r.readAsDataURL(fileInput); 
-      } else { 
-          exec(null); 
-      } 
-  }
+  function submitToBackend(data, filePayload, btn) {
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+    btn.disabled = true;
 
-  // ==========================================
-  // 4. WORKFLOW SYSTEM
-  // ==========================================
-  
-  function renderWorkflow(taskId, taskType, workflowJson) {
-      const container = document.getElementById('view-task-workflow'); container.innerHTML = '';
-      let steps = []; try { steps = workflowJson ? JSON.parse(workflowJson) : []; } catch(e) { steps = []; }
-      
-      if (steps.length === 0) { 
-          const template = WORKFLOW_TEMPLATES[taskType] || WORKFLOW_TEMPLATES['Default']; 
-          steps = template.map(t => ({ name: t.name, assignee: 'Unassigned', status: 'pending' })); 
-      }
-      
-      let html = '';
-      steps.forEach((step, index) => {
-          let iconClass = 'step-pending'; let iconContent = '<i class="fas fa-circle"></i>';
-          let rowClass = '';
-          if(step.status === 'done') { iconClass = 'step-done'; iconContent = '<i class="fas fa-check"></i>'; rowClass = 'opacity-75'; } 
-          else if (step.status === 'doing') { iconClass = 'step-doing'; iconContent = '<i class="fas fa-play" style="font-size:0.6rem;"></i>'; rowClass = 'bg-white shadow-sm border-start border-3 border-primary'; }
-          
-          const assigneeName = step.assignee === 'Unassigned' ? 'ระบุผู้รับผิดชอบ' : step.assignee;
-          const assigneeClass = step.assignee === 'Unassigned' ? 'text-muted fst-italic step-unassigned' : 'text-primary fw-bold';
-
-          let extraInfo = '';
-          if(step.dueDate) extraInfo += `<div class="text-danger small mt-1" style="font-size:0.7rem"><i class="far fa-calendar-alt me-1"></i> ${step.dueDate}</div>`;
-          if(step.details) extraInfo += `<div class="text-muted small mt-1 text-wrap" style="font-size:0.7rem; line-height:1.2;"><i class="fas fa-info-circle me-1"></i> ${step.details}</div>`;
-
-          html += `<div class="workflow-step px-2 rounded ${rowClass}">
-                     <div class="step-status-icon ${iconClass}" onclick="toggleStepStatus('${taskId}', ${index})">${iconContent}</div>
-                     <div class="step-info">
-                        <div class="step-name">${step.name}</div>
-                        <div class="step-assignee ${assigneeClass}" onclick="openAssignStepModal('${taskId}', ${index})">
-                            <i class="fas fa-user-circle me-1"></i> ${assigneeName}
-                        </div>
-                        ${extraInfo} 
-                     </div>
-                   </div>`;
-      });
-      container.innerHTML = html;
-  }
-
-  function openAssignStepModal(taskId, stepIndex) {
-      document.getElementById('workflow-task-id').value = taskId;
-      document.getElementById('workflow-step-index').value = stepIndex;
-      
-      const t = globalData.tasks.find(x => x[0] === taskId);
-      let steps = []; try { steps = JSON.parse(t[12] || '[]'); } catch(e){}
-      const stepData = steps[stepIndex] || {};
-
-      document.getElementById('workflow-step-date').value = stepData.dueDate || '';
-      document.getElementById('workflow-step-details').value = stepData.details || '';
-      
-      const select = document.getElementById('workflow-assignee-select');
-      select.innerHTML = '<option value="Unassigned">-- ไม่ระบุ --</option>';
-
-      if (globalData.allUsers) {
-          const grouped = {};
-          globalData.allUsers.forEach(u => {
-              const role = u.role || 'Other';
-              if (!grouped[role]) grouped[role] = [];
-              grouped[role].push(u.name || u);
-          });
-          for (const [role, names] of Object.entries(grouped)) {
-              const group = document.createElement('optgroup'); group.label = role;
-              names.forEach(name => { const opt = document.createElement('option'); opt.value = name; opt.text = name; group.appendChild(opt); });
-              select.appendChild(group);
-          }
-      }
-      if(stepData.assignee) select.value = stepData.assignee;
-      new bootstrap.Modal(document.getElementById('assignStepModal')).show();
-  }
-
-  function saveStepAssignee() {
-      const taskId = document.getElementById('workflow-task-id').value;
-      const stepIndex = document.getElementById('workflow-step-index').value;
-      const newName = document.getElementById('workflow-assignee-select').value;
-      const newDate = document.getElementById('workflow-step-date').value;
-      const newDetails = document.getElementById('workflow-step-details').value;
-
-      const btn = event.target; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> บันทึก...'; btn.disabled = true;
-
-      google.script.run.withSuccessHandler((res) => {
-          renderWorkflow(taskId, res.taskType, res.workflowJson);
-          const t = globalData.tasks.find(x => x[0] === taskId); if (t) t[12] = res.workflowJson; 
-          bootstrap.Modal.getInstance(document.getElementById('assignStepModal')).hide();
-          btn.innerHTML = 'บันทึก'; btn.disabled = false;
-      }).updateTaskWorkflowAssignee(taskId, stepIndex, newName, newDate, newDetails);
-  }
-
-function toggleStepStatus(taskId, stepIndex) { 
-      google.script.run.withSuccessHandler((res) => { 
-          // 1. วาด Workflow ใหม่ให้เป็นสถานะล่าสุด (ติ๊กถูก/สีเขียว)
-          renderWorkflow(taskId, res.taskType, res.workflowJson); 
-          
-          // 2. อัปเดตข้อมูลในตัวแปร globalData
-          const t = globalData.tasks.find(x => x[0] === taskId); 
-          if (t) { 
-              t[12] = res.workflowJson; // อัปเดต Workflow JSON
-              
-              // ✅ เพิ่มส่วนนี้: ตรวจสอบและอัปเดตสถานะงานหลัก (Main Status)
-              if (res.newMainStatus) {
-                  t[5] = res.newMainStatus; // อัปเดตค่าสถานะในตัวแปร
-                  
-                  // A. อัปเดตป้าย Status บน Modal ที่เปิดอยู่ทันที
-                  const badge = document.getElementById('view-task-status-badge');
-                  if (badge) {
-                      badge.innerText = res.newMainStatus;
-                      badge.className = `badge ${res.newMainStatus==='Done'?'bg-success':(res.newMainStatus==='Revise'?'bg-warning text-dark':'bg-primary')}`;
-                  }
-
-                  // B. สั่งวาด List/Kanban ด้านหลังใหม่ เพื่อให้ตารางข้างนอกเปลี่ยนสีด้วย
-                  if (currentProjectId) {
-                      const projectTasks = globalData.tasks.filter(x => x[1] === currentProjectId);
-                      renderListView(projectTasks); 
-                      renderKanbanView(projectTasks);
-                      renderSummaryView(projectTasks);
-                  }
-              }
-          }
-      }).updateTaskWorkflowStatus(taskId, stepIndex); 
-  }
-  // ==========================================
-  // 5. REMARK & POLLING & CHAT
-  // ==========================================
-
-  function openUpdateRemark(projectId, oldText) { 
-      document.getElementById('remark-project-id').value = projectId; 
-      document.getElementById('old-remark-text').innerText = oldText; 
-      document.getElementById('new-remark-text').value = ''; 
-      new bootstrap.Modal(document.getElementById('updateRemarkModal')).show(); 
-  }
-
-  function saveRemark() { 
-      const pid = document.getElementById('remark-project-id').value; 
-      const newText = document.getElementById('new-remark-text').value; 
-      if(!newText) return alert('ระบุข้อความ'); 
-      const btn = event.target; btn.innerHTML = 'บันทึก...'; btn.disabled = true; 
-      
-      const user = globalData.currentUser.name || 'Admin'; 
-      const time = new Date().toLocaleString('th-TH', { month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit'}); 
-      const fullText = `${newText} (แก้ไขโดย ${user} ${time})`; 
-      
-      google.script.run.withSuccessHandler(() => { 
-          const p = globalData.projects.find(x => x[0] === pid); if(p) p[14] = fullText; 
-          document.getElementById('remark-text-content').innerText = fullText; 
-          bootstrap.Modal.getInstance(document.getElementById('updateRemarkModal')).hide(); 
-          btn.innerHTML = 'บันทึก'; btn.disabled = false; 
-      }).updateProjectRemark(pid, fullText); 
-  }
-
-  function startPolling() { 
-      if(pollingInterval) clearInterval(pollingInterval); 
-      pollingInterval = setInterval(() => { 
-          if(!currentProjectId) return; 
-          google.script.run.withSuccessHandler((allData) => { 
-              if(!allData.updates) return; 
-              const updates = allData.updates.filter(u => u[1] === currentProjectId); 
-              const newMsgs = []; 
-              if(lastUpdateId) { 
-                  const lastIdx = updates.findIndex(u => u[0] === lastUpdateId); 
-                  if(lastIdx !== -1 && lastIdx < updates.length - 1) { 
-                      for(let i=lastIdx+1; i<updates.length; i++) newMsgs.push(updates[i]); 
-                  } 
-              } else if(updates.length > 0 && !lastUpdateId) { } 
-              
-              if(newMsgs.length > 0) { 
-                  newMsgs.forEach(msg => { 
-                      if(msg[3] !== globalData.currentUser.name) { showToast(`New msg from ${msg[3]}`, msg[4]); updateBadge(1); } 
-                  }); 
-                  globalData.updates = allData.updates; 
-                  renderTimeline(currentProjectId); 
-                  lastUpdateId = updates[updates.length-1][0]; 
-              } 
-          }).getSystemData(); 
-      }, 10000); 
-  }
-
-  function showToast(title, message) { 
-      const container = document.getElementById('toast-area'); 
-      const toast = document.createElement('div'); 
-      toast.className = 'toast-alert'; 
-      toast.innerHTML = `<div class="toast-header"><span><i class="fas fa-comment-dots text-primary me-2"></i> ${title}</span><button type="button" class="btn-close" style="font-size:0.7rem;" onclick="this.parentElement.parentElement.remove()"></button></div><div class="toast-body text-truncate">${message}</div>`; 
-      container.appendChild(toast); 
-      setTimeout(() => { toast.style.opacity='0'; setTimeout(()=>toast.remove(),300); }, 5000); 
-  }
-  
-  function updateBadge(count) { 
-      const badge = document.getElementById('noti-badge'); 
-      let current = parseInt(badge.innerText)||0; let next = current+count; 
-      badge.innerText = next; badge.style.display = next>0?'block':'none'; 
-  }
-  
-  // Chat & Timeline
-  function renderTimeline(pid) {
-     const container = document.getElementById('timeline-container');
-     const updates = (globalData.updates || []).filter(r => r[1] === pid);
-     if(updates.length === 0) { container.innerHTML = '<div class="text-center text-muted mt-5 small opacity-50"><i class="far fa-comments fa-3x mb-2"></i><br>เริ่มการสนทนา...</div>'; return; }
-     
-     let html = '';
-     updates.forEach(m => {
-        const isMe = m[3] === globalData.currentUser.name;
-        let timeDisplay = m[2]; try { let parts = m[2].split(' '); if (parts.length > 1) timeDisplay = parts[1]; } catch(e) {}
-        
-        let f = ''; 
-        if(m[6]) { 
-            if(m[5].match(/\.(jpg|png|jpeg|gif)$/i)) f = `<div class="img-container mt-2"><a href="${m[6]}" target="_blank"><img src="${m[6]}" class="chat-img"></a></div>`; 
-            else f = `<a href="${m[6]}" target="_blank" class="btn btn-sm btn-light border mt-2 text-truncate" style="max-width:150px; font-size:0.8rem;"><i class="fas fa-file-download me-1"></i> ${m[5]}</a>`; 
+    google.script.run.withSuccessHandler((res) => {
+        if (!data.taskId) { globalData.tasks.push(res); } 
+        else {
+            const idx = globalData.tasks.findIndex(t => t[0] === res[0]);
+            if(idx !== -1) globalData.tasks[idx] = res;
         }
-        html += `<div class="chat-row ${isMe ? 'me' : 'other'}"><div class="chat-meta">${isMe ? '' : `<span class="fw-bold text-dark">${m[3]}</span>`} <span>${timeDisplay}</span></div><div class="chat-bubble"><div>${m[4]}</div>${f}</div></div>`;
-     });
-     container.innerHTML = html; container.scrollTop = container.scrollHeight;
+        
+        if (currentProjectId) {
+            const currentProjectTasks = globalData.tasks.filter(t => t[1] === currentProjectId);
+            renderContentPlanView(); 
+            renderListView(currentProjectTasks);   
+            renderKanbanView(currentProjectTasks); 
+            renderSummaryView(currentProjectTasks);
+        }
+
+        bootstrap.Modal.getInstance(document.getElementById('contentTaskModal')).hide();
+        btn.innerHTML = 'Save Content'; btn.disabled = false;
+        
+    }).withFailureHandler((err) => {
+        alert("เกิดข้อผิดพลาด: " + err.message);
+        btn.innerHTML = originalText; btn.disabled = false;
+    }).saveContentTaskDB(data, filePayload);
   }
 
-  function sendUpdate() {
-     const txt = document.getElementById('new-update-input'); const msg = txt.value.trim(); 
-     if(!msg && !selectedFile) return;
-     const me = globalData.currentUser.name;
-     document.getElementById('timeline-container').insertAdjacentHTML('beforeend', `<div class="chat-row me"><div class="chat-bubble" style="background-color:var(--ci-blue);color:white;">Sending...</div></div>`);
-     
-     let filePayload = null; 
-     if (selectedFile) { filePayload = { name: selectedFile.name, mimeType: selectedFile.type, data: selectedFile.base64 }; }
-     
-     google.script.run.withSuccessHandler(res => { 
-         if(!globalData.updates) globalData.updates = []; 
-         globalData.updates.push([res.id, currentProjectId, res.date, me, msg, res.fileName, res.fileUrl]); 
-         renderTimeline(currentProjectId); 
-         txt.value = ''; txt.style.height = 'auto'; clearFile(); 
-     }).postProjectUpdate(currentProjectId, msg, me, filePayload);
-  }
+  function deleteContentTask() {
+    const taskId = document.getElementById('content-task-id').value;
+    if(!taskId) return;
 
-  function handleFileSelect(input) { 
-      if(input.files && input.files[0]) { 
-          selectedFile = input.files[0]; 
-          const r = new FileReader(); 
-          r.onload = function(e){ selectedFile.base64 = e.target.result.split(',')[1]; }; 
-          r.readAsDataURL(selectedFile); 
-          document.getElementById('upload-preview').style.display = 'flex'; 
-          document.getElementById('preview-name').innerText = selectedFile.name; 
-      } 
-  }
-  function clearFile() { 
-      selectedFile = null; 
-      document.getElementById('file-input').value = ''; 
-      document.getElementById('upload-preview').style.display = 'none'; 
+    if(confirm("คุณต้องการลบงานนี้ใช่หรือไม่? \n(การกระทำนี้ไม่สามารถย้อนกลับได้)")) {
+        const btn = document.getElementById('btn-delete-content');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Deleting...'; btn.disabled = true;
+
+        google.script.run.withSuccessHandler(function(res) {
+            if(res.success) {
+                const idx = globalData.tasks.findIndex(t => t[0] === taskId);
+                if(idx !== -1) globalData.tasks.splice(idx, 1);
+
+                renderContentPlanView(); 
+                if (currentProjectId) {
+                    const currentProjectTasks = globalData.tasks.filter(t => t[1] === currentProjectId);
+                    renderListView(currentProjectTasks);   
+                    renderKanbanView(currentProjectTasks); 
+                }
+                bootstrap.Modal.getInstance(document.getElementById('contentTaskModal')).hide();
+            } else {
+                alert("เกิดข้อผิดพลาด: " + res.message);
+            }
+            btn.innerHTML = originalText; btn.disabled = false;
+        }).deleteTaskDB(taskId);
+    }
   }
 
   // ==========================================
-  // 6. VIEW RENDERERS (LIST, KANBAN, CALENDAR, SUMMARY)
+  // 4. VIEW / RENDER FUNCTIONS
   // ==========================================
-  
-function switchDetailTab(tabName) { 
-      // 1. จัดการ Active Class ที่ปุ่มเมนู
-      document.querySelectorAll('#detail-tabs .nav-link').forEach(el => el.classList.remove('active')); 
-      const targetLink = document.querySelector(`#detail-tabs .nav-link[onclick*="'${tabName}'"]`);
-      if(targetLink) targetLink.classList.add('active');
-      
-      // 2. ซ่อนทุกหน้า แล้วเปิดเฉพาะหน้าที่เลือก
-      document.querySelectorAll('.view-content > div').forEach(el => el.style.display = 'none'); 
-      const targetView = document.getElementById(`detail-view-${tabName}`);
-      if(targetView) targetView.style.display = 'block'; 
 
-      // ============================================================
-      // ✅ 3. ส่วนที่เพิ่มใหม่: จัดการ Layout (ซ่อน/แสดง Activity Log)
-      // ============================================================
-      const rightPanel = document.querySelector('.right-panel');
-      const leftPanel = document.querySelector('.left-panel');
+  function renderListView(tasks) {
+      let html='';
+      tasks.forEach(t => {
+          let s = t[5]; // Status
+          let sClass = 'bg-secondary'; let sIcon = 'fa-clock';
+          if(s === 'Done' || s === 'Completed') { sClass = 'bg-success'; sIcon = 'fa-check-circle'; }
+          else if(s === 'In Progress' || s === 'Doing') { sClass = 'bg-primary'; sIcon = 'fa-spinner fa-spin'; }
+          else if(s === 'Revise') { sClass = 'bg-danger'; sIcon = 'fa-exclamation-triangle'; }
+          else if(s === 'To Do') { sClass = 'bg-info text-dark'; sIcon = 'fa-list-ul'; }
 
-      if (tabName === 'content') {
-          // กรณีเลือก Content Plan: ซ่อนขวา ขยายซ้ายเต็มจอ
-          if(rightPanel) rightPanel.style.display = 'none';
-          if(leftPanel) leftPanel.style.width = '100%';
-      } else {
-          // กรณีเลือกแท็บอื่น: คืนค่าเดิม (แสดงขวา ซ้ายกว้าง 65%)
-          if(rightPanel) rightPanel.style.display = 'flex'; // ใช้ flex ตาม CSS เดิม
-          if(leftPanel) leftPanel.style.width = '65%';      // ใช้ 65% ตาม CSS เดิม
-      }
-      // ============================================================
-      
-      // 4. Logic พิเศษสำหรับแต่ละหน้า
-      if(tabName === 'calendar') { 
-          const tasks = globalData.tasks.filter(x => x[1] === currentProjectId); 
-          setTimeout(() => renderCalendarView(tasks), 50); 
-      } 
-      else if (tabName === 'content') {
-          renderContentPlanView(); 
-      }
+          let showType = t[14] || t[2];
+          let typeBadgeClass = t[14] ? 'bg-white text-primary border border-primary' : 'bg-light text-secondary border';
+
+          html += `
+          <tr class="clickable-row" onclick="openTaskView('${t[0]}')">
+              <td class="ps-4">
+                  <div class="fw-bold text-dark">${t[3]}</div>
+                  ${t[9] ? '<div class="text-muted small"><i class="fas fa-paperclip me-1"></i> มีไฟล์แนบ</div>' : ''}
+              </td>
+              <td><span class="badge ${typeBadgeClass} fw-normal">${showType}</span></td>
+              <td><div class="d-flex align-items-center text-muted small"><i class="fas fa-user-circle me-2 fa-lg"></i>${t[4]}</div></td>
+              <td class="${t[7] && new Date(t[7]) < new Date() && s !== 'Done' ? 'text-danger fw-bold' : 'text-muted'}">${t[7] || '-'}</td>
+              <td><span class="badge ${sClass}" style="min-width: 80px;"><i class="fas ${sIcon} me-1"></i> ${s}</span></td>
+          </tr>`;
+      });
+      const tbody = document.getElementById('detail-task-list-body');
+      if(tbody) tbody.innerHTML = html || '<tr><td colspan="5" class="text-center p-5 text-muted">ไม่พบรายการงาน</td></tr>';
   }
 
-  function renderListView(tasks) { 
-      let html=''; 
-      tasks.forEach(t=>{ 
-          let sClass='bg-secondary'; 
-          if(t[5]==='Done') sClass='bg-success'; 
-          else if(t[5]==='In Progress') sClass='bg-primary'; 
-          else if(t[5]==='Revise') sClass='bg-warning text-dark'; 
-          
-          html+=`<tr class="clickable-row" onclick="openTaskView('${t[0]}')"><td class="ps-4 fw-bold text-dark">${t[3]}</td><td><span class="badge bg-white text-secondary border fw-normal">${t[2]}</span></td><td><div class="d-flex align-items-center text-muted small"><i class="fas fa-user-circle me-2"></i>${t[4]}</div></td><td class="${t[7]&&new Date(t[7])<new Date()&&t[5]!=='Done'?'text-danger fw-bold':'text-muted'}">${t[7]||'-'}</td><td><span class="badge ${sClass}">${t[5]}</span></td></tr>`; 
-      }); 
-      // Fixed ID
-      const tbody = document.getElementById('detail-task-list-body'); 
-      if(tbody) tbody.innerHTML=html||'<tr><td colspan="5" class="text-center p-5 text-muted">No tasks found</td></tr>'; 
-  }
-
-  function renderKanbanView(tasks) { 
-      const board = document.getElementById('kanban-board'); 
-      const columns = { 'Pending': { title: 'To Do', items: [] }, 'In Progress': { title: 'Doing', items: [] }, 'Revise': { title: 'Revise', items: [] }, 'Done': { title: 'Done', items: [] } }; 
-      tasks.forEach(t => { let s = t[5]; if(s==='To Do'||s==='Pending') columns['Pending'].items.push(t); else if(s==='Revise') columns['Revise'].items.push(t); else if(s==='Done') columns['Done'].items.push(t); else columns['In Progress'].items.push(t); }); 
-      
-      let html = ''; 
-      for (const [key, col] of Object.entries(columns)) { 
-          let statusValue = key === 'In Progress' ? 'In Progress' : (key === 'Pending' ? 'Pending' : key); 
-          let cardsHtml = ''; 
-          col.items.forEach(t => { 
-              let borderClass = `border-status-${key.toLowerCase().replace(' ', '')}`; 
-              cardsHtml += `<div class="kanban-card ${borderClass}" draggable="true" id="card-${t[0]}" ondragstart="drag(event)" onclick="openTaskView('${t[0]}')"><div class="d-flex justify-content-between mb-2"><span class="badge bg-light text-secondary border fw-normal" style="font-size:0.6rem;">${t[2]}</span>${t[9] ? '<i class="fas fa-paperclip text-muted small"></i>' : ''}</div><div class="fw-bold mb-3" style="color:var(--ci-text); font-size:0.85rem; white-space:normal; line-height:1.4;">${t[3]}</div><div class="d-flex justify-content-between align-items-center pt-2 border-top"><div class="d-flex align-items-center text-muted" style="font-size:0.7rem;"><i class="fas fa-user me-1"></i> ${t[4].split(' ')[0]}</div><div class="${t[7]&&new Date(t[7])<new Date()?'text-danger fw-bold':'text-muted'} small" style="font-size:0.7rem;">${t[7]||''}</div></div></div>`; 
-          }); 
-          html += `<div class="kanban-col" ondrop="drop(event, '${statusValue}')" ondragover="allowDrop(event)"><div class="kanban-header"><span>${col.title}</span> <span class="badge bg-white text-secondary border ms-1">${col.items.length}</span></div>${cardsHtml}</div>`; 
-      } 
-      board.innerHTML = html; 
-  }
-
-  function renderCalendarView(tasks) { 
-      const calendarEl = document.getElementById('task-calendar'); 
-      if (!calendarEl) return;
-      if (typeof FullCalendar === 'undefined') { calendarEl.innerHTML = '<div class="alert alert-danger p-2 small">Calendar Error</div>'; return; }
-      if (calendarInstance) calendarInstance.destroy(); 
-      
-      // 1. ชุดสีแบบ Formal (ใช้เป็นสีเส้นแถบด้านซ้าย)
-      const typeColors = {
-          'Content': '#0d6efd', // Blue
-          'Graphic': '#6f42c1', // Purple
-          'VDO':     '#dc3545', // Red
-          'Web':     '#198754', // Green
-          'Ads':     '#fd7e14', // Orange
-          'Admin':   '#6c757d', // Grey
-          'Other':   '#adb5bd'
+  function renderKanbanView(tasks) {
+      const board = document.getElementById('kanban-board');
+      const columns = {
+          'Pending': { title: 'To Do / Pending', items: [], color: '#6c757d' },
+          'In Progress': { title: 'In Progress', items: [], color: '#0d6efd' },
+          'Revise': { title: 'Revise', items: [], color: '#dc3545' },
+          'Done': { title: 'Done', items: [], color: '#198754' }
       };
 
-      calendarInstance = new FullCalendar.Calendar(calendarEl, { 
-          initialView: 'dayGridMonth', 
-          themeSystem: 'standard', 
-          headerToolbar: { left: 'title', right: 'today prev,next' }, // ตัด center ออกให้ดูคลีน
-          height: '100%', 
-          contentHeight: 'auto', 
-          dayMaxEvents: 4, 
-          editable: false, 
-          fixedWeekCount: false, // ไม่ต้องโชว์แถวว่างท้ายเดือน
-          
-          events: tasks.map(t => {
-              const type = t[2] || 'Other';
-              const status = t[5];
-              const isDone = status === 'Done';
-              const colorCode = typeColors[type] || typeColors['Other'];
-              
-              return { 
-                  id: t[0], 
-                  title: t[3], 
-                  start: t[7] || new Date(),
-                  // เก็บค่าสีไว้ใช้ใน extendedProps แทน backgroundColor เดิม
-                  extendedProps: { 
-                      type: type,
-                      status: status,
-                      color: colorCode,
-                      isDone: isDone
-                  } 
-              };
-          }), 
-          
-          eventClick: function(info) { openTaskView(info.event.id); }, 
-          
-          // 3. Custom Render แบบ Formal (การ์ดขาว มีแถบสีซ้าย)
-          eventContent: function(arg) { 
-              const props = arg.event.extendedProps;
-              const color = props.color;
-              
-              // ไอคอนสถานะ (ถ้าเสร็จแล้วขึ้นติ๊กถูก ถ้าแก้ขึ้นตกใจ)
-              let statusIcon = '';
-              let opacityClass = '';
-              let decorationClass = '';
+      tasks.forEach(t => {
+          let s = t[5];
+          if(s === 'To Do' || s === 'Pending') columns['Pending'].items.push(t);
+          else if(s === 'Revise') columns['Revise'].items.push(t);
+          else if(s === 'Done') columns['Done'].items.push(t);
+          else columns['In Progress'].items.push(t);
+      });
 
-              if (props.status === 'Done') {
-                  statusIcon = '<i class="fas fa-check-circle text-success ms-1" style="font-size:0.7rem;"></i>';
-                  opacityClass = 'opacity-50'; // จางลงเมื่อเสร็จ
-                  decorationClass = 'text-decoration-line-through text-muted';
-              } else if (props.status === 'Revise') {
-                  statusIcon = '<i class="fas fa-exclamation-circle text-warning ms-1"></i>';
-              }
-
-              return { 
-                  html: `
-                  <div class="formal-event-card ${opacityClass}" style="border-left-color: ${color};">
-                      <div class="event-title ${decorationClass}">
-                          ${arg.event.title}
-                      </div>
-                      <div>${statusIcon}</div>
-                  </div>` 
-              }; 
-          } 
-      }); 
-      setTimeout(() => calendarInstance.render(), 100); 
+      let html = '';
+      for (const [key, col] of Object.entries(columns)) {
+          let statusValue = key === 'In Progress' ? 'In Progress' : (key === 'Pending' ? 'Pending' : key);
+          let cardsHtml = '';
+          col.items.forEach(t => {
+              let showType = t[14] || t[2];
+              let cardBorderClass = key === 'Revise' ? 'border-danger border-2' : '';
+              cardsHtml += `
+              <div class="kanban-card ${cardBorderClass}" draggable="true" id="card-${t[0]}" ondragstart="drag(event)" onclick="openTaskView('${t[0]}')">
+                  <div class="d-flex justify-content-between mb-2">
+                      <span class="badge bg-light text-dark border fw-normal" style="font-size:0.65rem;">${showType}</span>
+                      ${t[9] ? '<i class="fas fa-paperclip text-muted small"></i>' : ''}
+                  </div>
+                  <div class="fw-bold mb-3 text-dark" style="font-size:0.9rem; line-height:1.4;">${t[3]}</div>
+                  <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+                      <div class="d-flex align-items-center text-muted small"><i class="fas fa-user-circle me-1"></i> ${t[4].split(' ')[0]}</div>
+                      <div class="${t[7] && new Date(t[7]) < new Date() ? 'text-danger fw-bold' : 'text-muted'} small">${t[7] || ''}</div>
+                  </div>
+              </div>`;
+          });
+          html += `<div class="kanban-col" ondrop="drop(event, '${statusValue}')" ondragover="allowDrop(event)">
+              <div class="kanban-header" style="border-top: 3px solid ${col.color};">
+                  <span class="fw-bold" style="color:${col.color}">${col.title}</span>
+                  <span class="badge rounded-pill bg-secondary ms-1">${col.items.length}</span>
+              </div>
+              ${cardsHtml}
+          </div>`;
+      }
+      board.innerHTML = html;
   }
 
-  function renderSummaryView(tasks) { 
-      const statusCounts = {}; const typeCounts = {}; 
-      tasks.forEach(t => { statusCounts[t[5]] = (statusCounts[t[5]]||0)+1; typeCounts[t[2]] = (typeCounts[t[2]]||0)+1; }); 
-      
-      if(chartStatusInstance) chartStatusInstance.destroy(); 
-      chartStatusInstance = new Chart(document.getElementById('detailChartStatus'), { type: 'doughnut', data: { labels: Object.keys(statusCounts), datasets: [{ data: Object.values(statusCounts), backgroundColor: ['#0d6efd','#198754','#ffc107','#6c757d'] }] }, options: { responsive: true, maintainAspectRatio: false } }); 
-      
-      if(chartTypeInstance) chartTypeInstance.destroy(); 
-      chartTypeInstance = new Chart(document.getElementById('detailChartType'), { type: 'bar', data: { labels: Object.keys(typeCounts), datasets: [{ label: 'Tasks', data: Object.values(typeCounts), backgroundColor: '#0d6efd' }] }, options: { responsive: true, maintainAspectRatio: false } }); 
-      
-      let w = {}; 
-      tasks.forEach(t => { let u = t[4]||'Unassigned'; if(!w[u]) w[u] = {total:0, done:0}; w[u].total++; if(t[5]==='Done') w[u].done++; }); 
-      let html = ''; 
-      for(let u in w) { let p = Math.round((w[u].done/w[u].total)*100); html += `<tr><td class="ps-2">${u}</td><td class="text-center">${w[u].done}/${w[u].total}</td><td class="pe-2"><div class="progress" style="height:6px"><div class="progress-bar bg-primary" style="width:${p}%"></div></div></td></tr>`; } 
-      document.getElementById('detail-workload-list').innerHTML = html; 
-  }
-
-  // Drag & Drop
-  function allowDrop(ev) { ev.preventDefault(); } 
-  function drag(ev) { ev.dataTransfer.setData("text", ev.target.id); } 
-  function drop(ev, newStatus) { 
-      ev.preventDefault(); var data = ev.dataTransfer.getData("text"); var taskId = data.replace("card-", ""); 
-      google.script.run.withSuccessHandler(() => { 
-          const t = globalData.tasks.find(x => x[0] === taskId); if(t) t[5] = newStatus; 
-          const tasks = globalData.tasks.filter(x => x[1] === currentProjectId); 
-          renderKanbanView(tasks); renderListView(tasks); renderSummaryView(tasks); renderCalendarView(tasks); 
-          sendSystemMessage(`🔄 Status Updated: "${t[3]}" → ${newStatus}`); 
-      }).updateTaskProgress(taskId, newStatus, 0); 
-  }
-
-
-   
-let currentContentDate = new Date(); // เก็บเดือนปัจจุบันที่แสดงอยู่
-
-// ฟังก์ชันเปลี่ยนเดือน (Previous / Next)
-function changeContentMonth(offset) {
+  // --- Content Plan Calendar Render ---
+  function changeContentMonth(offset) {
     currentContentDate.setMonth(currentContentDate.getMonth() + offset);
-    renderContentPlanView(); // วาดตารางใหม่
-}
+    renderContentPlanView(); 
+  }
 
-function renderContentPlanView() {
+  function renderContentPlanView() {
     const container = document.getElementById('detail-view-content');
     const year = currentContentDate.getFullYear();
     const month = currentContentDate.getMonth();
     const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-    
-    // ดึง Task เฉพาะ Project นี้
     const tasks = globalData.tasks.filter(t => t[1] === currentProjectId);
 
-    // ... (ส่วน HTML Header คงเดิม) ...
     let html = `
     <div class="p-4" style="background-color: #f1f5f9; min-height: 100vh;">
         <div class="d-flex justify-content-between align-items-center mb-3">
@@ -2377,310 +2160,637 @@ function renderContentPlanView() {
     let currentDay = 1;
     let weekCount = 0;
     
-    while (currentDay <= daysInMonth) {
-        let weekDays = [];
-        let weekDates = []; 
-
-        for (let i = 0; i < 7; i++) {
-            if ((weekCount === 0 && i < firstDayOfMonth) || currentDay > daysInMonth) {
-                weekDays.push(null);
-                weekDates.push(null);
-            } else {
-                weekDays.push(currentDay);
-                let dStr = year + '-' + String(month+1).padStart(2,'0') + '-' + String(currentDay).padStart(2,'0');
-                weekDates.push(dStr);
-                currentDay++;
+    const getTask = (dateStr) => { if(!dateStr) return null; return tasks.find(t => t[7] === dateStr); };
+    const createCell = (dateStr, fieldType, task) => {
+        if (!dateStr) return ''; 
+        let content = '';
+        let clickAction = task ? `onclick="openContentModal('${dateStr}', '${task[0]}')"` : `onclick="openContentModal('${dateStr}')"`;
+        
+        if (task) {
+            if (fieldType === 'pillar') {
+                let val = task[13] || '-'; let badgeClass = 'badge-pillar-default'; let vLower = val.toString().toLowerCase();
+                if(vLower.includes('awareness')) badgeClass = 'badge-pillar-awareness';
+                else if(vLower.includes('consideration')) badgeClass = 'badge-pillar-consideration';
+                else if(vLower.includes('conversion') || vLower.includes('sale')) badgeClass = 'badge-pillar-conversion';
+                else if(vLower.includes('real-time')) badgeClass = 'badge-pillar-realtime';
+                else if(vLower.includes('engagement')) badgeClass = 'badge-pillar-engagement';
+                content = `<div class="text-center"><span class="pillar-badge ${badgeClass}">${val}</span></div>`;
             }
+            else if (fieldType === 'media') {
+                let val = task[14] || '-'; let icon = 'fa-image'; let colorClass = 'badge-media-single'; let vLower = val.toString().toLowerCase();
+                if(vLower.includes('video') || vLower.includes('reels')) { icon = 'fa-video'; colorClass = 'badge-media-video'; }
+                else if(vLower.includes('carousel') || vLower.includes('album')) { icon = 'fa-images'; colorClass = 'badge-media-album'; }
+                content = `<div class="text-center"><span class="badge-media ${colorClass}"><i class="fas ${icon}"></i> ${val}</span></div>`;
+            }
+            else if (fieldType === 'idea') {
+                let taskName = task[3] || 'No Title'; let assignee = task[4] || 'Unassigned';
+                content = `<div class="text-dark small fw-bold" style="white-space: pre-wrap; line-height:1.3; font-size:0.8rem;">${taskName}</div>`;
+                if (task[9]) content += `<div class="mt-1"><a href="${task[9]}" target="_blank" class="badge bg-light text-primary border text-decoration-none" onclick="event.stopPropagation();"><i class="fas fa-paperclip me-1"></i> รูปภาพ/ไฟล์</a></div>`;
+                if(assignee !== 'Unassigned') content += `<div class="text-secondary mt-1" style="font-size:0.7rem;"><i class="fas fa-user-circle text-primary me-1"></i>${assignee}</div>`;
+            }
+            else if (fieldType === 'remark') {
+                  let val = task[15] || ''; 
+                  if(val.includes('http')) content = `<a href="${val}" target="_blank" class="text-primary text-decoration-none"><i class="fas fa-link me-1"></i>Open Link</a>`;
+                  else content = `<span class="text-muted small">${val}</span>`;
+            }
+        } else {
+            content = `<div class="text-light text-center small opacity-25 h-100 d-flex align-items-center justify-content-center"><i class="fas fa-plus"></i></div>`;
         }
+        return `<div class="w-100 h-100 p-1" style="cursor:pointer; min-height:100%;" ${clickAction}>${content}</div>`;
+    };
 
-        const getTask = (dateStr) => {
-             if(!dateStr) return null;
-             return tasks.find(t => t[7] === dateStr);
-        };
-
-        const createCell = (dateStr, fieldType, task) => {
-            if (!dateStr) return ''; 
-            
-            let content = '';
-            // คลิกเพื่อแก้ไข
-            let clickAction = task ? `onclick="openContentModal('${dateStr}', '${task[0]}')"` : `onclick="openContentModal('${dateStr}')"`;
-            
-            if (task) {
-                // ✅ 1. ส่วน Pillar (ดึงจาก Col 12)
-                if (fieldType === 'pillar') {
-                    let val = task[13] || '-'; // Content_Pillar
-                    
-                    // เลือกสี Badge ตามชื่อ Pillar
-                    let badgeClass = 'badge-pillar-default';
-                    let vLower = val.toString().toLowerCase();
-                    if(vLower.includes('awareness')) badgeClass = 'badge-pillar-awareness';
-                    else if(vLower.includes('consideration')) badgeClass = 'badge-pillar-consideration';
-                    else if(vLower.includes('conversion') || vLower.includes('sale')) badgeClass = 'badge-pillar-conversion';
-                    else if(vLower.includes('real-time') || vLower.includes('realtime')) badgeClass = 'badge-pillar-realtime';
-                    else if(vLower.includes('engagement')) badgeClass = 'badge-pillar-engagement';
-                    
-                    content = `<div class="text-center"><span class="pillar-badge ${badgeClass}">${val}</span></div>`;
-                }
-                // ✅ 2. ส่วน Media Type (ดึงจาก Col 13)
-                else if (fieldType === 'media') {
-                    let val = task[14] || '-'; // Media_Type
-                    
-                    // เลือก Icon และสี
-                    let icon = 'fa-image';
-                    let colorClass = 'badge-media-single';
-                    let vLower = val.toString().toLowerCase();
-
-                    if(vLower.includes('video') || vLower.includes('reels')) { icon = 'fa-video'; colorClass = 'badge-media-video'; }
-                    else if(vLower.includes('carousel') || vLower.includes('album')) { icon = 'fa-images'; colorClass = 'badge-media-album'; }
-                    
-                    content = `<div class="text-center"><span class="badge-media ${colorClass}"><i class="fas ${icon}"></i> ${val}</span></div>`;
-                }
-                // ✅ 3. ส่วน Idea (Task Name [3] + Assignee [4])
-                else if (fieldType === 'idea') {
-                    let taskName = task[3] || 'No Title';
-                    let assignee = task[4] || 'Unassigned';
-                    
-                    content = `<div class="text-dark small fw-bold" style="white-space: pre-wrap; line-height:1.3; font-size:0.8rem;">${taskName}</div>`;
-                    if(assignee !== 'Unassigned') {
-                        // ตัดคำว่า (Admin) ออกถ้าอยากให้สั้นลง หรือโชว์เต็มก็ได้
-                        content += `<div class="text-secondary mt-1" style="font-size:0.7rem;">
-                            <i class="fas fa-user-circle text-primary me-1"></i>${assignee}
-                        </div>`;
-                    }
-                }
-                // ✅ 4. ส่วน Remark (ดึงจาก Col 14)
-                else if (fieldType === 'remark') {
-                      let val = task[15] || ''; 
-                      if(val.includes('http')) content = `<a href="${val}" target="_blank" class="text-primary text-decoration-none"><i class="fas fa-link me-1"></i>Open Link</a>`;
-                      else content = `<span class="text-muted small">${val}</span>`;
-                }
-            } else {
-                // ช่องว่าง แสดงปุ่มบวกจางๆ
-                content = `<div class="text-light text-center small opacity-25 h-100 d-flex align-items-center justify-content-center"><i class="fas fa-plus"></i></div>`;
-            }
-            return `<div class="w-100 h-100 p-1" style="cursor:pointer; min-height:100%;" ${clickAction}>${content}</div>`;
-        };
-
-        // Render Row Headers & Cells (คงเดิม)
-        html += `<tr class="row-date"><td class="cal-label-col">DATE</td>`;
-        weekDays.forEach((day, idx) => html += `<td class="${day?'has-date':''}">${day || ''}</td>`);
-        html += `</tr>`;
-
-        html += `<tr><td class="cal-label-col">Pillar</td>`;
-        weekDays.forEach((day, idx) => html += `<td class="cell-data p-0">${createCell(weekDates[idx], 'pillar', getTask(weekDates[idx]))}</td>`);
-        html += `</tr>`;
-
-        html += `<tr><td class="cal-label-col">Media Type</td>`;
-        weekDays.forEach((day, idx) => html += `<td class="cell-data p-0">${createCell(weekDates[idx], 'media', getTask(weekDates[idx]))}</td>`);
-        html += `</tr>`;
-
-        html += `<tr><td class="cal-label-col">Ideas / Assignee</td>`; // เปลี่ยนชื่อ Label ให้ตรงกับข้อมูล
-        weekDays.forEach((day, idx) => html += `<td class="cell-data p-0" style="height:80px; vertical-align:top;">${createCell(weekDates[idx], 'idea', getTask(weekDates[idx]))}</td>`);
-        html += `</tr>`;
-
-        html += `<tr class="week-divider"><td class="cal-label-col">Remark</td>`;
-        weekDays.forEach((day, idx) => html += `<td class="cell-data p-0">${createCell(weekDates[idx], 'remark', getTask(weekDates[idx]))}</td>`);
-        html += `</tr>`;
-
+    while (currentDay <= daysInMonth) {
+        let weekDays = []; let weekDates = []; 
+        for (let i = 0; i < 7; i++) {
+            if ((weekCount === 0 && i < firstDayOfMonth) || currentDay > daysInMonth) { weekDays.push(null); weekDates.push(null); } 
+            else { weekDays.push(currentDay); weekDates.push(year + '-' + String(month+1).padStart(2,'0') + '-' + String(currentDay).padStart(2,'0')); currentDay++; }
+        }
+        html += `<tr class="row-date"><td class="cal-label-col">DATE</td>`; weekDays.forEach((day, idx) => html += `<td class="${day?'has-date':''}">${day || ''}</td>`); html += `</tr>`;
+        html += `<tr><td class="cal-label-col">Pillar</td>`; weekDays.forEach((day, idx) => html += `<td class="cell-data p-0">${createCell(weekDates[idx], 'pillar', getTask(weekDates[idx]))}</td>`); html += `</tr>`;
+        html += `<tr><td class="cal-label-col">Media Type</td>`; weekDays.forEach((day, idx) => html += `<td class="cell-data p-0">${createCell(weekDates[idx], 'media', getTask(weekDates[idx]))}</td>`); html += `</tr>`;
+        html += `<tr><td class="cal-label-col">Ideas / Assignee</td>`; weekDays.forEach((day, idx) => html += `<td class="cell-data p-0" style="height:80px; vertical-align:top;">${createCell(weekDates[idx], 'idea', getTask(weekDates[idx]))}</td>`); html += `</tr>`;
+        html += `<tr class="week-divider"><td class="cal-label-col">Remark</td>`; weekDays.forEach((day, idx) => html += `<td class="cell-data p-0">${createCell(weekDates[idx], 'remark', getTask(weekDates[idx]))}</td>`); html += `</tr>`;
         weekCount++;
     }
-
     html += `</tbody></table></div></div>`;
     container.innerHTML = html;
-}
-  // ---------------------------------------------------------------
-  // 2. แก้ไขฟังก์ชัน switchView (รวมอยู่ในไฟล์เดียวกันแล้ว)
-  // ---------------------------------------------------------------
-  function switchView(viewName) {
-      // ซ่อนทุก View
-      document.getElementById('view-list').style.display = 'none';
-      document.getElementById('view-board').style.display = 'none';
-      document.getElementById('view-calendar').style.display = 'none';
-      
-      const contentDiv = document.getElementById('view-content');
-      if(contentDiv) contentDiv.style.display = 'none';
-
-      // ปรับ Active Class (รองรับทั้ง nav-link และ btn)
-      document.querySelectorAll('.nav-link, .btn-group-nav .btn').forEach(el => el.classList.remove('active'));
-      
-      // หาปุ่มที่กดแล้วใส่ Active
-      const activeEl = document.getElementById(`btn-view-${viewName}`);
-      if(activeEl) activeEl.classList.add('active');
-
-      // แสดง View ที่เลือก
-      if (viewName === 'list') {
-          document.getElementById('view-list').style.display = 'block';
-      } else if (viewName === 'board') {
-          document.getElementById('view-board').style.display = 'block';
-          renderKanbanView(globalData.tasks.filter(t => t[1] === currentProjectId));
-      } else if (viewName === 'calendar') {
-          document.getElementById('view-calendar').style.display = 'flex';
-          renderCalendarView(globalData.tasks.filter(t => t[1] === currentProjectId));
-      } else if (viewName === 'content') {
-          // ✅ แสดง Content Plan (ที่อยู่ในไฟล์เดียวกัน)
-          if(contentDiv) {
-              contentDiv.style.display = 'block';
-              renderContentPlanView(); 
-          }
-      }
   }
 
+  function renderCalendarView(tasks) { 
+      const calendarEl = document.getElementById('task-calendar'); 
+      if (!calendarEl) return;
+      if (typeof FullCalendar === 'undefined') { calendarEl.innerHTML = '<div class="alert alert-danger p-2 small">Calendar Error</div>'; return; }
+      if (calendarInstance) calendarInstance.destroy(); 
+      
+      const typeColors = { 'Content': '#0d6efd', 'Graphic': '#6f42c1', 'VDO': '#dc3545', 'Web': '#198754', 'Ads': '#fd7e14', 'Admin': '#6c757d', 'Other': '#adb5bd' };
 
-  // --- แก้ไขฟังก์ชัน openContentModal ใน <script> ---
+      calendarInstance = new FullCalendar.Calendar(calendarEl, { 
+          initialView: 'dayGridMonth', themeSystem: 'standard', 
+          headerToolbar: { left: 'title', right: 'today prev,next' }, 
+          height: '100%', contentHeight: 'auto', dayMaxEvents: 4, editable: false, fixedWeekCount: false, 
+          
+          events: tasks.map(t => {
+              const type = t[2] || 'Other'; const status = t[5]; const isDone = status === 'Done'; const colorCode = typeColors[type] || typeColors['Other'];
+              return { id: t[0], title: t[3], start: t[7] || new Date(), extendedProps: { type: type, status: status, color: colorCode, isDone: isDone } };
+          }), 
+          eventClick: function(info) { openTaskView(info.event.id); }, 
+          eventContent: function(arg) { 
+              const props = arg.event.extendedProps;
+              let statusIcon = ''; let opacityClass = ''; let decorationClass = '';
+              if (props.status === 'Done') { statusIcon = '<i class="fas fa-check-circle text-success ms-1" style="font-size:0.7rem;"></i>'; opacityClass = 'opacity-50'; decorationClass = 'text-decoration-line-through text-muted'; } 
+              else if (props.status === 'Revise') { statusIcon = '<i class="fas fa-exclamation-circle text-warning ms-1"></i>'; }
+              return { html: `<div class="formal-event-card ${opacityClass}" style="border-left-color: ${props.color};"><div class="event-title ${decorationClass}">${arg.event.title}</div><div>${statusIcon}</div></div>` }; 
+          } 
+      }); 
+      setTimeout(() => calendarInstance.render(), 100); 
+  }
 
-// --------------------------------------------------------
-// 📌 แก้ไขฟังก์ชัน openContentModal (ทับของเดิมได้เลย)
-// --------------------------------------------------------
-// --------------------------------------------------------
-// 📌 แก้ไขฟังก์ชัน openContentModal (ฉบับแก้ไข Assignee & Media Type)
-// --------------------------------------------------------
-function openContentModal(dateStr, taskId = null) {
-    if(!dateStr) return;
-    
-    // 1. Reset Form
-    document.getElementById('content-form').reset();
-    document.getElementById('content-date').value = dateStr;
-    document.getElementById('content-task-id').value = taskId || '';
-    
-    let d = new Date(dateStr);
-    document.getElementById('content-date-display').innerText = d.toLocaleDateString('th-TH', {day:'numeric', month:'long', year:'numeric'});
+  function renderSummaryView(tasks) { 
+      const statusCounts = {}; const typeCounts = {}; 
+      tasks.forEach(t => { statusCounts[t[5]] = (statusCounts[t[5]]||0)+1; typeCounts[t[2]] = (typeCounts[t[2]]||0)+1; }); 
+      
+      if(chartStatusInstance) chartStatusInstance.destroy(); 
+      chartStatusInstance = new Chart(document.getElementById('detailChartStatus'), { type: 'doughnut', data: { labels: Object.keys(statusCounts), datasets: [{ data: Object.values(statusCounts), backgroundColor: ['#0d6efd','#198754','#ffc107','#6c757d'] }] }, options: { responsive: true, maintainAspectRatio: false } }); 
+      
+      if(chartTypeInstance) chartTypeInstance.destroy(); 
+      chartTypeInstance = new Chart(document.getElementById('detailChartType'), { type: 'bar', data: { labels: Object.keys(typeCounts), datasets: [{ label: 'Tasks', data: Object.values(typeCounts), backgroundColor: '#0d6efd' }] }, options: { responsive: true, maintainAspectRatio: false } }); 
+      
+      let w = {}; 
+      tasks.forEach(t => { let u = t[4]||'Unassigned'; if(!w[u]) w[u] = {total:0, done:0}; w[u].total++; if(t[5]==='Done') w[u].done++; }); 
+      let html = ''; 
+      for(let u in w) { let p = Math.round((w[u].done/w[u].total)*100); html += `<tr><td class="ps-2">${u}</td><td class="text-center">${w[u].done}/${w[u].total}</td><td class="pe-2"><div class="progress" style="height:6px"><div class="progress-bar bg-primary" style="width:${p}%"></div></div></td></tr>`; } 
+      document.getElementById('detail-workload-list').innerHTML = html; 
+  }
 
-    // ==========================================================
-    // 🟡 จุดแก้ที่ 1: ตั้งค่า Value ให้เป็น "ชื่อ (ตำแหน่ง)" เหมือนกับ Text
-    // ==========================================================
-    const assigneeSelect = document.getElementById('content-assignee');
-    assigneeSelect.innerHTML = '<option value="Unassigned">-- Select Assignee --</option>';
+  // ==========================================
+  // 5. WORKFLOW & REVISE LOGIC
+  // ==========================================
+
+  function openTaskView(taskId) {
+    const t = globalData.tasks.find(x => x[0] === taskId); if (!t) return;
     
-    if(globalData.allUsers) {
-         globalData.allUsers.forEach(u => {
-             const userName = u.name || u;
-             const userRole = u.role || "";
-             // สร้างข้อความรูปแบบ "ชื่อ (ตำแหน่ง)"
-             const fullText = userRole ? `${userName} (${userRole})` : userName; 
-             
-             const opt = document.createElement('option');
-             opt.value = fullText; // ✅ บังคับให้ Value เป็น "กิ๊ฟ (Admin)" ให้ตรงกับฐานข้อมูล
-             opt.text = fullText;  // ✅ Text ก็แสดง "กิ๊ฟ (Admin)"
-             assigneeSelect.appendChild(opt);
-         });
+    // ✅ ประกาศตัวแปร taskType ไว้ตรงนี้ (เพื่อแก้ Error)
+    let taskType = t[2]; 
+
+    // 1. Basic Info
+    document.getElementById('view-task-id').innerText = t[0];
+    document.getElementById('view-task-name-full').innerText = t[3];
+    document.getElementById('view-task-assignee').innerText = t[4] || 'Unassigned';
+    document.getElementById('view-task-due').innerText = t[7] || '-';
+
+    // 2. Status Badge
+    const sBadge = document.getElementById('view-task-status-badge');
+    sBadge.innerText = t[5]; 
+    sBadge.className = `badge ${t[5]==='Done'?'bg-success':(t[5]==='In Progress'?'bg-primary':(t[5]==='Revise'?'bg-danger':'bg-secondary'))}`;
+
+    // 3. Type Logic
+    const typeBadge = document.getElementById('view-task-type');
+    let showType = t[14] || taskType; // ใช้ taskType ที่ประกาศไว้
+    
+    typeBadge.innerText = showType;
+    if (t[14]) { 
+        typeBadge.className = 'badge bg-white text-primary border border-primary fw-normal'; 
+        typeBadge.innerHTML = `<i class="fas fa-photo-video me-1"></i> ${t[14]}`; 
+    } else { 
+        typeBadge.className = 'badge bg-white text-secondary border fw-normal'; 
+        typeBadge.innerText = taskType; 
     }
 
-    // 2. ดึงข้อมูลมาใส่ (กรณีแก้ไข)
-    if(taskId) {
-        const ideaInput = document.getElementById('content-idea');
-        ideaInput.disabled = true;
-        ideaInput.value = "กำลังโหลดข้อมูล...";
+    // 4. Pillar Badge
+    const pillarBadge = document.getElementById('view-task-pillar');
+    if (t[13]) { pillarBadge.style.display = 'inline-block'; pillarBadge.innerText = t[13]; } else { pillarBadge.style.display = 'none'; }
 
-        google.script.run.withSuccessHandler(function(task) {
-            ideaInput.disabled = false;
+    // 5. Remark
+    const remarkContainer = document.getElementById('view-task-remark-container');
+    const remarkContent = document.getElementById('view-task-remark');
+    if (t[15]) { 
+        remarkContainer.style.display = 'block'; 
+        remarkContent.innerHTML = t[15].startsWith('http') ? `<a href="${t[15]}" target="_blank" class="text-break text-decoration-none"><i class="fas fa-external-link-alt me-1"></i> ${t[15]}</a>` : t[15];
+    } else { remarkContainer.style.display = 'none'; }
 
-            if(task) {
-                // [3] Task Name / Idea
-                ideaInput.value = task[3] || ''; 
-                
-                // ======================================================
-                // 🟡 จุดแก้ที่ 2: Assignee (ระบบเติมชื่อกันพลาด)
-                // ======================================================
-                let currentAssignee = task[4]; 
-                if(currentAssignee && currentAssignee !== 'Unassigned') {
-                    // เช็คว่ามีค่านี้ใน Dropdown ไหม (ต้องตรงกันทั้งตัวอักษร)
-                    let exists = Array.from(assigneeSelect.options).some(opt => opt.value === currentAssignee);
-                    
-                    if (!exists) {
-                        // ถ้าหาไม่เจอ ให้สร้างตัวเลือกใหม่ยัดเข้าไปเลย
-                        const opt = document.createElement('option');
-                        opt.value = currentAssignee;
-                        opt.text = currentAssignee;
-                        assigneeSelect.appendChild(opt);
-                    }
-                    assigneeSelect.value = currentAssignee; // เลือกได้แน่นอน 100%
-                } else {
-                    assigneeSelect.value = "Unassigned";
-                }
-                
-                // ======================================================
-                // 🟡 จุดแก้ที่ 3: ปรับ Index ให้ตรงกับ code.gs (ที่มีการเว้นช่องว่าง Col L)
-                // ======================================================
-                // Col L (Index 11) = ว่าง
-                // Col M (Index 12) = Workflow JSON
-                // Col N (Index 13) = Pillar 
-                // Col O (Index 14) = Media Type
-                // Col P (Index 15) = Remark
-                
-                document.getElementById('content-pillar').value = task[13] || ''; // Index 13
-                document.getElementById('content-media').value = task[14] || '';  // Index 14 (Media Type)
-                document.getElementById('content-remark').value = task[15] || ''; // Index 15
+    // 6. Attachments (File Upload) - แก้ไข position-relative แล้ว
+    const resDiv = document.getElementById('view-task-resources');
+    resDiv.innerHTML = ''; 
 
-            } else {
-                ideaInput.value = "";
-                alert("ไม่พบข้อมูลงานนี้");
-            }
-        }).getTaskById(taskId);
-    }
-    
-    new bootstrap.Modal(document.getElementById('contentTaskModal')).show();
-}
-// ฟังก์ชันบันทึกข้อมูล (Save)
-function saveContentTask() {
-    const taskId = document.getElementById('content-task-id').value;
-    const dateStr = document.getElementById('content-date').value;
-    
-    const data = {
-        taskId: taskId,
-        projectId: currentProjectId,
-        dueDate: dateStr,
-        taskName: document.getElementById('content-idea').value, 
-        assignee: document.getElementById('content-assignee').value, // ✅ ส่งค่า Assignee
-        pillar: document.getElementById('content-pillar').value,
-        mediaType: document.getElementById('content-media').value,
-        remark: document.getElementById('content-remark').value,
-        taskType: 'Content', 
-        status: 'To Do' 
-    };
-    
-    const fileInput = document.getElementById('content-file');
-    const file = fileInput.files[0];
-    
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            submitToBackend(data, { name: file.name, mimeType: file.type, data: e.target.result.split(',')[1] });
-        };
-        reader.readAsDataURL(file);
+    if (t[9]) { 
+        resDiv.innerHTML = `
+        <div class="d-flex align-items-center p-2 border rounded bg-white position-relative">
+            <div class="me-3 bg-light rounded-circle d-flex align-items-center justify-content-center" style="width:40px; height:40px;">
+                <i class="fas fa-file-download text-primary"></i>
+            </div>
+            <div style="overflow:hidden;">
+                <div class="fw-bold text-dark text-truncate" style="max-width:200px;">
+                    ${t[10] || 'Attached File'}
+                </div>
+                <a href="${t[9]}" target="_blank" class="small text-primary text-decoration-none stretched-link">
+                    Click to View/Download
+                </a>
+            </div>
+        </div>`;
     } else {
-        submitToBackend(data, null);
+        resDiv.innerHTML = '<div class="text-muted small fst-italic ps-2">- No Attachments -</div>';
     }
+
+    // 7. Workflow
+    renderWorkflowInModal(taskId);
+
+    // 8. Actions Button (Revise & Edit Content)
+    // 8. Actions Button (จัดการปุ่มกดด้านล่าง)
+    const actionsDiv = document.getElementById('view-task-actions');
+    let buttonsHtml = '';
+
+    // ✅ เช็คเงื่อนไข: แสดงปุ่ม "สั่งแก้" เฉพาะเมื่อสถานะเป็น "Done" เท่านั้น
+    if (t[5] === 'Done') {
+        buttonsHtml += `
+            <button class="btn btn-warning btn-sm rounded-pill px-3 me-2 text-dark fw-bold shadow-sm" 
+                onclick="bootstrap.Modal.getInstance(document.getElementById('viewTaskModal')).hide(); openReviseModal('${t[0]}', '${t[3]}')">
+                <i class="fas fa-undo-alt me-1"></i> สั่งแก้ (Revise)
+            </button>
+        `;
+    }
+
+    // ปุ่มแก้ไข Content (แสดงเฉพาะ Type Content และไม่ใช่สถานะ Done หรือ Revise ก็ได้ แล้วแต่ Workflow)
+    if (taskType === 'Content') {
+        buttonsHtml += `
+            <button class="btn btn-primary btn-sm rounded-pill px-3 shadow-sm" 
+                onclick="bootstrap.Modal.getInstance(document.getElementById('viewTaskModal')).hide(); openContentModal('${t[7]}', '${taskId}')">
+                <i class="fas fa-edit me-1"></i> Edit Content
+            </button>
+        `;
+    }
+
+    actionsDiv.innerHTML = buttonsHtml;
+
+    new bootstrap.Modal(document.getElementById('viewTaskModal')).show();
 }
 
-function submitToBackend(data, filePayload) {
-    const btn = event.target; 
+// --- ฟังก์ชันสำหรับระบบ Revise (ที่หายไป) ---
+
+function openReviseModal(taskId, taskName) { 
+      document.getElementById('revise-task-id').value = taskId; 
+      document.getElementById('revise-task-name').value = taskName; 
+      document.getElementById('revise-task-display-name').innerText = taskName;
+
+      // สร้างตัวเลือกขั้นตอน (Step) ลงใน Dropdown
+      const t = globalData.tasks.find(x => x[0] === taskId);
+      const stepSelect = document.getElementById('revise-step-select');
+      stepSelect.innerHTML = '';
+      
+      let steps = [];
+      try { steps = t[12] ? JSON.parse(t[12]) : []; } catch(e) {}
+      
+      if(steps.length > 0) {
+          steps.forEach((step, index) => {
+              const opt = document.createElement('option');
+              opt.value = index;
+              opt.text = `${index+1}. ${step.name} (${step.assignee || 'Unassigned'})`;
+              stepSelect.appendChild(opt);
+          });
+          // เลือกขั้นตอนล่าสุดที่ทำเสร็จไปแล้ว
+          const lastDone = steps.map(s => s.status).lastIndexOf('done');
+          if(lastDone !== -1) stepSelect.value = lastDone;
+      } else {
+          stepSelect.innerHTML = '<option value="-1">-- ไม่มีขั้นตอนระบุ --</option>';
+      }
+
+      // Reset Form
+      document.getElementById('revise-reason').value = '';
+      document.getElementById('revise-link').value = '';
+      document.getElementById('revise-file').value = '';
+
+      const today = new Date(); today.setDate(today.getDate()+1); 
+      document.getElementById('revise-due-date').value = today.toISOString().split('T')[0]; 
+      
+      new bootstrap.Modal(document.getElementById('reviseModal')).show(); 
+  }
+
+  function submitRevise() { 
+      const tid = document.getElementById('revise-task-id').value; 
+      const tName = document.getElementById('revise-task-name').value; 
+      const stepIndex = document.getElementById('revise-step-select').value;
+      const reason = document.getElementById('revise-reason').value; 
+      const link = document.getElementById('revise-link').value; 
+      const newDueDate = document.getElementById('revise-due-date').value; 
+      const fileInput = document.getElementById('revise-file').files[0]; 
+      
+      if(!reason) return alert('กรุณาระบุเหตุผลการแก้ไข'); 
+      
+      const btn = event.target; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> บันทึก...'; btn.disabled = true; 
+      
+      let msg = `🔥 สั่งแก้: "${tName}"\n📌 ขั้นตอน: ${document.getElementById('revise-step-select').options[document.getElementById('revise-step-select').selectedIndex].text}\n📅 ส่งภายใน: ${newDueDate}\n📝 เหตุผล: ${reason}`; 
+      if(link) msg += `\n🔗 ลิงก์: ${link}`; 
+      
+      const me = globalData.currentUser.name; 
+      const fileData = fileInput ? {name:fileInput.name, mimeType:fileInput.type} : null; 
+      
+      const exec = (fData) => { 
+          google.script.run.withSuccessHandler((res) => { 
+              if(res.fileUrl) msg += `\n📂 ไฟล์แนบ: ${res.fileName}`; 
+              
+              google.script.run.withSuccessHandler(() => { 
+                  const t = globalData.tasks.find(x => x[0] === tid); 
+                  if(t){ 
+                      t[5] = 'Revise'; 
+                      if(newDueDate) t[7] = newDueDate; 
+                      if(link) t[8] = link;
+                      if(res.fileUrl){ t[9] = res.fileUrl; t[10] = res.fileName; } 
+                      if(res.updatedWorkflow) t[12] = res.updatedWorkflow;
+                      if(res.newAssignee) t[4] = res.newAssignee;
+                  } 
+                  
+                  if (currentProjectId) {
+                      const projectTasks = globalData.tasks.filter(t => t[1] === currentProjectId);
+                      renderListView(projectTasks); 
+                      renderKanbanView(projectTasks); 
+                      renderTimeline(currentProjectId); 
+                  }
+                  
+                  bootstrap.Modal.getInstance(document.getElementById('reviseModal')).hide(); 
+                  alert('สั่งแก้ไขงานเรียบร้อยแล้ว'); 
+                  btn.innerHTML = 'ยืนยันสั่งแก้'; btn.disabled = false; 
+              }).postProjectUpdate(currentProjectId, msg, me, null); 
+          }).updateTaskRevision(tid, newDueDate, link, fData, stepIndex); 
+      }; 
+      
+      if(fileInput){ 
+          const r = new FileReader(); 
+          r.onload = (e) => { fileData.data = e.target.result.split(',')[1]; exec(fileData); }; 
+          r.readAsDataURL(fileInput); 
+      } else { 
+          exec(null); 
+      } 
+  }
+
+function renderWorkflowInModal(taskId) {
+    const container = document.getElementById('view-task-workflow');
+    if(!container) return;
+    
+    container.innerHTML = ''; 
+
+    const t = globalData.tasks.find(x => x[0] === taskId);
+    if (!t) return;
+
+    let steps = [];
+    try { steps = t[12] ? JSON.parse(t[12]) : []; } catch(e) {}
+
+    if (steps.length === 0) {
+        container.innerHTML = '<div class="text-muted small fst-italic ps-2">- No Workflow defined -</div>';
+        return;
+    }
+
+    let html = '<div class="workflow-timeline ps-3 border-start border-2 ms-2">';
+
+    steps.forEach((step, index) => {
+        let statusColor = 'bg-secondary';
+        let icon = 'fa-circle';
+        let statusText = 'Pending';
+        let opacity = 'opacity-50'; 
+
+        // ตรวจสอบสถานะ
+        if (step.status === 'done') {
+            statusColor = 'bg-success'; icon = 'fa-check'; statusText = 'Completed'; opacity = 'opacity-100';
+        } else if (step.status === 'doing') {
+            statusColor = 'bg-primary'; icon = 'fa-spinner fa-spin'; statusText = 'In Progress'; opacity = 'opacity-100';
+        }
+
+        // ✅ แก้ไขจุดนี้: ตรวจสอบชื่อผู้รับผิดชอบให้แม่นยำขึ้น
+        const hasAssignee = step.assignee && step.assignee !== 'Unassigned' && step.assignee.trim() !== '';
+        const assigneeName = hasAssignee ? step.assignee : 'ระบุผู้รับผิดชอบ (Click)';
+        
+        // ถ้ามีคนรับผิดชอบ ให้ตัวหนาสีเข้ม / ถ้าไม่มี ให้ตัวเอียงสีฟ้า
+        const assigneeStyle = hasAssignee 
+            ? 'text-dark fw-bold bg-light border px-2 py-1 rounded' 
+            : 'text-primary fst-italic px-1';
+
+        const assigneeIcon = hasAssignee ? 'text-success' : 'text-secondary';
+
+        html += `
+        <div class="d-flex align-items-start mb-3 position-relative ${opacity}" style="margin-left: -24px;">
+            
+            <div class="rounded-circle ${statusColor} text-white d-flex align-items-center justify-content-center border border-white border-2 shadow-sm" 
+                 style="width: 32px; height: 32px; min-width: 32px; z-index:1; cursor:pointer;"
+                 onclick="toggleStepStatus('${taskId}', ${index})">
+                 <i class="fas ${icon} small"></i>
+            </div>
+            
+            <div class="ms-3 pt-1 w-100 bg-white rounded p-2 border shadow-sm">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <span class="fw-bold text-dark" style="font-size:0.85rem;">${step.name}</span>
+                    <span class="badge ${statusColor} fw-normal rounded-pill" style="font-size:0.6rem;">${statusText}</span>
+                </div>
+                
+                <div class="d-flex align-items-center small mt-2" 
+                     style="cursor:pointer; width:fit-content;"
+                     onclick="openAssignStepModal('${taskId}', ${index})">
+                    
+                    <i class="fas fa-user-circle me-2 ${assigneeIcon}"></i> 
+                    <span class="${assigneeStyle}" style="font-size: 0.8rem;">
+                        ${assigneeName}
+                    </span>
+                    ${!hasAssignee ? '<i class="fas fa-hand-pointer ms-2 text-warning fa-bounce" style="font-size:0.7rem;"></i>' : ''}
+                </div>
+
+                ${step.dueDate ? `<div class="text-danger x-small mt-2 ps-1 border-top pt-1"><i class="far fa-clock me-1"></i> Due: ${step.dueDate}</div>` : ''}
+                
+                ${step.details ? `<div class="p-2 bg-light rounded mt-2 text-secondary fst-italic border-start border-3 border-primary" style="font-size:0.75rem;">"${step.details}"</div>` : ''}
+            </div>
+        </div>`;
+    });
+
+    html += '</div>';
+    container.innerHTML = html;
+}
+
+  // Manage Workflow (Edit/Add/Delete)
+  function openManageWorkflow() {
+    const taskId = document.getElementById('view-task-id').innerText;
+    document.getElementById('manage-wf-task-id').value = taskId;
+    const t = globalData.tasks.find(x => x[0] === taskId);
+    tempWorkflow = t && t[12] ? JSON.parse(t[12]) : [];
+    if(tempWorkflow.length === 0) tempWorkflow = [];
+    renderManageWorkflowRows();
+    bootstrap.Modal.getInstance(document.getElementById('viewTaskModal')).hide();
+    new bootstrap.Modal(document.getElementById('manageWorkflowModal')).show();
+  }
+
+  function renderManageWorkflowRows() {
+    const container = document.getElementById('manage-wf-container'); container.innerHTML = '';
+    tempWorkflow.forEach((step, index) => {
+        let userOptions = '<option value="Unassigned">Unassigned</option>';
+        globalData.allUsers.forEach(u => { if (u.status !== 'Inactive') { const name = u.name || u; userOptions += `<option value="${name}" ${step.assignee === name ? 'selected' : ''}>${name}</option>`; } });
+
+        const row = document.createElement('div');
+        row.className = 'row px-2 align-items-center bg-white p-2 rounded shadow-sm border';
+        row.innerHTML = `
+            <div class="col-4"><input type="text" class="form-control form-control-sm fw-bold" value="${step.name}" onchange="updateTempWF(${index}, 'name', this.value)" placeholder="ชื่อขั้นตอน..."></div>
+            <div class="col-3"><select class="form-select form-select-sm" onchange="updateTempWF(${index}, 'assignee', this.value)">${userOptions}</select></div>
+            <div class="col-3"><input type="date" class="form-control form-control-sm" value="${step.dueDate || ''}" onchange="updateTempWF(${index}, 'dueDate', this.value)"></div>
+            <div class="col-2 text-center"><button class="btn btn-outline-danger btn-sm border-0" onclick="removeWorkflowRow(${index})"><i class="fas fa-trash-alt"></i></button></div>`;
+        container.appendChild(row);
+    });
+  }
+
+  function updateTempWF(index, field, value) { tempWorkflow[index][field] = value; }
+  function addWorkflowRow() { tempWorkflow.push({ name: 'ขั้นตอนใหม่ (New Step)', role: 'Any', status: 'pending', assignee: 'Unassigned', dueDate: '' }); renderManageWorkflowRows(); }
+  function removeWorkflowRow(index) { if(confirm("ต้องการลบขั้นตอนนี้ใช่หรือไม่?")) { tempWorkflow.splice(index, 1); renderManageWorkflowRows(); } }
+
+  // ฟังก์ชันบันทึก Workflow (ฉบับแก้ไข: อัปเดตหน้าจอทันที)
+// ฟังก์ชันบันทึก Workflow (ฉบับแก้ไข: อัปเดตหน้าจอทันที ไม่ต้องปิดเปิดใหม่)
+// ฟังก์ชันบันทึกการเปลี่ยนแปลง Workflow
+function saveWorkflowChanges() {
+    const taskId = document.getElementById('manage-wf-task-id').value;
+    const btn = event.target;
+    
+    // 1. เปลี่ยนสถานะปุ่มเป็นกำลังบันทึก
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
     btn.disabled = true;
 
-    google.script.run.withSuccessHandler((res) => {
-        // อัปเดตข้อมูลในตัวแปร globalData
-        if (!data.taskId) {
-            globalData.tasks.push(res); 
-        } else {
-            const idx = globalData.tasks.findIndex(t => t[0] === res[0]);
-            if(idx !== -1) globalData.tasks[idx] = res;
-        }
-        
-        // 1. วาดตาราง Content Plan ใหม่ (ของเดิมมีอยู่แล้ว)
-        renderContentPlanView(); 
-        
-        // ✅ 2. เพิ่มส่วนนี้: สั่งวาดหน้ารายการ (List) และบอร์ด (Kanban) ใหม่ด้วย
-        // เพื่อให้ข้อมูล Assignee อัปเดตทันทีโดยไม่ต้องรีเฟรชหน้าจอ
-        if (currentProjectId) {
-            const currentProjectTasks = globalData.tasks.filter(t => t[1] === currentProjectId);
-            renderListView(currentProjectTasks);   // อัปเดต List
-            renderKanbanView(currentProjectTasks); // อัปเดต Kanban (ถ้ามี)
-        }
+    const newJson = JSON.stringify(tempWorkflow);
 
-        bootstrap.Modal.getInstance(document.getElementById('contentTaskModal')).hide();
-        btn.innerHTML = 'Save Content';
-        btn.disabled = false;
+    google.script.run.withSuccessHandler((res) => {
+        if(res.success) {
+            // 2. อัปเดตข้อมูลในตัวแปร globalData ทันที (เพื่อให้ข้อมูลใหม่ล่าสุดอยู่ในหน่วยความจำ)
+            const tIndex = globalData.tasks.findIndex(t => t[0] === taskId);
+            if(tIndex !== -1) {
+                globalData.tasks[tIndex][12] = newJson; // อัปเดต Column M
+            }
+
+            // 3. ปิดหน้าต่างจัดการ (Manage Modal)
+            const manageModal = bootstrap.Modal.getInstance(document.getElementById('manageWorkflowModal'));
+            if (manageModal) manageModal.hide();
+
+            // 4. เปิดหน้าต่างดูงาน (View Task Modal) กลับมา
+            const viewModalElement = document.getElementById('viewTaskModal');
+            const viewModal = new bootstrap.Modal(viewModalElement);
+            viewModal.show();
+
+            // ✅✅ 5. หัวใจสำคัญ: สั่งวาดข้อมูลใหม่ลงไปใน div ทันที! ✅✅
+            // เรียกฟังก์ชันนี้เพื่อให้ข้อมูลใน <div id="view-task-workflow"> อัปเดตเดี๋ยวนั้นเลย
+            setTimeout(() => {
+                 renderWorkflowInModal(taskId); 
+            }, 200); // หน่วงเวลานิดนึงเพื่อให้ Modal เปิดเสร็จก่อน (กันพลาด)
+
+        } else {
+            alert("Error: " + res.message);
+        }
         
-    }).saveContentTaskDB(data, filePayload);
+        // คืนค่าปุ่ม
+        btn.innerHTML = 'Save Workflow';
+        btn.disabled = false;
+
+    }).saveWorkflowDB(taskId, newJson);
 }
+  // --- Utility: Drag & Drop ---
+  function allowDrop(ev) { ev.preventDefault(); } 
+  function drag(ev) { ev.dataTransfer.setData("text", ev.target.id); } 
+  function drop(ev, newStatus) { 
+      ev.preventDefault(); var data = ev.dataTransfer.getData("text"); var taskId = data.replace("card-", ""); 
+      google.script.run.withSuccessHandler(() => { 
+          const t = globalData.tasks.find(x => x[0] === taskId); if(t) t[5] = newStatus; 
+          const tasks = globalData.tasks.filter(x => x[1] === currentProjectId); 
+          renderKanbanView(tasks); renderListView(tasks); renderSummaryView(tasks); renderCalendarView(tasks); 
+          sendSystemMessage(`🔄 Status Updated: "${t[3]}" → ${newStatus}`); 
+      }).updateTaskProgress(taskId, newStatus, 0); 
+  }
+
+  // --- Utility: Chat & Polling ---
+  function sendSystemMessage(msg) { /* Optional: Send auto msg to chat */ }
+  function startPolling() { 
+      if(pollingInterval) clearInterval(pollingInterval); 
+      pollingInterval = setInterval(() => { 
+          if(!currentProjectId) return; 
+          google.script.run.withSuccessHandler((allData) => { 
+              if(!allData.updates) return; 
+              const updates = allData.updates.filter(u => u[1] === currentProjectId); 
+              const newMsgs = []; 
+              if(lastUpdateId) { 
+                  const lastIdx = updates.findIndex(u => u[0] === lastUpdateId); 
+                  if(lastIdx !== -1 && lastIdx < updates.length - 1) { for(let i=lastIdx+1; i<updates.length; i++) newMsgs.push(updates[i]); } 
+              } else if(updates.length > 0 && !lastUpdateId) { } 
+              
+              if(newMsgs.length > 0) { 
+                  newMsgs.forEach(msg => { if(msg[3] !== globalData.currentUser.name) { showToast(`New msg from ${msg[3]}`, msg[4]); updateBadge(1); } }); 
+                  globalData.updates = allData.updates; renderTimeline(currentProjectId); lastUpdateId = updates[updates.length-1][0]; 
+              } 
+          }).getSystemData(); 
+      }, 10000); 
+  }
+  function showToast(title, message) { 
+      const container = document.getElementById('toast-area'); const toast = document.createElement('div'); toast.className = 'toast-alert'; 
+      toast.innerHTML = `<div class="toast-header"><span><i class="fas fa-comment-dots text-primary me-2"></i> ${title}</span><button type="button" class="btn-close" style="font-size:0.7rem;" onclick="this.parentElement.parentElement.remove()"></button></div><div class="toast-body text-truncate">${message}</div>`; 
+      container.appendChild(toast); setTimeout(() => { toast.style.opacity='0'; setTimeout(()=>toast.remove(),300); }, 5000); 
+  }
+  function updateBadge(count) { const badge = document.getElementById('noti-badge'); let current = parseInt(badge.innerText)||0; let next = current+count; badge.innerText = next; badge.style.display = next>0?'block':'none'; }
+  function renderTimeline(pid) {
+     const container = document.getElementById('timeline-container');
+     const updates = (globalData.updates || []).filter(r => r[1] === pid);
+     
+     if(updates.length === 0) { 
+         container.innerHTML = '<div class="text-center text-muted mt-5 small opacity-50"><i class="far fa-comments fa-3x mb-2"></i><br>เริ่มการสนทนา...</div>'; 
+         return; 
+     }
+     
+     let html = '';
+     updates.forEach(m => {
+        const isMe = m[3] === globalData.currentUser.name;
+        let timeDisplay = m[2]; 
+        try { let parts = m[2].split(' '); if (parts.length > 1) timeDisplay = parts[1]; } catch(e) {}
+        
+        let f = ''; 
+        if(m[6]) { 
+            if(m[5].match(/\.(jpg|png|jpeg|gif)$/i)) f = `<div class="img-container mt-2"><a href="${m[6]}" target="_blank"><img src="${m[6]}" class="chat-img"></a></div>`; 
+            else f = `<a href="${m[6]}" target="_blank" class="btn btn-sm btn-light border mt-2 text-truncate" style="max-width:150px; font-size:0.8rem;"><i class="fas fa-file-download me-1"></i> ${m[5]}</a>`; 
+        }
+        html += `<div class="chat-row ${isMe ? 'me' : 'other'}"><div class="chat-meta">${isMe ? '' : `<span class="fw-bold text-dark">${m[3]}</span>`} <span>${timeDisplay}</span></div><div class="chat-bubble"><div>${m[4]}</div>${f}</div></div>`;
+     });
+     
+     container.innerHTML = html;
+     
+     // ✅ แก้ไขตรงนี้: สั่งเลื่อนลงล่างสุด (Scroll to Bottom)
+     setTimeout(() => {
+        container.scrollTop = container.scrollHeight;
+     }, 100);
+  }
+  function sendUpdate() {
+     const txt = document.getElementById('new-update-input'); const msg = txt.value.trim(); 
+     if(!msg && !selectedFile) return;
+     const me = globalData.currentUser.name;
+     document.getElementById('timeline-container').insertAdjacentHTML('beforeend', `<div class="chat-row me"><div class="chat-bubble" style="background-color:var(--ci-blue);color:white;">Sending...</div></div>`);
+     let filePayload = null; 
+     if (selectedFile) { filePayload = { name: selectedFile.name, mimeType: selectedFile.type, data: selectedFile.base64 }; }
+     google.script.run.withSuccessHandler(res => { 
+         if(!globalData.updates) globalData.updates = []; 
+         globalData.updates.push([res.id, currentProjectId, res.date, me, msg, res.fileName, res.fileUrl]); 
+         renderTimeline(currentProjectId); txt.value = ''; txt.style.height = 'auto'; clearFile(); 
+     }).postProjectUpdate(currentProjectId, msg, me, filePayload);
+  }
+  function handleFileSelect(input) { 
+      if(input.files && input.files[0]) { 
+          selectedFile = input.files[0]; 
+          const r = new FileReader(); 
+          r.onload = function(e){ selectedFile.base64 = e.target.result.split(',')[1]; }; 
+          r.readAsDataURL(selectedFile); 
+          document.getElementById('upload-preview').style.display = 'flex'; 
+          document.getElementById('preview-name').innerText = selectedFile.name; 
+      } 
+  }
+  function clearFile() { selectedFile = null; document.getElementById('file-input').value = ''; document.getElementById('upload-preview').style.display = 'none'; }
+ function openUpdateRemark(projectId, oldText) {
+    document.getElementById('remark-project-id').value = projectId;
+    document.getElementById('old-remark-text').innerText = oldText || '- ไม่มีข้อความเดิม -';
+    document.getElementById('new-remark-text').value = oldText || ''; // ใส่ข้อความเดิมลงไปให้แก้เลย
+    new bootstrap.Modal(document.getElementById('updateRemarkModal')).show();
+}
+  function saveRemark() {
+    const pid = document.getElementById('remark-project-id').value;
+    const newText = document.getElementById('new-remark-text').value;
+    
+    if(!newText.trim()) return alert('กรุณาระบุข้อความ');
+
+    const btn = event.target;
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> บันทึก...';
+    btn.disabled = true;
+
+    const user = globalData.currentUser.name || 'User';
+    const time = new Date().toLocaleString('th-TH', { month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit'});
+    // Format ข้อความใหม่ (ถ้าอยากให้มีชื่อคนแก้ต่อท้าย)
+    const fullText = `${newText} (แก้ไขโดย ${user} ${time})`; 
+
+    google.script.run.withSuccessHandler(() => {
+        // 1. อัปเดตข้อมูลในตัวแปร globalData
+        const p = globalData.projects.find(x => x[0] === pid);
+        if(p) p[14] = fullText;
+
+        // 2. อัปเดตหน้าจอทันที (ไม่ต้องโหลดใหม่)
+        document.getElementById('remark-text-content').innerHTML = `<i class="fas fa-exclamation-circle me-1"></i> ${fullText}`;
+        
+        // ถ้าอยู่ในหน้า Dashboard ก็อัปเดตการ์ดด้วย (ถ้าเปิดอยู่)
+        if(typeof renderProjects === 'function') renderProjects();
+
+        // 3. ปิด Modal
+        bootstrap.Modal.getInstance(document.getElementById('updateRemarkModal')).hide();
+        
+        // คืนค่าปุ่ม
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+
+    }).updateProjectRemark(pid, fullText); 
+}
+  function openAssignStepModal(taskId, stepIndex) {
+    document.getElementById('workflow-task-id').value = taskId;
+    document.getElementById('workflow-step-index').value = stepIndex;
+    const t = globalData.tasks.find(x => x[0] === taskId);
+    let steps = []; try { steps = JSON.parse(t[12] || '[]'); } catch(e){}
+    const stepData = steps[stepIndex] || {};
+    document.getElementById('workflow-step-date').value = stepData.dueDate || '';
+    document.getElementById('workflow-step-details').value = stepData.details || '';
+    const select = document.getElementById('workflow-assignee-select'); select.innerHTML = '<option value="Unassigned">-- ไม่ระบุ --</option>';
+    if (globalData.allUsers) {
+        const grouped = {}; globalData.allUsers.forEach(u => { if (u.status === 'Inactive') return; const role = u.role || 'Other'; if (!grouped[role]) grouped[role] = []; grouped[role].push(u.name || u); });
+        for (const [role, names] of Object.entries(grouped)) { const group = document.createElement('optgroup'); group.label = role; names.forEach(name => { const opt = document.createElement('option'); opt.value = name; opt.text = name; group.appendChild(opt); }); select.appendChild(group); }
+    }
+    if(stepData.assignee) select.value = stepData.assignee;
+    new bootstrap.Modal(document.getElementById('assignStepModal')).show();
+  }
+  function saveStepAssignee() {
+      const taskId = document.getElementById('workflow-task-id').value; const stepIndex = document.getElementById('workflow-step-index').value; const newName = document.getElementById('workflow-assignee-select').value; const newDate = document.getElementById('workflow-step-date').value; const newDetails = document.getElementById('workflow-step-details').value;
+      const btn = event.target; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> บันทึก...'; btn.disabled = true;
+      google.script.run.withSuccessHandler((res) => { renderWorkflowInModal(taskId); const t = globalData.tasks.find(x => x[0] === taskId); if (t) t[12] = res.workflowJson; bootstrap.Modal.getInstance(document.getElementById('assignStepModal')).hide(); btn.innerHTML = 'บันทึก'; btn.disabled = false; }).updateTaskWorkflowAssignee(taskId, stepIndex, newName, newDate, newDetails);
+  }
+  function toggleStepStatus(taskId, stepIndex) { 
+      google.script.run.withSuccessHandler((res) => { 
+          renderWorkflowInModal(taskId); 
+          const t = globalData.tasks.find(x => x[0] === taskId); 
+          if (t) { 
+              t[12] = res.workflowJson; 
+              if (res.newMainStatus) { 
+                  t[5] = res.newMainStatus; 
+                  const badge = document.getElementById('view-task-status-badge'); 
+                  if (badge) { badge.innerText = res.newMainStatus; badge.className = `badge ${res.newMainStatus==='Done'?'bg-success':(res.newMainStatus==='Revise'?'bg-warning text-dark':'bg-primary')}`; } 
+                  if (currentProjectId) { const projectTasks = globalData.tasks.filter(x => x[1] === currentProjectId); renderListView(projectTasks); renderKanbanView(projectTasks); renderSummaryView(projectTasks); } 
+              } 
+          } 
+      }).updateTaskWorkflowStatus(taskId, stepIndex); 
+  }
 </script>
