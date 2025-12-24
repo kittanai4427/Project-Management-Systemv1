@@ -164,6 +164,12 @@
                 <i class="fas fa-user-shield me-1"></i> ผู้บริหาร
               </a>
             </li>
+
+            <li class="nav-item" id="menu-users" style="display:none;">
+  <a class="nav-link" style="cursor: pointer;" onclick="showPage('page-users', this)">
+    <i class="fas fa-users-cog me-1"></i> จัดการสมาชิก
+  </a>
+</li>
           </ul>
 
           <div class="dropdown">
@@ -228,6 +234,9 @@
       <div id="page-dashboard" class="page-section"><?!= include('Page_Projects'); ?></div>
       <div id="page-mytasks" class="page-section" style="display:none;"><?!= include('Page_MyTasks'); ?></div>
       <div id="page-admin" class="page-section" style="display:none;"><?!= include('Page_Admin'); ?></div>
+    <div id="page-users" class="page-section" style="display:none;">
+    <?!= include('Page_adduser'); ?>
+</div>
       <div id="page-detail" class="page-section" style="display:none;"><?!= include('Page_Detail'); ?></div>
       
     </div>
@@ -314,10 +323,16 @@
          updateNavbarProfile(data.currentUser);
 
          if (data.currentUser.role === 'Admin' || data.currentUser.role === 'Manager' || data.currentUser.role === 'Management') {
-           let adminMenu = document.getElementById('menu-admin');
-           if(adminMenu) adminMenu.style.display = 'block';
-           if(typeof renderAdminPage === 'function') renderAdminPage();
-         }
+    
+    // แสดงเมนูผู้บริหารเดิม
+    let adminMenu = document.getElementById('menu-admin');
+    if(adminMenu) adminMenu.style.display = 'block';
+    if(typeof renderAdminPage === 'function') renderAdminPage();
+
+    // ✅ ของใหม่: แสดงเมนูจัดการสมาชิก (เพิ่มส่วนนี้)
+    let userMenu = document.getElementById('menu-users');
+    if(userMenu) userMenu.style.display = 'block';
+  }
          
          if(typeof renderProjects === 'function') renderProjects();
          if(typeof renderMyTasks === 'function') renderMyTasks();
@@ -341,24 +356,50 @@
        }
 
        function showPage(pageId, element) {
-         document.querySelectorAll('.page-section').forEach(el => el.style.display = 'none');
-         let target = document.getElementById(pageId);
-         if(target) target.style.display = 'block';
-         
-         document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
-         if (element) {
-            element.classList.add('active');
-         } else {
-            if(pageId === 'page-dashboard') { let el = document.querySelector('a[onclick*="page-dashboard"]'); if(el) el.classList.add('active'); }
-            if(pageId === 'page-mytasks') { let el = document.querySelector('a[onclick*="page-mytasks"]'); if(el) el.classList.add('active'); }
-            if(pageId === 'page-admin') { let el = document.querySelector('a[onclick*="page-admin"]'); if(el) el.classList.add('active'); }
-         }
-         
-         if(pageId === 'page-mytasks' && typeof renderMyTasks === 'function') renderMyTasks();
-         if(pageId === 'page-dashboard' && typeof renderProjects === 'function') renderProjects();
-         if(pageId === 'page-admin' && typeof renderAdminPage === 'function') renderAdminPage();
-       }
-       
+  // 1. ซ่อนทุกหน้า (Reset)
+  document.querySelectorAll('.page-section').forEach(el => el.style.display = 'none');
+  
+  // 2. แสดงหน้าที่เลือก
+  let target = document.getElementById(pageId);
+  if(target) target.style.display = 'block';
+  
+  // 3. จัดการสถานะปุ่มเมนู (Active State)
+  document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
+  
+  if (element) {
+     // กรณี: ผู้ใช้คลิกที่ปุ่มเมนูโดยตรง
+     element.classList.add('active');
+  } else {
+     // กรณี: ถูกเรียกจาก Code (เช่น ตอนโหลดหน้าเว็บ) ต้องไปหาปุ่มเพื่อทำ Highlight เอง
+     if(pageId === 'page-dashboard') { 
+         let el = document.querySelector('a[onclick*="page-dashboard"]'); 
+         if(el) el.classList.add('active'); 
+     }
+     if(pageId === 'page-mytasks') { 
+         let el = document.querySelector('a[onclick*="page-mytasks"]'); 
+         if(el) el.classList.add('active'); 
+     }
+     if(pageId === 'page-admin') { 
+         let el = document.querySelector('a[onclick*="page-admin"]'); 
+         if(el) el.classList.add('active'); 
+     }
+     // ✅ เพิ่มส่วนนี้: สำหรับหน้าจัดการสมาชิก
+     if(pageId === 'page-users') { 
+         let el = document.querySelector('a[onclick*="page-users"]'); 
+         if(el) el.classList.add('active'); 
+     }
+  }
+  
+  // 4. เรียกฟังก์ชันโหลดข้อมูลเฉพาะของแต่ละหน้า (Render Data)
+  // เพื่อให้ข้อมูลเป็นปัจจุบันทุกครั้งที่กดเข้ามาดู
+  if(pageId === 'page-dashboard' && typeof renderProjects === 'function') renderProjects();
+  if(pageId === 'page-mytasks' && typeof renderMyTasks === 'function') renderMyTasks();
+  if(pageId === 'page-admin' && typeof renderAdminPage === 'function') renderAdminPage();
+  
+  // ✅ เพิ่มส่วนนี้: เรียกฟังก์ชันโหลดข้อมูลตารางสมาชิก
+  // (หมายเหตุ: คุณควรสร้างฟังก์ชัน loadUsers() ไว้ใน Script เพื่อดึงข้อมูลมาแสดงในตาราง)
+  if(pageId === 'page-users' && typeof loadUsers === 'function') loadUsers();
+}
        function getStatusColor(status) {
          if(status === 'Done' || status === 'Completed') return 'success';
          if(status === 'In Progress' || status === 'Active') return 'primary';
