@@ -58,6 +58,60 @@
   .btn-view:hover { background: #dbeafe; color: #1e40af; }
   .mini-progress { width: 60px; height: 6px; background: #e2e8f0; border-radius: 3px; overflow: hidden; display: inline-block; vertical-align: middle; margin-right: 6px; }
   .mini-bar { height: 100%; border-radius: 3px; }
+  /* ✅ เพิ่มส่วนนี้ใน <style> ครับ */
+.project-scroll-area {
+    /* คำนวณความสูงให้พอดีจอลบส่วนหัว (Header) ออก */
+    /* ปรับตัวเลข 160px ได้ตามความสูงจริงของ Header คุณ */
+    height: calc(100vh - 160px); 
+    
+    /* เปิดให้เลื่อนแนวตั้ง */
+    overflow-y: auto; 
+    
+    /* ซ่อน Scrollbar แนวนอน */
+    overflow-x: hidden; 
+    
+    /* เพิ่มพื้นที่ด้านล่างกันตกขอบ */
+    padding-bottom: 80px; 
+    
+    /* จัดระยะห่างเล็กน้อย */
+    padding-right: 5px; 
+}
+
+/* ปรับแต่ง Scrollbar ให้สวยงาม (สำหรับ Chrome/Safari) */
+.project-scroll-area::-webkit-scrollbar {
+    width: 8px;
+}
+.project-scroll-area::-webkit-scrollbar-thumb {
+    background-color: #cbd5e1;
+    border-radius: 10px;
+}
+.project-scroll-area::-webkit-scrollbar-track {
+    background-color: transparent;
+}
+
+/* ✅ เพิ่ม CSS นี้เข้าไปครับ */
+.ad-spend-badge {
+    background-color: #fff7ed; /* สีส้มอ่อนๆ เข้ากับไอคอนเหรียญ */
+    color: #c2410c;            /* สีตัวหนังสือส้มเข้ม */
+    border: 1px solid #ffedd5;
+    padding: 4px 10px;
+    border-radius: 50px;       /* ทำมนๆ */
+    font-size: 0.75rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    
+    /* 🔥 สำคัญ: ป้องกันการดันปุ่ม */
+    max-width: 150px;          /* กำหนดความกว้างสูงสุด */
+    white-space: nowrap;       /* ห้ามขึ้นบรรทัดใหม่ */
+    overflow: hidden;          /* ซ่อนส่วนเกิน */
+}
+
+.ad-spend-text {
+    overflow: hidden;
+    text-overflow: ellipsis;   /* ให้เป็น ... ถ้ายาวเกิน */
+}
 </style>
 
 <div class="row align-items-center mb-5 g-3">
@@ -66,24 +120,41 @@
     <small class="text-muted">Dashboard ติดตามสถานะงานและเป้าหมาย</small>
   </div>
   <div class="col-md-7">
-    <div class="d-flex gap-3 justify-content-md-end flex-wrap align-items-center">
-      <input type="text" class="form-control search-box" id="search-input" placeholder="ค้นหาโปรเจค..." style="width: 250px;" onkeyup="renderProjects()">
-      <select class="form-select shadow-sm border-0 bg-white fw-bold text-secondary" id="status-filter" style="width: 150px; border-radius: 8px;" onchange="renderProjects()">
-        <option value="All">สถานะทั้งหมด</option>
+    <div class="d-flex gap-2 justify-content-md-end flex-wrap align-items-center">
+      <input type="text" class="form-control search-box" id="search-input" placeholder="ค้นหาโปรเจค..." style="width: 200px;" onkeyup="renderProjects()">
+      
+      <select class="form-select shadow-sm border-0 bg-white fw-bold text-secondary" id="status-filter" style="width: 140px; border-radius: 8px;" onchange="renderProjects()">
+        <option value="All">All Status</option>
         <option value="Active">Active</option>
         <option value="Pending">Pending</option>
         <option value="Hold">Hold</option>
         <option value="Completed">Completed</option>
       </select>
+
+      <select class="form-select shadow-sm border-0 bg-white fw-bold text-secondary" id="ae-filter" style="width: 140px; border-radius: 8px;" onchange="renderProjects()">
+        <option value="All">All AE</option>
+        </select>
+
+      <select class="form-select shadow-sm border-0 bg-white fw-bold text-secondary" id="service-filter" style="width: 140px; border-radius: 8px;" onchange="renderProjects()">
+        <option value="All">All Services</option>
+        <option value="Content">Content</option>
+        <option value="Graphic">Graphic</option>
+        <option value="VDO">VDO</option>
+        <option value="Ads">Ads</option>
+        <option value="Web">Website</option>
+        <option value="Admin">Admin</option>
+      </select>
+
       <button id="btn-add-project" class="btn btn-primary shadow px-4 d-none" style="border-radius: 50px;" data-bs-toggle="modal" data-bs-target="#addProjectModal" onclick="prepareProjectModal()">
-        <i class="fas fa-plus me-2"></i> สร้างโปรเจค
+        <i class="fas fa-plus">สร้างโปรเจคใหม่</i>
       </button>
     </div>
   </div>
 </div>
 
-<div class="row g-4" id="project-container"></div>
-
+<div class="project-scroll-area">
+    <div class="row g-4" id="project-container"></div>
+</div>
 <div class="modal fade" id="addProjectModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content border-0 shadow-lg">
@@ -159,39 +230,126 @@
   </div>
 </div>
 
+<div class="modal fade" id="editProjectModal" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg">
+      <div class="modal-header bg-warning text-dark border-bottom-0">
+        <h5 class="modal-title fw-bold"><i class="fas fa-edit me-2"></i>แก้ไขข้อมูลโปรเจค</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body pt-4">
+        <form id="edit-project-form">
+          <input type="hidden" id="edit-p-id"> <div class="row g-3">
+            <div class="col-md-6"><label class="form-label small fw-bold text-muted">ชื่อลูกค้า</label><input type="text" class="form-control bg-light" id="edit-p-name"></div>
+            <div class="col-md-6"><label class="form-label small fw-bold text-muted">สินค้า</label><input type="text" class="form-control bg-light" id="edit-p-product"></div>
+            <div class="col-md-6"><label class="form-label small fw-bold text-muted">AE ผู้ดูแล</label><select class="form-select bg-light" id="edit-p-ae"></select></div>
+            <div class="col-md-6"><label class="form-label small fw-bold text-muted">ระยะเวลา</label><input type="text" class="form-control bg-light" id="edit-p-period"></div>
+            
+            <div class="col-md-12">
+              <label class="form-label text-primary fw-bold small">งบประมาณ / Ad Spend</label>
+              <input type="text" class="form-control bg-light" id="edit-p-budget">
+            </div>
+
+            <div class="col-md-12 border-top pt-3 mt-2">
+                <h6 class="fw-bold text-dark mb-2">เป้าหมาย (Targets)</h6>
+                <div class="row g-2">
+                    <div class="col-4"><div class="input-group input-group-sm"><span class="input-group-text"><i class="fas fa-pen-nib"></i></span><input type="number" class="form-control" id="edit-t-content" placeholder="Content"></div></div>
+                    <div class="col-4"><div class="input-group input-group-sm"><span class="input-group-text"><i class="fas fa-palette"></i></span><input type="number" class="form-control" id="edit-t-graphic" placeholder="Graphic"></div></div>
+                    <div class="col-4"><div class="input-group input-group-sm"><span class="input-group-text"><i class="fas fa-video"></i></span><input type="number" class="form-control" id="edit-t-vdo" placeholder="VDO"></div></div>
+                    <div class="col-4"><div class="input-group input-group-sm"><span class="input-group-text"><i class="fas fa-comments"></i></span><input type="number" class="form-control" id="edit-t-admin" placeholder="Admin"></div></div>
+                    <div class="col-4"><div class="input-group input-group-sm"><span class="input-group-text"><i class="fas fa-ad"></i></span><input type="number" class="form-control" id="edit-t-ads" placeholder="Ads"></div></div>
+                    <div class="col-4"><div class="input-group input-group-sm"><span class="input-group-text"><i class="fas fa-globe"></i></span><input type="text" class="form-control" id="edit-t-web" placeholder="Web"></div></div>
+                </div>
+            </div>
+            
+            <div class="col-md-12 mt-3">
+              <label class="form-label small fw-bold text-muted">Google Sheet Link</label>
+              <input type="url" class="form-control bg-light" id="edit-p-link">
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer border-top-0 pb-4 pe-4">
+        <button type="button" class="btn btn-light" data-bs-dismiss="modal">ยกเลิก</button>
+        <button type="button" class="btn btn-warning fw-bold px-4 shadow-sm" onclick="submitEditProject()">บันทึกการแก้ไข</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
   function renderProjects() {
+    // ตรวจสอบว่ามีข้อมูลหรือไม่
     if (!globalData || !globalData.projects) return;
     
-    const currentUser = globalData.currentUser;
-    const isAdmin = currentUser.role === 'Admin' || currentUser.role === 'Manager';
-    if(isAdmin) document.getElementById('btn-add-project').classList.remove('d-none');
+    // เรียกใช้ฟังก์ชันเติม Dropdown AE (ถ้ายังไม่เคยเติม)
+    initAEFilter();
 
+    // จัดการสิทธิ์การแสดงปุ่มสร้างโปรเจค
+    const currentUser = globalData.currentUser;
+    const isAdmin = currentUser.role === 'Admin' || currentUser.role === 'Manager' || currentUser.role === 'Management';
+    if(isAdmin) {
+        const btnAdd = document.getElementById('btn-add-project');
+        if(btnAdd) btnAdd.classList.remove('d-none');
+    }
+
+    // 1. ดึงค่าจากตัวกรองทั้งหมด
     const searchText = document.getElementById('search-input').value.toLowerCase().trim();
     const statusFilter = document.getElementById('status-filter').value;
-    const container = document.getElementById('project-container');
-    let html = '';
+    const aeFilter = document.getElementById('ae-filter').value;           
+    const serviceFilter = document.getElementById('service-filter').value; 
 
+    const container = document.getElementById('project-container');
+    
+    // 2. Logic การกรองข้อมูล (Filter Logic)
     let filteredProjects = globalData.projects.filter(p => {
+       // --- กรองสถานะ (Status) ---
        if (statusFilter !== 'All' && p[9] !== statusFilter) return false;
+       
+       // --- กรอง AE Owner (p[3]) ---
+       if (aeFilter !== 'All' && p[3] !== aeFilter) return false;
+
+       // --- กรองบริการ (Service Type) ---
+       // ตรวจสอบว่ามีการระบุเป้าหมาย (Target) ในบริการนั้นๆ หรือไม่
+       if (serviceFilter !== 'All') {
+           let hasService = false;
+           // p[6]=Content, p[15]=Graphic, p[7]=VDO, p[12]=Ads, p[13]=Web, p[11]=Admin
+           if (serviceFilter === 'Content' && (parseInt(p[6]) > 0)) hasService = true;
+           else if (serviceFilter === 'Graphic' && (parseInt(p[15]) > 0)) hasService = true;
+           else if (serviceFilter === 'VDO' && (parseInt(p[7]) > 0)) hasService = true;
+           else if (serviceFilter === 'Ads' && (parseInt(p[12]) > 0)) hasService = true;
+           else if (serviceFilter === 'Web' && (p[13] && p[13] !== '0' && p[13] !== '-')) hasService = true; // Web อาจเป็น Text
+           else if (serviceFilter === 'Admin' && (parseInt(p[11]) > 0)) hasService = true;
+           
+           if (!hasService) return false;
+       }
+
+       // --- กรองคำค้นหา (Search Text) ---
        if (searchText !== '') {
+         // ค้นหาจาก ชื่อโปรเจค, ชื่อลูกค้า, หรือชื่อ AE
          const searchString = `${p[1]} ${p[2]} ${p[3]}`.toLowerCase();
          if (!searchString.includes(searchText)) return false;
        }
-       return true;
+       
+       return true; // ผ่านทุกเงื่อนไข
     });
 
+    // 3. เรียงลำดับข้อมูล (Sort): Active -> Pending -> Hold -> Completed
     filteredProjects.sort((a,b) => {
       const statusOrder = { 'Active': 1, 'Pending': 2, 'Hold': 3, 'Completed': 4 };
       return (statusOrder[a[9]] || 5) - (statusOrder[b[9]] || 5);
     });
 
+    // กรณีไม่พบข้อมูล
     if (filteredProjects.length === 0) {
-      container.innerHTML = `<div class="col-12 text-center mt-5 text-muted py-5"><h5>ไม่พบข้อมูล</h5></div>`;
+      container.innerHTML = `<div class="col-12 text-center mt-5 text-muted py-5"><h5><i class="fas fa-search me-2"></i>ไม่พบข้อมูลที่ค้นหา</h5></div>`;
       return;
     }
 
+    // 4. สร้าง HTML Cards
+    let html = '';
     filteredProjects.forEach(p => {
+      // คำนวณสถิติงานย่อย (Helper Functions ต้องมีอยู่แล้วใน Script)
       const contentStats = calculateWorkStats(p[0], ['Content', 'Graphic'], p[6]); 
       const graphicStats = calculateWorkStats(p[0], ['Graphic'], p[15] || 0); 
       const vdoStats = calculateWorkStats(p[0], 'VDO', p[7]);
@@ -199,12 +357,14 @@
       const adsStats = calculateWorkStats(p[0], 'Ads', p[12] || 0);     
       const webStats = calculateWorkStats(p[0], 'Web', p[13] || 0);     
 
-      // ✅ ใช้ innerText ที่ปลอดภัยจากอักขระพิเศษ (ไม่ต้อง replace แล้ว เพราะเราใช้ textContent ใน JS)
+      // จัดการข้อความ Remark (ป้องกัน XSS เบื้องต้น)
       let rawRemark = p[14] || 'ยังไม่มีหมายเหตุ';
-      // แปลงอักขระพิเศษพื้นฐานสำหรับ HTML display เท่านั้น
       let safeRemarkDisplay = rawRemark.replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
+      // คำนวณ Progress รวม
       const overall = calculateOverallProgress(p[0]);
+      
+      // กำหนดสีแถบสถานะด้านบน
       let statusClass = 'active';
       if(p[9] === 'Pending') statusClass = 'pending';
       if(p[9] === 'Hold') statusClass = 'hold';
@@ -220,13 +380,15 @@
                   <h5 class="project-title text-truncate" title="${p[1]}" onclick="openProjectDetail('${p[0]}')">${p[1]}</h5>
                   <div class="text-muted small"><i class="fas fa-box me-1"></i> ${p[2]}</div>
                </div>
+               
                ${isAdmin ? 
                  `<select class="form-select form-select-sm border-0 bg-light fw-bold text-secondary" style="width:auto; font-size:0.75rem;" onchange="changeStatus('${p[0]}', this.value)">
                     <option value="Active" ${p[9]=='Active'?'selected':''}>Active</option>
                     <option value="Pending" ${p[9]=='Pending'?'selected':''}>Pending</option>
                     <option value="Hold" ${p[9]=='Hold'?'selected':''}>Hold</option>
                     <option value="Completed" ${p[9]=='Completed'?'selected':''}>Done</option>
-                  </select>` : `<span class="status-pill status-${statusClass}"><span class="status-dot"></span>${p[9]}</span>`
+                  </select>` : 
+                 `<span class="status-pill status-${statusClass}"><span class="status-dot"></span>${p[9]}</span>`
                }
             </div>
             
@@ -238,7 +400,7 @@
 
                <div class="mb-3">
                   <div class="d-flex justify-content-between align-items-end mb-1">
-                     <span class="text-uppercase fw-bold text-muted" style="font-size: 0.65rem;">Overall</span>
+                     <span class="text-uppercase fw-bold text-muted" style="font-size: 0.65rem;">Overall Progress</span>
                      <span class="fw-bold text-primary" style="font-size: 0.8rem;">${overall.percent}%</span>
                   </div>
                   <div class="progress-minimal"><div class="progress-bar-minimal" style="width: ${overall.percent}%"></div></div>
@@ -251,7 +413,11 @@
                   ${renderMetricRow('Admin', 'fa-comments text-success', adminStats)}
                   ${renderMetricRow('Ads', 'fa-ad text-warning', adsStats, true)}
                   ${renderMetricRow('Web', 'fa-globe text-info', webStats, true)}
-                  ${(contentStats.target==0 && graphicStats.target==0 && vdoStats.target==0 && adminStats.target==0 && adsStats.target==0 && webStats.target==0) ? '<div class="text-center text-muted small py-2">ยังไม่ได้กำหนดเป้าหมาย</div>' : ''}
+                  
+                  ${/* ถ้าไม่มีเป้าหมายเลยให้แสดงข้อความ */ 
+                    (contentStats.target==0 && graphicStats.target==0 && vdoStats.target==0 && adminStats.target==0 && adsStats.target==0 && webStats.target==0) 
+                    ? '<div class="text-center text-muted small py-2">ยังไม่ได้กำหนดเป้าหมายงาน</div>' : ''
+                  }
                </div>
 
                <div class="remark-section" onclick="openProjectRemarkModal('${p[0]}')">
@@ -264,16 +430,27 @@
             </div>
 
             <div class="project-footer">
-               <div class="small fw-bold text-secondary" title="งบยิงแอด">
-                  <i class="fas fa-coins me-1 text-warning"></i> ${p[10] || '-'}
+               <div class="ad-spend-badge" title="งบยิงแอด: ${p[4] || '-'}">
+                  <i class="fas fa-coins text-warning"></i> 
+                  <span class="ad-spend-text">${p[4] || '-'}</span>
                </div>
-               <button class="btn-view" onclick="openProjectDetail('${p[0]}')">
-                 Manage <i class="fas fa-arrow-right ms-1"></i>
-               </button>
+               
+               <div class="d-flex gap-2 flex-shrink-0">
+                   <button class="btn btn-white btn-sm border text-secondary shadow-sm" 
+                           onclick="event.stopPropagation(); openEditProjectModal('${p[0]}')" 
+                           title="แก้ไขข้อมูล">
+                       <i class="fas fa-pen"></i>
+                   </button>
+
+                   <button class="btn-view" onclick="openProjectDetail('${p[0]}')">
+                     Manage <i class="fas fa-arrow-right ms-1"></i>
+                   </button>
+               </div>
             </div>
           </div>
         </div>`;
     });
+
     container.innerHTML = html;
   }
 
@@ -357,6 +534,19 @@
 
   function submitNewProject() {
     const f = document.getElementById('create-project-form');
+    
+    // 1. ตรวจสอบข้อมูลเบื้องต้น
+    if(!f.customerName.value || !f.product.value || !f.aeOwner.value) {
+        alert("กรุณากรอกข้อมูลที่จำเป็น (*) ให้ครบถ้วน");
+        return;
+    }
+
+    // 2. เปลี่ยนปุ่มเป็นสถานะ "กำลังบันทึก..."
+    const btn = event.target; // หรือใช้ ID ของปุ่ม
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> กำลังบันทึก...';
+    btn.disabled = true;
+
     const data = {
         customerName: f.customerName.value, product: f.product.value, aeOwner: f.aeOwner.value,
         period: f.period.value, budget: f.budget.value, sheetLink: f.sheetLink.value,
@@ -365,16 +555,157 @@
         targetAds: f.targetAds.value, targetWeb: f.targetWeb.value,
         remark: f.remark.value
     };
-    google.script.run.withSuccessHandler(()=>{
-        bootstrap.Modal.getInstance(document.getElementById('addProjectModal')).hide();
-        renderProjects();
-        alert('Saved!');
+
+    google.script.run.withSuccessHandler((res) => {
+        // สมมติว่า Server ส่งข้อมูลโปรเจคใหม่กลับมาใน res.data (หรือส่งกลับมาทั้งก้อน)
+        // ถ้า Server ไม่ส่งค่ากลับมา ให้ใช้การ push ข้อมูล dummy เข้าไปก่อน หรือ reload ใหม่
+        
+        if(res && res.success) {
+             // 3.1 อัปเดตตัวแปร globalData ทันที (สำคัญมาก เพื่อให้ renderProjects มีข้อมูลใหม่)
+             if(res.data) {
+                 globalData.projects.push(res.data);
+             } else {
+                 // กรณี Server ไม่ส่ง data กลับมา อาจต้องสั่งโหลดข้อมูลใหม่ทั้งหมด (ช้ากว่านิดหน่อย)
+                 // loadSystemData(); return; 
+             }
+
+             // 3.2 ปิด Modal
+             bootstrap.Modal.getInstance(document.getElementById('addProjectModal')).hide();
+             
+             // 3.3 ล้างฟอร์ม
+             f.reset();
+
+             // 3.4 วาดหน้าจอใหม่
+             renderProjects();
+
+             // 3.5 ✅ สั่งเลื่อนหน้าจอลงไปล่างสุด (Scroll to Bottom)
+             setTimeout(() => {
+                 const container = document.getElementById('project-container');
+                 // เลื่อนไปที่ element ตัวสุดท้าย
+                 if(container.lastElementChild) {
+                     container.lastElementChild.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                     
+                     // เพิ่ม Effect ให้รู้ว่าเป็นอันใหม่ (Optional)
+                     container.lastElementChild.style.transition = "0.5s";
+                     container.lastElementChild.style.transform = "scale(1.02)";
+                     setTimeout(() => container.lastElementChild.style.transform = "scale(1)", 500);
+                 }
+             }, 300); // หน่วงเวลาเล็กน้อยเพื่อให้ HTML render เสร็จก่อน
+             
+        } else {
+             alert('เกิดข้อผิดพลาด: ' + (res ? res.message : 'Unknown Error'));
+        }
+
+        // 4. คืนค่าปุ่ม
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+
     }).createProject(data); 
-  }
-  
+}
   function changeStatus(pid, status) {
       google.script.run.updateProjectStatus(pid, status);
       const p = globalData.projects.find(x=>x[0]===pid); if(p) p[9]=status;
       renderProjects();
+  }
+
+  // 1. ฟังก์ชันเปิด Modal แก้ไขและดึงข้อมูลเดิมมาใส่
+  function openEditProjectModal(pid) {
+      const p = globalData.projects.find(x => x[0] === pid);
+      if(!p) return alert("ไม่พบข้อมูล");
+
+      // เตรียม Dropdown AE
+      const aeSelect = document.getElementById('edit-p-ae');
+      aeSelect.innerHTML = '';
+      if(globalData.allUsers) globalData.allUsers.forEach(u => {
+          let name = u.name || u;
+          aeSelect.innerHTML += `<option value="${name}" ${name===p[3]?'selected':''}>${name}</option>`;
+      });
+
+      // ใส่ค่าเดิมลงใน Input (อ้างอิง Index ตาม CSV)
+      document.getElementById('edit-p-id').value = p[0];
+      document.getElementById('edit-p-name').value = p[1];
+      document.getElementById('edit-p-product').value = p[2];
+      // document.getElementById('edit-p-ae').value = p[3]; // ทำไปแล้วตอนสร้าง option
+      document.getElementById('edit-p-budget').value = p[4];
+      document.getElementById('edit-p-period').value = p[5];
+      document.getElementById('edit-t-content').value = p[6];
+      document.getElementById('edit-t-vdo').value = p[7];
+      document.getElementById('edit-p-link').value = p[8];
+      
+      document.getElementById('edit-t-admin').value = p[11] || 0;
+      document.getElementById('edit-t-ads').value = p[12] || 0;
+      document.getElementById('edit-t-web').value = p[13] || 0;
+      document.getElementById('edit-t-graphic').value = p[15] || 0;
+
+      new bootstrap.Modal(document.getElementById('editProjectModal')).show();
+  }
+
+  // 2. ฟังก์ชันบันทึกการแก้ไข
+  function submitEditProject() {
+      const pid = document.getElementById('edit-p-id').value;
+      const btn = event.target;
+      const originalText = btn.innerHTML;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
+      btn.disabled = true;
+
+      const updateData = {
+          id: pid,
+          customerName: document.getElementById('edit-p-name').value,
+          product: document.getElementById('edit-p-product').value,
+          aeOwner: document.getElementById('edit-p-ae').value,
+          budget: document.getElementById('edit-p-budget').value,
+          period: document.getElementById('edit-p-period').value,
+          sheetLink: document.getElementById('edit-p-link').value,
+          targetContent: document.getElementById('edit-t-content').value,
+          targetGraphic: document.getElementById('edit-t-graphic').value,
+          targetVDO: document.getElementById('edit-t-vdo').value,
+          targetAdmin: document.getElementById('edit-t-admin').value,
+          targetAds: document.getElementById('edit-t-ads').value,
+          targetWeb: document.getElementById('edit-t-web').value
+      };
+
+      google.script.run.withSuccessHandler((res) => {
+          if(res.success) {
+              // อัปเดตข้อมูลในตัวแปร globalData ทันที
+              const idx = globalData.projects.findIndex(x => x[0] === pid);
+              if(idx !== -1) {
+                  globalData.projects[idx] = res.data;
+              }
+              
+              // รีเฟรชหน้าจอ
+              renderProjects();
+              bootstrap.Modal.getInstance(document.getElementById('editProjectModal')).hide();
+              // alert('แก้ไขข้อมูลเรียบร้อย');
+          } else {
+              alert('Error: ' + res.message);
+          }
+          btn.innerHTML = originalText;
+          btn.disabled = false;
+      }).updateProjectDB(updateData);
+  }
+
+  function initAEFilter() {
+      const aeSelect = document.getElementById('ae-filter');
+      
+      // ป้องกันการเติมซ้ำ (ถ้ามีมากกว่า 1 option แสดงว่าเคยเติมแล้ว)
+      if (aeSelect && aeSelect.options.length > 1) return; 
+
+      if (globalData.allUsers) {
+          // เรียงลำดับชื่อ ก-ฮ
+          const sortedUsers = [...globalData.allUsers].sort((a, b) => {
+              const nameA = (a.name || a).toLowerCase();
+              const nameB = (b.name || b).toLowerCase();
+              return nameA.localeCompare(nameB);
+          });
+
+          sortedUsers.forEach(u => {
+              let name = u.name || u;
+              // สร้าง Option
+              const opt = document.createElement('option');
+              opt.value = name;
+              opt.innerText = name;
+              aeSelect.appendChild(opt);
+          });
+      }
   }
 </script>
