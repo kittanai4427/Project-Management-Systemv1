@@ -1,7 +1,7 @@
 // ==========================================
 // ⚙️ CONFIGURATION
 // ==========================================
-var SHEET_ID = "1kUWKcbpIW-XLL6b8FMfspJd-24GIeMZAP0kwe28Pdt8"; // ⚠️ ตรวจสอบ ID
+var SHEET_ID = "1x-AOA_vjqkijJNVJ__L8O8az4cULH2vKbClE8vARdqk"; // ⚠️ ตรวจสอบ ID ให้ถูกต้อง
 
 // ==========================================
 // 🚀 MAIN WEB APP (DoGet)
@@ -19,13 +19,13 @@ function include(filename) {
 }
 
 // ==========================================
-// 📡 API: GET DATA (ดึงข้อมูลทั้งหมด + Cache)
+// 📡 API: GET DATA (ระบบ Cache V7)
 // ==========================================
 function getSystemData() {
   var cache = CacheService.getScriptCache();
   try {
-    // 🔴 แก้จาก V5 เป็น V6
-    var cachedJSON = cache.get("SYSTEM_DATA_V6"); 
+    // ✅ ใช้ V7
+    var cachedJSON = cache.get("SYSTEM_DATA_V7"); 
     if (cachedJSON != null) {
       return JSON.parse(cachedJSON);
     }
@@ -37,104 +37,12 @@ function getSystemData() {
     try {
       var jsonStr = JSON.stringify(data);
       if (jsonStr.length < 95000) { 
-        // 🔴 แก้จาก V5 เป็น V6
-        cache.put("SYSTEM_DATA_V6", jsonStr, 600); 
+        // ✅ เก็บเป็น V7
+        cache.put("SYSTEM_DATA_V7", jsonStr, 600); 
       }
     } catch(e) { console.log("Cannot cache data: " + e.message); }
   }
   return data;
-}
-
-function checkLoginUser(input) {
-  var ss = SpreadsheetApp.openById(SHEET_ID);
-  var sheet = ss.getSheetByName("DB_Users");
-  var data = sheet.getDataRange().getValues();
-  
-  var searchStr = input.toString().trim().toLowerCase(); // แปลงเป็นตัวพิมพ์เล็ก
-
-  for (var i = 1; i < data.length; i++) {
-    var dbName = data[i][0].toString().trim().toLowerCase();  // ชื่อใน DB
-    var dbEmail = data[i][1].toString().trim().toLowerCase(); // อีเมลใน DB
-
-    // ✅ เช็คว่า input ตรงกับ "ชื่อ" หรือ "อีเมล" ไหม
-    if ((dbName === searchStr) || (dbEmail === searchStr && dbEmail !== "")) {
-      return {
-        status: true,
-        user: {
-          name: data[i][0],
-          email: data[i][1],
-          role: data[i][2],
-          team: data[i][3]
-        }
-      };
-    }
-  }
-  
-  return { status: false };
-}
-
-
-// --- User Management Functions ---
-
-// บันทึกข้อมูลผู้ใช้งาน (เพิ่มใหม่ หรือ แก้ไข)
-// --- User Management Functions (Updated) ---
-
-function saveUserDB(data) {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const ws = ss.getSheetByName("DB_Users");
-  const values = ws.getDataRange().getValues();
-  
-  let rowIndex = -1;
-  // หาแถวจากอีเมลเดิม (กรณีแก้ไข)
-  if (data.originalEmail) {
-    rowIndex = values.findIndex(row => row[1] == data.originalEmail); 
-  }
-  
-  // กรณีเพิ่มใหม่ เช็คอีเมลซ้ำ
-  if (rowIndex === -1) {
-     const dupIndex = values.findIndex(row => row[1] == data.email);
-     if (dupIndex !== -1 && !data.originalEmail) {
-       return { success: false, message: "อีเมลนี้มีอยู่ในระบบแล้ว" };
-     }
-     if (rowIndex === -1) rowIndex = values.length; 
-  }
-
-  const rowNum = rowIndex + 1;
-  
-  // บันทึกข้อมูล (Name, Email, Role, Team, Photo, Status)
-  ws.getRange(rowNum, 1).setValue(data.name);
-  ws.getRange(rowNum, 2).setValue(data.email);
-  ws.getRange(rowNum, 3).setValue(data.role);
-  ws.getRange(rowNum, 4).setValue(data.team);
-  
-  // ถ้ามีคอลัมน์รูป (Col 5) และสถานะ (Col 6)
-  // แนะนำให้ไปเพิ่มหัวข้อคอลัมน์ F ใน Sheet ว่า "Status"
-  if(data.photoUrl) ws.getRange(rowNum, 5).setValue(data.photoUrl);
-  ws.getRange(rowNum, 6).setValue(data.status || 'Active'); // Default Active
-
-  return { success: true };
-}
-
-// เปลี่ยนเป็นฟังก์ชัน "ระงับสิทธิ์" แทนการลบถาวร (Soft Delete)
-function deleteUserDB(email) {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const ws = ss.getSheetByName("DB_Users");
-  const values = ws.getDataRange().getValues();
-  
-  for (let i = 1; i < values.length; i++) {
-    if (values[i][1] == email) {
-      // แทนที่จะลบแถว ให้เปลี่ยนสถานะเป็น Inactive
-      ws.getRange(i + 1, 6).setValue('Inactive'); 
-      return { success: true };
-    }
-  }
-  return { success: false, message: "ไม่พบผู้ใช้งาน" };
-}
-
-// เพิ่มฟังก์ชันนี้ลงใน code.gs
-function getCurrentUserEmail() {
-  // ดึงอีเมลของคนที่กำลังเปิดเว็บอยู่
-  return Session.getActiveUser().getEmail();
 }
 
 function fetchFromSheet() {
@@ -150,35 +58,19 @@ function fetchFromSheet() {
     systemData.currentUser.email = userEmail;
 
     // 1. Users
-    // 1. Users
     var usersSheet = ss.getSheetByName("DB_Users");
     if (usersSheet) {
       var uData = usersSheet.getDataRange().getValues();
       uData.shift(); 
-      
       var foundUser = uData.find(r => r[1] === userEmail);
       if (foundUser) systemData.currentUser = { name: foundUser[0], email: foundUser[1], role: foundUser[2] };
       else systemData.currentUser.name = userEmail;
-
-      // ✅ แก้ตรงนี้: ดึงข้อมูลมาให้ครบทุกช่อง (Name, Email, Role, Team, Photo, Status)
-      systemData.allUsers = uData.map(r => ({ 
-        name: r[0], 
-        email: r[1], 
-        role: r[2], 
-        team: r[3], 
-        photoUrl: r[4], 
-        status: r[5] 
-      }));
-    
+     systemData.allUsers = uData.map(r => ({ name: r[0], role: r[2] }));
     }
 
-    // 2. Projects (ดึงมาครบทุกคอลัมน์)
+    // 2. Projects
     var projectSheet = ss.getSheetByName("DB_Projects");
     if (projectSheet && projectSheet.getLastRow() > 1) {
-      // ดึงข้อมูลทั้งหมดรวมคอลัมน์ใหม่ (A -> P)
-      // A:ID, B:Name, C:Product, D:AE, E:Budget, F:Period, 
-      // G:Content, H:VDO, I:Link, J:Status, K:Billing, 
-      // L:Admin, M:Ads, N:Web, O:Remark, P:Graphic
       var pData = projectSheet.getRange(2, 1, projectSheet.getLastRow() - 1, 16).getValues();
       systemData.projects = pData;
     }
@@ -196,12 +88,11 @@ function fetchFromSheet() {
       });
     }
 
-    // 4. Updates (Chat) - สำคัญสำหรับระบบแจ้งเตือน
+    // 4. Updates
     var updateSheet = ss.getSheetByName("DB_Updates");
     if (updateSheet && updateSheet.getLastRow() > 1) {
-      // ดึงข้อมูลแชททั้งหมด
       var upData = updateSheet.getDataRange().getValues();
-      upData.shift(); // ตัด Header ออก
+      upData.shift();
       systemData.updates = upData;
     }
 
@@ -213,13 +104,109 @@ function fetchFromSheet() {
   return systemData;
 }
 
-// 🧹 ล้าง Cache
+// 🧹 ล้าง Cache (V7)
 function clearCache() {
-  try { CacheService.getScriptCache().remove("SYSTEM_DATA_V5"); } catch(e){}
+  try { 
+    CacheService.getScriptCache().remove("SYSTEM_DATA_V7"); 
+  } catch(e){}
 }
 
 // ==========================================
-// 🛠️ FUNCTION: CREATE PROJECT (อัปเดตใหม่)
+// 👤 USER MANAGEMENT
+// ==========================================
+function checkLoginUser(input) {
+  var ss = SpreadsheetApp.openById(SHEET_ID);
+  var sheet = ss.getSheetByName("DB_Users");
+  var data = sheet.getDataRange().getValues();
+  
+  var searchStr = input.toString().trim().toLowerCase();
+
+  for (var i = 1; i < data.length; i++) {
+    var dbName = data[i][0].toString().trim().toLowerCase();
+    var dbEmail = data[i][1].toString().trim().toLowerCase();
+
+    if ((dbName === searchStr) || (dbEmail === searchStr && dbEmail !== "")) {
+      return {
+        status: true,
+        user: {
+          name: data[i][0],
+          email: data[i][1],
+          role: data[i][2],
+          team: data[i][3]
+        }
+      };
+    }
+  }
+  return { status: false };
+}
+
+function saveUserDB(data) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ws = ss.getSheetByName("DB_Users");
+  const values = ws.getDataRange().getValues();
+  
+  let rowIndex = -1;
+  if (data.originalEmail) {
+    rowIndex = values.findIndex(row => row[1] == data.originalEmail); 
+  }
+  
+  if (rowIndex === -1) {
+     const dupIndex = values.findIndex(row => row[1] == data.email);
+     if (dupIndex !== -1 && !data.originalEmail) {
+       return { success: false, message: "อีเมลนี้มีอยู่ในระบบแล้ว" };
+     }
+     if (rowIndex === -1) rowIndex = values.length; 
+  }
+
+  const rowNum = rowIndex + 1;
+  ws.getRange(rowNum, 1).setValue(data.name);
+  ws.getRange(rowNum, 2).setValue(data.email);
+  ws.getRange(rowNum, 3).setValue(data.role);
+  ws.getRange(rowNum, 4).setValue(data.team);
+  if(data.photoUrl) ws.getRange(rowNum, 5).setValue(data.photoUrl);
+  ws.getRange(rowNum, 6).setValue(data.status || 'Active');
+
+  clearCache(); // ✅ ล้าง Cache
+  return { success: true };
+}
+
+function deleteUserDB(email) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ws = ss.getSheetByName("DB_Users");
+  const values = ws.getDataRange().getValues();
+  
+  for (let i = 1; i < values.length; i++) {
+    if (values[i][1] == email) {
+      ws.getRange(i + 1, 6).setValue('Inactive'); 
+      clearCache(); // ✅ ล้าง Cache
+      return { success: true };
+    }
+  }
+  return { success: false, message: "ไม่พบผู้ใช้งาน" };
+}
+
+function updateUserProfile(data) {
+  var ss = SpreadsheetApp.openById(SHEET_ID);
+  var sheet = ss.getSheetByName("DB_Users");
+  var values = sheet.getDataRange().getValues();
+  
+  for (var i = 1; i < values.length; i++) {
+    if (values[i][1].toString().toLowerCase() === data.email.toLowerCase()) {
+      sheet.getRange(i + 1, 1).setValue(data.name);
+      sheet.getRange(i + 1, 5).setValue(data.photoUrl);
+      clearCache(); // ✅ ล้าง Cache ทันที
+      return true;
+    }
+  }
+  return false;
+}
+
+function getCurrentUserEmail() {
+  return Session.getActiveUser().getEmail();
+}
+
+// ==========================================
+// 🛠️ PROJECT FUNCTIONS
 // ==========================================
 function createProject(data) {
   var ss = SpreadsheetApp.openById(SHEET_ID);
@@ -231,75 +218,181 @@ function createProject(data) {
     newId = "P-" + Math.floor(Math.random() * 10000).toString().padStart(4, '0');
   }
 
-  // ✅ เรียงข้อมูลให้ตรงกับคอลัมน์ใหม่ (A -> P)
   var rowData = [
-    newId,
-    data.customerName,
-    data.product,
-    data.aeOwner,
-    data.budget || "-",
-    data.period || "-",
-    data.targetContent || "0",
-    data.targetVDO || "0",
-    data.sheetLink || "",
-    "Active",  
-    "Pending", 
-    data.targetAdmin || "0",      // Col L
-    data.targetAds || "0",        // Col M
-    data.targetWeb || "0",        // Col N
-    data.remark || "",            // Col O
-    data.targetGraphic || "0"     // Col P
+    newId, data.customerName, data.product, data.aeOwner, data.budget || "-", data.period || "-",
+    data.targetContent || "0", data.targetVDO || "0", data.sheetLink || "", "Active",  "Pending", 
+    data.targetAdmin || "0", data.targetAds || "0", data.targetWeb || "0", data.remark || "", data.targetGraphic || "0"
   ];
 
   sheet.appendRow(rowData);
-  clearCache(); // ล้าง Cache ทันทีที่มีการเพิ่มข้อมูล
+  clearCache(); 
   return rowData;
 }
 
-// ==========================================
-// 💬 FUNCTION: POST UPDATE (Chat & Notify)
-// ==========================================
 function postProjectUpdate(projectId, message, userName, fileData) {
   var fileInfo = uploadFileToDrive(fileData);
-  var newId = "U-" + new Date().getTime(); // Unique ID ตามเวลาจริง (ดีกว่า UUID สำหรับเรียงลำดับ)
+  var newId = "U-" + new Date().getTime();
   var dateStr = Utilities.formatDate(new Date(), "GMT+7", "dd/MM/yyyy HH:mm");
   
-  // บันทึกลง DB_Updates
-  // A:ID, B:ProjectID, C:Date, D:User, E:Message, F:FileName, G:FileURL
   writeToSheet("DB_Updates", [
     newId, projectId, dateStr, userName, message, fileInfo.name, fileInfo.url
   ]);
   
-  clearCache(); // 🧹 สำคัญมาก เพื่อให้คนอื่นเห็นข้อความใหม่ทันที
-  
+  clearCache(); 
   return { id: newId, date: dateStr, fileName: fileInfo.name, fileUrl: fileInfo.url };
 }
 
+function updateProjectStatus(projectId, newStatus) {
+  return updateCell("DB_Projects", projectId, 10, null, newStatus, null);
+}
+
+function updateProjectRemark(projectId, newRemark) {
+  var ss = SpreadsheetApp.openById(SHEET_ID);
+  var sheet = ss.getSheetByName("DB_Projects");
+  var data = sheet.getDataRange().getValues();
+  
+  for (var i = 1; i < data.length; i++) {
+    if (data[i][0] == projectId) {
+      sheet.getRange(i + 1, 15).setValue(newRemark);
+      clearCache(); // ✅ V7
+      return "Success";
+    }
+  }
+  return "Project Not Found";
+}
+
 // ==========================================
-// 🛠️ OTHER FUNCTIONS (Task, Status, File)
+// 📋 TASK & WORKFLOW FUNCTIONS (CORE)
 // ==========================================
 
+// ฟังก์ชันหลัก: บันทึก Content/Task (แก้ไขแล้ว)
+function saveContentTaskDB(data, fileData) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ws = ss.getSheetByName("DB_Tasks");
+  let taskId = data.taskId;
+  let fileUrl = "";
+  let fileName = "";
+
+  if (fileData) {
+    try {
+      var fileInfo = uploadFileToDrive(fileData);
+      fileUrl = fileInfo.url;
+      fileName = fileInfo.name;
+    } catch(e) { }
+  }
+
+  let workflowJson = "";
+  try {
+     var steps = getWorkflowTemplate(data.taskType || 'Content');
+     if (steps && steps.length > 0 && data.roleAssignments) {
+         steps.forEach(step => {
+             if (data.roleAssignments[step.role]) step.assignee = data.roleAssignments[step.role];
+         });
+     }
+     workflowJson = JSON.stringify(steps);
+  } catch(e) { workflowJson = "[]"; }
+
+  if (taskId) {
+    // --- Edit Mode ---
+    var dataRange = ws.getDataRange().getValues();
+    for (var i = 1; i < dataRange.length; i++) {
+      if (dataRange[i][0] == taskId) {
+        ws.getRange(i + 1, 3).setValue(data.taskType);
+        ws.getRange(i + 1, 4).setValue(data.taskName);
+        ws.getRange(i + 1, 5).setValue(data.assignee); 
+        
+        // ✅ ปรับตำแหน่งการเขียนข้อมูล (ข้าม Col L ที่ว่างอยู่)
+        ws.getRange(i + 1, 13).setValue(workflowJson); // Col M
+        ws.getRange(i + 1, 14).setValue(data.pillar);  // Col N
+        ws.getRange(i + 1, 15).setValue(data.mediaType); // Col O
+        ws.getRange(i + 1, 16).setValue(data.remark);    // Col P
+        
+        if (fileUrl) {
+          ws.getRange(i + 1, 10).setValue(fileUrl);
+          ws.getRange(i + 1, 11).setValue(fileName);
+        }
+        break;
+      }
+    }
+  } else {
+    // --- New Mode ---
+    taskId = "T-" + Math.floor(Math.random() * 1000000).toString(16);
+    const newRow = [
+      taskId, data.projectId, data.taskType, data.taskName, data.assignee, 
+      data.status, 0, data.dueDate, "", 
+      fileUrl,     
+      fileName,    
+      "",          // ✅ เว้นว่าง Col L (Index 11)
+      workflowJson,// [Index 12]
+      data.pillar, // [Index 13]
+      data.mediaType, // [Index 14]
+      data.remark  // [Index 15]
+    ];
+    ws.appendRow(newRow);
+  }
+  
+  clearCache(); // ✅ ล้าง V7
+  
+  // ✅ Return Array (Index ตรงกับ Sheet)
+  return [
+      taskId, data.projectId, data.taskType, data.taskName, data.assignee, // [4]
+      data.status, 0, data.dueDate, "", 
+      fileUrl, fileName, 
+      "",           // [11]
+      workflowJson, // [12]
+      data.pillar,  // [13]
+      data.mediaType, // [14]
+      data.remark   // [15]
+  ];
+}
+
+// function createTask(form, fileData) {
+//   var fileInfo = uploadFileToDrive(fileData);
+//   var res = writeToSheet("DB_Tasks", [
+//     "T-" + Utilities.getUuid().slice(0,6),
+//     form.projectId, form.taskType, form.taskName, form.assignee, 
+//     "Pending", 0, form.dueDate, form.briefLink, fileInfo.url, fileInfo.name
+//   ]);
+//   clearCache();
+//   return res;
+// }
+
+// ในไฟล์ code.gs
 function createTask(form, fileData) {
   var fileInfo = uploadFileToDrive(fileData);
+  
+  // สร้าง Workflow JSON (ใส่ลงช่อง 11)
+  var workflowJson = "[]";
+  try {
+     var steps = getWorkflowTemplate(form.taskType); 
+     workflowJson = JSON.stringify(steps);
+  } catch(e) {}
+
   var res = writeToSheet("DB_Tasks", [
-    "T-" + Utilities.getUuid().slice(0,6),
-    form.projectId, form.taskType, form.taskName, form.assignee, 
-    "Pending", 0, form.dueDate, form.briefLink, fileInfo.url, fileInfo.name
+    "T-" + Utilities.getUuid().slice(0,6), // [0] Task_ID
+    form.projectId,                        // [1] Ref_Project_ID
+    form.taskType,                         // [2] Task_Type
+    form.taskName,                         // [3] Task_Name
+    form.assignee,                         // [4] Assignee
+    "Pending",                             // [5] Status
+    0,                                     // [6] Progress_Pct
+    form.dueDate,                          // [7] Due_Date
+    form.briefLink,                        // [8] Brief_Link
+    fileInfo.url,                          // [9] Brief_File_URL
+    fileInfo.name,                         // [10] Brief_File_Name
+    workflowJson,                          // [11] Workflow_JSON (ตรงกับ Col L)
+    form.pillar,                           // [12] Content_Pillar (ตรงกับ Col M)
+    form.mediaType,                        // [13] Media_Type (ตรงกับ Col N)
+    ""                                     // [14] Remark (ตรงกับ Col O)
   ]);
+  
   clearCache();
   return res;
 }
-
 function updateTaskProgress(taskId, newStatus, newProgress) {
   return updateCell("DB_Tasks", taskId, 6, 7, newStatus, newProgress);
 }
 
-function updateProjectStatus(projectId, newStatus) {
-  // Col J = Index 10 (ถ้า A=1)
-  return updateCell("DB_Projects", projectId, 10, null, newStatus, null);
-}
-
-// แก้ไข: รับ parameter stepIndex เพิ่ม
 function updateTaskRevision(taskId, newDueDate, newLink, fileData, stepIndex) {
   var ss = SpreadsheetApp.openById(SHEET_ID);
   var sheet = ss.getSheetByName("DB_Tasks");
@@ -310,8 +403,7 @@ function updateTaskRevision(taskId, newDueDate, newLink, fileData, stepIndex) {
   for (var i = 1; i < data.length; i++) {
     if (data[i][0] == taskId) {
       
-      // 1. อัปเดตข้อมูลทั่วไป
-      sheet.getRange(i + 1, 6).setValue("Revise"); // Status หลัก = Revise
+      sheet.getRange(i + 1, 6).setValue("Revise"); 
       if (newDueDate) sheet.getRange(i + 1, 8).setValue(newDueDate);
       if (newLink) sheet.getRange(i + 1, 9).setValue(newLink);
       if (fileInfo.url) {
@@ -319,126 +411,103 @@ function updateTaskRevision(taskId, newDueDate, newLink, fileData, stepIndex) {
         sheet.getRange(i + 1, 11).setValue(fileInfo.name);
       }
 
-      // 2. ✅ เพิ่มส่วนนี้: จัดการ Workflow และเปลี่ยน Assignee ตามขั้นตอนที่เลือก
-      var jsonStr = data[i][12]; // Col M (Workflow JSON)
+      var jsonStr = data[i][12]; // Col M
       var steps = [];
       try { steps = jsonStr ? JSON.parse(jsonStr) : []; } catch(e) {}
       
       var newAssignee = null;
       var updatedWorkflow = null;
 
-      // ตรวจสอบว่ามีขั้นตอนที่เลือกส่งมาหรือไม่
       if (steps.length > 0 && stepIndex != null && stepIndex != -1 && steps[stepIndex]) {
-          // เปลี่ยนสถานะขั้นตอนนี้กลับเป็น 'doing' เพื่อให้ขึ้นสีฟ้า/เหลือง
           steps[stepIndex].status = 'doing';
-          
-          // ดึงชื่อคนรับผิดชอบในขั้นตอนนี้
           var targetUser = steps[stepIndex].assignee;
-          
-          // ถ้ามีคนรับผิดชอบ ให้เปลี่ยน Assignee หลักของงาน (Col E / Index 4) เป็นคนนั้น
           if (targetUser && targetUser !== 'Unassigned') {
               sheet.getRange(i + 1, 5).setValue(targetUser);
               newAssignee = targetUser;
           }
-
-          // บันทึก Workflow JSON ใหม่ลงฐานข้อมูล (Col M / Index 12)
           updatedWorkflow = JSON.stringify(steps);
-          sheet.getRange(i + 1, 13).setValue(updatedWorkflow);
+          sheet.getRange(i + 1, 13).setValue(updatedWorkflow); // Col M
       }
 
-      clearCache();
+      clearCache(); // ✅ ล้าง V7
       
-      // ส่งค่ากลับไปหน้าเว็บ
       return { 
           status: "Success", 
           fileUrl: fileInfo.url, 
           fileName: fileInfo.name,
-          updatedWorkflow: updatedWorkflow, // ส่ง JSON ใหม่กลับไป
-          newAssignee: newAssignee // ส่งชื่อคนรับผิดชอบใหม่กลับไป
+          updatedWorkflow: updatedWorkflow,
+          newAssignee: newAssignee
       };
     }
   }
   return { status: "Task Not Found" };
 }
 
-// Helper: Write to Sheet
-function writeToSheet(sheetName, rowData) {
+function updateTaskWorkflowStatus(taskId, stepIndex) {
   var ss = SpreadsheetApp.openById(SHEET_ID);
-  var sheet = ss.getSheetByName(sheetName);
-  if (!sheet) throw new Error("ไม่พบแท็บ " + sheetName);
-  sheet.appendRow(rowData);
-  return rowData;
-}
-
-// Helper: Update Cell
-function updateCell(sheetName, id, colIndex1, colIndex2, val1, val2) {
-  var ss = SpreadsheetApp.openById(SHEET_ID);
-  var sheet = ss.getSheetByName(sheetName);
-  var data = sheet.getDataRange().getValues();
-  for (var i = 1; i < data.length; i++) {
-    if (data[i][0] == id) {
-      sheet.getRange(i + 1, colIndex1).setValue(val1);
-      if(colIndex2) sheet.getRange(i + 1, colIndex2).setValue(val2);
-      clearCache();
-      return "Success";
-    }
-  }
-}
-
-// Helper: Upload File
-function uploadFileToDrive(fileData) {
-  if (!fileData) return { name: "", url: "" };
-  try {
-    var folderName = "Project_Uploads";
-    var folders = DriveApp.getFoldersByName(folderName);
-    var folder = folders.hasNext() ? folders.next() : DriveApp.createFolder(folderName);
-    
-    var blob = Utilities.newBlob(Utilities.base64Decode(fileData.data), fileData.mimeType, fileData.name);
-    var file = folder.createFile(blob);
-    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-    
-    // Check Image or File
-    var fileUrl = file.getMimeType().startsWith("image/") 
-                  ? "https://drive.google.com/thumbnail?sz=w1000&id=" + file.getId() 
-                  : file.getUrl();
-
-    return { name: fileData.name, url: fileUrl };
-  } catch (e) { return { name: "Error Uploading", url: "" }; }
-}
-
-
-// ==========================================
-// 📝 FUNCTION: UPDATE REMARK
-// ==========================================
-function updateProjectRemark(projectId, newRemark) {
-  var ss = SpreadsheetApp.openById(SHEET_ID);
-  var sheet = ss.getSheetByName("DB_Projects");
+  var sheet = ss.getSheetByName("DB_Tasks");
   var data = sheet.getDataRange().getValues();
   
-  // ค้นหาแถวที่ตรงกับ Project ID
   for (var i = 1; i < data.length; i++) {
-    if (data[i][0] == projectId) {
-      // Column O คือคอลัมน์ที่ 15
-      sheet.getRange(i + 1, 15).setValue(newRemark);
+    if (data[i][0] == taskId) {
+      var taskType = data[i][2];
+      var jsonStr = data[i][12]; // Col M
       
-      // ล้าง Cache เพื่อให้หน้าเว็บเห็นข้อมูลใหม่ทันที
-      try { CacheService.getScriptCache().remove("SYSTEM_DATA_V5"); } catch(e){}
+      var steps = [];
+      try { steps = jsonStr ? JSON.parse(jsonStr) : []; } catch(e) { steps = []; }
+      if (steps.length === 0) steps = getWorkflowTemplate(taskType);
       
-      return "Success";
+      if (steps[stepIndex]) {
+         var current = steps[stepIndex].status || 'pending';
+         steps[stepIndex].status = (current === 'pending') ? 'doing' : (current === 'doing' ? 'done' : 'pending');
+      }
+
+      var allDone = steps.every(s => s.status === 'done');
+      var anyDoing = steps.some(s => s.status === 'doing' || s.status === 'done');
+      var newMainStatus = allDone ? 'Done' : (anyDoing ? 'In Progress' : 'Pending');
+
+      var newJson = JSON.stringify(steps);
+      sheet.getRange(i + 1, 13).setValue(newJson); // Col M
+      sheet.getRange(i + 1, 6).setValue(newMainStatus);
+      
+      clearCache(); // ✅ ล้าง V7
+      
+      return { taskType: taskType, workflowJson: newJson, newMainStatus: newMainStatus };
     }
   }
-  return "Project Not Found";
+  return null;
 }
 
+function updateTaskWorkflowAssignee(taskId, stepIndex, newName, newDate, newDetails) {
+  var ss = SpreadsheetApp.openById(SHEET_ID);
+  var sheet = ss.getSheetByName("DB_Tasks");
+  var data = sheet.getDataRange().getValues();
+  
+  for (var i = 1; i < data.length; i++) {
+    if (data[i][0] == taskId) {
+      var taskType = data[i][2];
+      var jsonStr = data[i][12]; // Col M
+      
+      var steps = [];
+      try { steps = jsonStr ? JSON.parse(jsonStr) : []; } catch(e) { steps = []; }
+      if (steps.length === 0) steps = getWorkflowTemplate(taskType);
+      
+      if (steps[stepIndex]) {
+         steps[stepIndex].assignee = newName;
+         steps[stepIndex].dueDate = newDate || "";
+         steps[stepIndex].details = newDetails || "";
 
+         var newJson = JSON.stringify(steps);
+         sheet.getRange(i + 1, 13).setValue(newJson); // Col M
+         
+         clearCache(); // ✅ ล้าง V7
+         return { taskType: taskType, workflowJson: newJson };
+      }
+    }
+  }
+  return null;
+}
 
-
-
-// ==========================================
-// 🔄 WORKFLOW FUNCTIONS (ฉบับ Auto-Init)
-// ==========================================
-
-// Helper: สร้าง Template เริ่มต้นถ้าไม่มีข้อมูล
 function getWorkflowTemplate(type) {
   var templates = {
     'VDO': [
@@ -472,225 +541,73 @@ function getWorkflowTemplate(type) {
 }
 
 // ==========================================
-// 🔄 WORKFLOW FUNCTIONS (Update Status)
+// 🛠️ HELPER FUNCTIONS
 // ==========================================
-
-// ในไฟล์ code.gs
-
-function updateTaskWorkflowStatus(taskId, stepIndex) {
+function writeToSheet(sheetName, rowData) {
   var ss = SpreadsheetApp.openById(SHEET_ID);
-  var sheet = ss.getSheetByName("DB_Tasks");
-  var data = sheet.getDataRange().getValues();
-  
-  for (var i = 1; i < data.length; i++) {
-    if (data[i][0] == taskId) {
-      var taskType = data[i][2];
-      var jsonStr = data[i][12]; // Col M
-      
-      var steps = [];
-      try { steps = jsonStr ? JSON.parse(jsonStr) : []; } catch(e) { steps = []; }
-      
-      if (steps.length === 0) steps = getWorkflowTemplate(taskType);
-      
-      // 1. อัปเดตสถานะของขั้นตอนย่อยที่กด
-      if (steps[stepIndex]) {
-         var current = steps[stepIndex].status || 'pending';
-         // วนลูป: pending -> doing -> done -> pending
-         steps[stepIndex].status = (current === 'pending') ? 'doing' : (current === 'doing' ? 'done' : 'pending');
-      }
-
-      // =======================================================
-      // ✅ ส่วนที่เพิ่ม: ตรวจสอบและเปลี่ยนสถานะงานหลักอัตโนมัติ
-      // =======================================================
-      var allDone = steps.every(function(s) { return s.status === 'done'; });
-      var anyDoing = steps.some(function(s) { return s.status === 'doing' || s.status === 'done'; });
-
-      var newMainStatus = data[i][5]; // ค่าเดิม
-
-      if (allDone) {
-        newMainStatus = 'Done';        // ถ้าเสร็จครบทุกข้อ -> Done
-      } else if (anyDoing) {
-        newMainStatus = 'In Progress'; // ถ้าเริ่มทำบางข้อ -> In Progress
-      } else {
-        newMainStatus = 'Pending';     // ถ้ายังไม่ทำอะไรเลย -> Pending
-      }
-
-      // 2. บันทึก Workflow JSON
-      var newJson = JSON.stringify(steps);
-      sheet.getRange(i + 1, 13).setValue(newJson); 
-
-      // 3. ✅ บันทึกสถานะงานหลักลง Database (Col F = Index 6)
-      sheet.getRange(i + 1, 6).setValue(newMainStatus);
-      // =======================================================
-      
-     try { CacheService.getScriptCache().remove("SYSTEM_DATA_V6"); } catch(e){}
-      
-      // ส่งค่ากลับไปบอกหน้าเว็บ
-      return { 
-        taskType: taskType, 
-        workflowJson: newJson, 
-        newMainStatus: newMainStatus // ✅ ส่งค่าสถานะใหม่กลับไปด้วย
-      };
-    }
-  }
-  return null;
+  var sheet = ss.getSheetByName(sheetName);
+  if (!sheet) throw new Error("ไม่พบแท็บ " + sheetName);
+  sheet.appendRow(rowData);
+  return rowData;
 }
 
-// 2. อัปเดตคนรับผิดชอบ (ถ้าไม่มีข้อมูล จะสร้างให้ก่อน)
-// แก้ไขบรรทัดรับค่า function ให้รับ newDate, newDetails เพิ่ม
-function updateTaskWorkflowAssignee(taskId, stepIndex, newName, newDate, newDetails) {
+function updateCell(sheetName, id, colIndex1, colIndex2, val1, val2) {
+  var ss = SpreadsheetApp.openById(SHEET_ID);
+  var sheet = ss.getSheetByName(sheetName);
+  var data = sheet.getDataRange().getValues();
+  for (var i = 1; i < data.length; i++) {
+    if (data[i][0] == id) {
+      sheet.getRange(i + 1, colIndex1).setValue(val1);
+      if(colIndex2) sheet.getRange(i + 1, colIndex2).setValue(val2);
+      clearCache(); // ✅ ล้าง V7
+      return "Success";
+    }
+  }
+}
+
+function uploadFileToDrive(fileData) {
+  if (!fileData) return { name: "", url: "" };
+  try {
+    var folderName = "Project_Uploads";
+    var folders = DriveApp.getFoldersByName(folderName);
+    var folder = folders.hasNext() ? folders.next() : DriveApp.createFolder(folderName);
+    
+    var blob = Utilities.newBlob(Utilities.base64Decode(fileData.data), fileData.mimeType, fileData.name);
+    var file = folder.createFile(blob);
+    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    
+    var fileUrl = file.getMimeType().startsWith("image/") 
+                  ? "https://drive.google.com/thumbnail?sz=w1000&id=" + file.getId() 
+                  : file.getUrl();
+
+    return { name: fileData.name, url: fileUrl };
+  } catch (e) { return { name: "Error Uploading", url: "" }; }
+}
+
+
+// --- เพิ่มต่อท้ายในไฟล์ code.gs ---
+
+// ⚡️ ฟังก์ชันดึงข้อมูล Task รายตัว (ไม่ผ่าน Cache)
+function getTaskById(taskId) {
   var ss = SpreadsheetApp.openById(SHEET_ID);
   var sheet = ss.getSheetByName("DB_Tasks");
   var data = sheet.getDataRange().getValues();
   
+  // ค้นหาแถวที่ตรงกับ Task ID
   for (var i = 1; i < data.length; i++) {
     if (data[i][0] == taskId) {
-      var taskType = data[i][2];
-      var jsonStr = data[i][12]; // Col M
-      
-      var steps = [];
-      try { steps = jsonStr ? JSON.parse(jsonStr) : []; } catch(e) { steps = []; }
-      
-      if (steps.length === 0) {
-        steps = getWorkflowTemplate(taskType);
-      }
-      
-      if (steps[stepIndex]) {
-         steps[stepIndex].assignee = newName;
-         
-         // ✅ บันทึกค่าใหม่ลงไปใน Object
-         steps[stepIndex].dueDate = newDate || "";
-         steps[stepIndex].details = newDetails || "";
-
-         var newJson = JSON.stringify(steps);
-         sheet.getRange(i + 1, 13).setValue(newJson);
-         
-         try { CacheService.getScriptCache().remove("SYSTEM_DATA_V5"); } catch(e){}
-         
-         return { taskType: taskType, workflowJson: newJson };
-      }
+       var row = data[i];
+       
+       // แปลงวันที่ให้เป็น Format ที่ถูกต้อง
+       if (row[7] && Object.prototype.toString.call(row[7]) === '[object Date]') {
+           row[7] = Utilities.formatDate(row[7], "GMT+7", "yyyy-MM-dd");
+       }
+       
+       // ส่งกลับข้อมูลแถวนั้นทั้งแถว
+       return row;
     }
   }
-  return null;
+  return null; // ไม่พบข้อมูล
 }
 
 function forceAuth() { DriveApp.getRootFolder(); }
-
-// ในไฟล์ code.gs ค้นหาฟังก์ชัน saveContentTaskDB
-
-function saveContentTaskDB(data, fileData) {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const ws = ss.getSheetByName("DB_Tasks");
-  
-  let taskId = data.taskId;
-  let fileUrl = "";
-  let fileName = "";
-
-  // 1. อัปโหลดไฟล์ (ถ้ามี)
-  if (fileData) {
-    try {
-      var fileInfo = uploadFileToDrive(fileData); 
-      fileUrl = fileInfo.url;
-      fileName = fileInfo.name;
-    } catch(e) { }
-  }
-
-  // ============================================================
-  // ✅ ส่วนที่ปรับปรุง: สร้าง Workflow ตามตำแหน่งที่ระบุมา
-  // ============================================================
-  let workflowJson = "";
-  try {
-     // ดึง Template ตามประเภทงาน (Content, Graphic, VDO)
-     var steps = getWorkflowTemplate(data.taskType || 'Content'); 
-     
-     // ถ้ามีข้อมูลการมอบหมายตำแหน่งส่งมา (roleAssignments)
-     if (steps && steps.length > 0 && data.roleAssignments) {
-         steps.forEach(step => {
-             // ถ้ามีชื่อคนรับผิดชอบใน Role นี้ ให้ใส่ชื่อคนนั้น
-             if (data.roleAssignments[step.role]) {
-                 step.assignee = data.roleAssignments[step.role];
-                 // (Optional) ถ้าอยากให้เริ่มงานเลยเฉพาะคนแรก
-                 // if (step === steps[0]) step.status = 'doing'; 
-             }
-         });
-     }
-     workflowJson = JSON.stringify(steps);
-  } catch(e) { workflowJson = "[]"; }
-  // ============================================================
-
-  // 3. บันทึกลง Sheet
-  if (taskId) {
-    // --- กรณีแก้ไข (Edit) ---
-    var dataRange = ws.getDataRange().getValues();
-    for (var i = 1; i < dataRange.length; i++) {
-      if (dataRange[i][0] == taskId) {
-        ws.getRange(i + 1, 3).setValue(data.taskType); // Col C: Task Type (เผื่อเปลี่ยน)
-        ws.getRange(i + 1, 4).setValue(data.taskName);
-        ws.getRange(i + 1, 5).setValue(data.mainAssignee); // ผู้รับผิดชอบหลัก
-        
-        // อัปเดต Workflow ใหม่ (ทับของเดิมเพื่อให้คนรับผิดชอบเปลี่ยนตาม)
-        ws.getRange(i + 1, 13).setValue(workflowJson); 
-        
-        ws.getRange(i + 1, 14).setValue(data.pillar);   
-        ws.getRange(i + 1, 15).setValue(data.mediaType);
-        ws.getRange(i + 1, 16).setValue(data.remark);   
-        
-        if (fileUrl) {
-          ws.getRange(i + 1, 10).setValue(fileUrl);
-          ws.getRange(i + 1, 11).setValue(fileName);
-        }
-        break;
-      }
-    }
-  } else {
-    // --- กรณีสร้างใหม่ (New) ---
-    taskId = "T-" + Math.floor(Math.random() * 1000000).toString(16);
-    const newRow = [
-      taskId,
-      data.projectId,
-      data.taskType,   // ✅ ใช้ Type ที่ส่งมา (Content/Graphic/VDO)
-      data.taskName,
-      data.mainAssignee, // ✅ ผู้รับผิดชอบหลัก
-      data.status,
-      0,
-      data.dueDate,
-      "",
-      fileUrl,
-      fileName,
-      workflowJson,    // ✅ Workflow ที่ระบุคนแล้ว
-      "",
-      data.pillar,
-      data.mediaType,
-      data.remark
-    ];
-    ws.appendRow(newRow);
-  }
-  
-  return [
-      taskId, data.projectId, data.taskType, data.taskName, 
-      data.mainAssignee, data.status, 0, data.dueDate, "", 
-      fileUrl, fileName, workflowJson, 
-      "", data.pillar, data.mediaType, data.remark
-  ];
-}
-
-function updateUserProfile(data) {
-  var ss = SpreadsheetApp.openById(SHEET_ID); // หรือ SpreadsheetApp.getActiveSpreadsheet();
-  var sheet = ss.getSheetByName("DB_Users");
-  var values = sheet.getDataRange().getValues();
-  
-  // ค้นหาแถวของผู้ใช้จาก Email (Column B -> Index 1)
-  for (var i = 1; i < values.length; i++) {
-    if (values[i][1].toString().toLowerCase() === data.email.toLowerCase()) {
-      // อัปเดตชื่อ (Column A -> แถว i+1, คอลัมน์ 1)
-      sheet.getRange(i + 1, 1).setValue(data.name);
-      
-      // อัปเดตรูปภาพ (Column E -> แถว i+1, คอลัมน์ 5)
-      // *ต้องมั่นใจว่าสร้างคอลัมน์ E ไว้แล้ว*
-      sheet.getRange(i + 1, 5).setValue(data.photoUrl);
-      
-      return true; // สำเร็จ
-    }
-  }
-  return false; // ไม่พบผู้ใช้
-}
