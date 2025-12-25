@@ -1032,8 +1032,13 @@
       <div class="notification-bell" onclick="alert('ไม่มีการแจ้งเตือนเพิ่มเติม')">
         <i class="fas fa-bell"></i> <span class="notification-badge" id="noti-badge">0</span>
       </div>
-      <a id="detail-sheet-link" href="#" target="_blank" class="btn btn-custom btn-sm rounded-pill px-3"
-        style="font-size:0.8rem;"><i class="fas fa-table me-1"></i> Sheet</a>
+<a id="detail-sheet-link" 
+   href="javascript:void(0)" 
+   target="_blank" 
+   class="btn btn-light text-muted btn-sm rounded-pill px-3" 
+   style="font-size:0.8rem;">
+    <i class="fas fa-table me-1"></i> Sheet
+</a>
     </div>
   </div>
 
@@ -1653,9 +1658,7 @@ function openProjectDetail(pid) {
     // 3. กรองงาน (Tasks) ทั้งหมดของโปรเจกต์นี้รอไว้
     const tasks = globalData.tasks.filter(x => x[1] === pid);
 
-    // ==========================================
-    // 4. อัปเดตข้อมูลบนหน้าจอ (UI Updating)
-    // ==========================================
+    
     
     // 4.1 Header & Status
     if(document.getElementById('detail-title')) document.getElementById('detail-title').innerText = p[1]; // Project Name
@@ -1667,19 +1670,30 @@ function openProjectDetail(pid) {
         statusBadge.className = `badge ${p[9]==='Active'?'bg-success':(p[9]==='Hold'?'bg-warning text-dark':(p[9]==='Completed'?'bg-secondary':'bg-light text-dark border'))}`;
     }
 
-    // 4.2 Link Google Sheet
-    const sheetLink = document.getElementById('detail-sheet-link');
-    if(sheetLink) {
-        if(p[8]) {
-            sheetLink.href = p[8];
-            sheetLink.classList.remove('disabled');
-        } else {
-            sheetLink.href = '#';
-            sheetLink.classList.add('disabled');
-        }
-    }
 
-    // 4.3 Metrics (งบประมาณ / ระยะเวลา / AE)
+// ✅ วิธีที่ง่ายที่สุด: ยัด URL ใส่ href โดยตรง
+const sheetLinkBtn = document.getElementById('detail-sheet-link');
+if (sheetLinkBtn) {
+    const p = globalData.projects.find(x => x[0] === pid);
+    const sheetUrl = p[8]; // ดึงจากคอลัมน์ที่ 9 ของตาราง Projects (Index 8)
+
+    if (sheetUrl && sheetUrl.toString().startsWith('http')) {
+        // ถ้ามีลิงก์: เปลี่ยนสีปุ่มและใส่ลิงก์จริง
+        sheetLinkBtn.href = sheetUrl.trim();
+        sheetLinkBtn.classList.remove('btn-light', 'text-muted');
+        sheetLinkBtn.classList.add('btn-custom');
+        sheetLinkBtn.onclick = null; // ปล่อยให้เบราว์เซอร์เปิดแท็บใหม่เอง
+    } else {
+        // ถ้าไม่มีลิงก์: ทำเป็นสีเทาและแจ้งเตือน
+        sheetLinkBtn.href = "javascript:void(0)";
+        sheetLinkBtn.classList.remove('btn-custom');
+        sheetLinkBtn.classList.add('btn-light', 'text-muted');
+        sheetLinkBtn.onclick = function() {
+            alert("โปรเจกต์นี้ยังไม่ได้ระบุลิงก์ Google Sheet");
+            return false;
+        };
+    }
+}
     if(document.getElementById('info-budget')) document.getElementById('info-budget').innerText = p[4] || '-';
     if(document.getElementById('info-period')) document.getElementById('info-period').innerText = p[5] || '-';
     if(document.getElementById('info-ae')) document.getElementById('info-ae').innerText = p[3] || '-';
